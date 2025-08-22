@@ -1,2 +1,4 @@
-export { default as FruitNameField } from "./FruitNameField"
-export * from "./FruitNameField"
+export {
+  default as FruitNameField,
+  type FruitNameFieldProps,
+} from "./FruitNameField"
