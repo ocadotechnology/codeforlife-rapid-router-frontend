@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom"
+import { Route } from "react-router"
 
 import FruitDetail from "../pages/fruitDetail/FruitDetail"
 import FruitList from "../pages/fruitList/FruitList"
