@@ -41,16 +41,16 @@ const MOCK_DRAWER_ITEMS = [
 ]
 
 const Level: FC<LevelProps> = () => {
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false)
   const [level] = useState<LevelState>({ panels: 2 })
-  const handleDrawerClose = () => {
-    setDrawerOpen(!drawerOpen)
+  const handleToggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen)
   }
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
     children: () => (
       <pages.Page>
-        <MiniDrawer open={drawerOpen} onToggle={handleDrawerClose}>
+        <MiniDrawer open={isDrawerOpen} onToggle={handleToggleDrawer}>
           <List>
             {MOCK_DRAWER_ITEMS.map(({ text, icon }) => (
               <ListItem key={text} disablePadding sx={{ display: "block" }}>
@@ -60,7 +60,7 @@ const Level: FC<LevelProps> = () => {
                       minHeight: 48,
                       px: 2.5,
                     },
-                    drawerOpen
+                    isDrawerOpen
                       ? {
                           justifyContent: "initial",
                         }
@@ -75,7 +75,7 @@ const Level: FC<LevelProps> = () => {
                         minWidth: 0,
                         justifyContent: "center",
                       },
-                      drawerOpen
+                      isDrawerOpen
                         ? {
                             mr: 3,
                           }
@@ -89,7 +89,7 @@ const Level: FC<LevelProps> = () => {
                   <ListItemText
                     primary={text}
                     sx={[
-                      drawerOpen
+                      isDrawerOpen
                         ? {
                             opacity: 1,
                           }

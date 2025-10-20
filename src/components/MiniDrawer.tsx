@@ -8,10 +8,10 @@ import {
 import { ChevronLeft, Menu } from "@mui/icons-material"
 import { type FC, type ReactNode } from "react"
 
-const drawerWidth = 240
+const DRAWER_WIDTH = 240
 
 const openedMixin = (theme: Theme): CSSObject => ({
-  width: drawerWidth,
+  width: DRAWER_WIDTH,
   transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
@@ -45,7 +45,7 @@ const MiniDrawer: FC<MiniDrawerProps> = props => {
       open={open}
       sx={theme => {
         const base: CSSObject = {
-          width: drawerWidth,
+          width: DRAWER_WIDTH,
           flexShrink: 0,
           whiteSpace: "nowrap",
           boxSizing: "border-box",
