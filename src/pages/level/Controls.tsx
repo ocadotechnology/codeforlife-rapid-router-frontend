@@ -20,23 +20,7 @@ import {
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
 
-export interface MiniDrawerItem {
-  icon: ReactNode
-  text: string
-}
-
 export interface ControlsProps {}
-
-export interface MiniDrawerListProps {
-  isDrawerOpen: boolean
-  items: MiniDrawerItem[]
-}
-
-export interface MiniDrawerProps {
-  open: boolean
-  children: ReactNode
-  onToggle: () => void
-}
 
 const DRAWER_WIDTH = 240
 
@@ -59,7 +43,11 @@ const closedMixin = (theme: Theme): CSSObject => ({
   },
 })
 
-const MiniDrawer: FC<MiniDrawerProps> = ({ open, onToggle, children }) => (
+const MiniDrawer: FC<{
+  open: boolean
+  children: ReactNode
+  onToggle: () => void
+}> = ({ open, onToggle, children }) => (
   <Drawer
     variant="permanent"
     open={open}
@@ -106,7 +94,13 @@ const MiniDrawer: FC<MiniDrawerProps> = ({ open, onToggle, children }) => (
   </Drawer>
 )
 
-const MiniDrawerList: FC<MiniDrawerListProps> = ({ items, isDrawerOpen }) => {
+const MiniDrawerList: FC<{
+  isDrawerOpen: boolean
+  items: Array<{
+    icon: ReactNode
+    text: string
+  }>
+}> = ({ items, isDrawerOpen }) => {
   return (
     <List>
       {items.map(({ text, icon }) => (
