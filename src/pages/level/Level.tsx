@@ -1,10 +1,9 @@
 import * as yup from "yup"
-
 import { Box, Typography } from "@mui/material"
 import { type FC, useState } from "react"
 import { useParamsRequired } from "codeforlife/hooks"
 
-import LevelMiniDrawer from "./MiniDrawer"
+import Controls from "./Controls"
 import { paths } from "../../routes"
 
 export interface LevelProps {}
@@ -20,7 +19,7 @@ const Level: FC<LevelProps> = () => {
     shape: { id: yup.number().required().min(1) },
     children: () => (
       <Box sx={{ display: "flex" }}>
-        <LevelMiniDrawer />
+        <Controls />
         <Box component="main" sx={{ flexGrow: 1 }}>
           <Typography>Level state: {JSON.stringify(level)}</Typography>
         </Box>
