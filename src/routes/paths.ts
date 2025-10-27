@@ -1,10 +1,9 @@
 import { path as _ } from "codeforlife/utils/router"
 
 const paths = _("", {
-  fruits: _("/fruits", {
+  level: _("/level", {
     id: _("/:id"),
   }),
-  level: _("/level/:id"),
 })
 
 export default paths

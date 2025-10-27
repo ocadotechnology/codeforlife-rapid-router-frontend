@@ -5,7 +5,7 @@ import paths from "./paths"
 
 const level = (
   <>
-    <Route path={paths.level._} element={<Level />} />
+    <Route path={paths.level.id._} element={<Level />} />
   </>
 )
 
