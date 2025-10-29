@@ -5,10 +5,11 @@ import { makeStore } from "codeforlife/utils/store"
 import { sessionSlice } from "codeforlife/slices"
 
 import api from "../api"
+import settingsSlice from "./slices/settings"
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
-const reducer = combineSlices(api, sessionSlice)
+const reducer = combineSlices(api, settingsSlice, sessionSlice)
 
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof reducer>
