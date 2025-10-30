@@ -5,6 +5,7 @@ import { makeStore } from "codeforlife/utils/store"
 import { sessionSlice } from "codeforlife/slices"
 
 import api from "../api"
+import { settingsCookiePersistenceMiddleware } from "./middlewares"
 import settingsSlice from "./slices/settings"
 
 // `combineSlices` automatically combines the reducers using
@@ -18,7 +19,11 @@ export type RootState = ReturnType<typeof reducer>
 // https://redux-toolkit.js.org/rtk-query/usage/error-handling#handling-errors-at-a-macro-level
 const store = makeStore({
   reducer,
-  middlewares: [api.middleware, logoutMiddleware],
+  middlewares: [
+    api.middleware,
+    logoutMiddleware,
+    settingsCookiePersistenceMiddleware,
+  ],
 })
 
 export default store
