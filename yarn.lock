@@ -1764,10 +1764,10 @@ clsx@^2.1.1:
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
 
-codeforlife@2.11.5:
-  version "2.11.5"
-  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.11.5.tgz#a8abbfad9ae56ad61b15ee0c5e32ab9e3e4f764c"
-  integrity sha512-TdVLXvB1FbzZvXd0f5x2L5FnaqKAbqTpuh9QB5p7pHiv4OdSp5SAAJ82xPZKUO+S9/ORdcNTy/JH0reR+YI6Nw==
+codeforlife@2.12.2:
+  version "2.12.2"
+  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.12.2.tgz#a701f2980f5895be68945481795ad9e1f09439bd"
+  integrity sha512-UOZCUh2PFNs+pTeLm14UCv8FqfCO7BUNCkTxDFOrt6dJ7NnsWrUzdCgWfGvwHbetth9oixINcfuBblyQc54bGg==
   dependencies:
     "@emotion/cache" "11.14.0"
     "@emotion/react" "11.12.0"
