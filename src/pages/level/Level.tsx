@@ -5,6 +5,7 @@ import { useParamsRequired } from "codeforlife/hooks"
 
 import Controls from "./Controls"
 import { paths } from "../../routes"
+import { useSettings } from "../../app/hooks"
 
 export interface LevelProps {}
 
@@ -13,7 +14,11 @@ interface LevelState {
 }
 
 const Level: FC<LevelProps> = () => {
-  const [level] = useState<LevelState>({ panels: 2 })
+  const [level] = useState<LevelState>({
+    panels: 2,
+  })
+
+  const settings = useSettings()
 
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
@@ -21,6 +26,7 @@ const Level: FC<LevelProps> = () => {
       <Box sx={{ display: "flex" }}>
         <Controls />
         <Box component="main" sx={{ flexGrow: 1 }}>
+          <Typography>Settings: {JSON.stringify(settings)}</Typography>
           <Typography>Level state: {JSON.stringify(level)}</Typography>
         </Box>
       </Box>
