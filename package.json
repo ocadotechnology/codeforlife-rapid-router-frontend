@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "codeforlife": "2.12.2",
-    "react-resizable-panels": "^3.0.6"
+    "react-resizable-panels": "3.0.6"
   },
   "devDependencies": {
     "@codeforlife/workspace": "link:.workspace/frontend"
