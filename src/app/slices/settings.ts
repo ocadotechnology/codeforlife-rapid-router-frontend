@@ -1,7 +1,7 @@
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "codeforlife/slices"
 
-import { getSettingFromCookies } from "../util"
+import { getSettingCookie } from "../utils"
 
 export type TwoPanelLayout = "auto" | "vertical" | "horizontal"
 export type ThreePanelLayout =
@@ -20,14 +20,9 @@ const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   threePanelLayout: "auto",
 })
 
-const cookiesSettings = getSettingFromCookies()
-const initialState = cookiesSettings ? cookiesSettings : DEFAULT_SETTINGS
-
-// [!] This slice has additional side effects in
-// `settings-cookie-persistence` middleware
 const settingsSlice = createSlice({
   name: "settings",
-  initialState,
+  initialState: getSettingCookie() ?? DEFAULT_SETTINGS,
   reducers: create => ({
     setTwoPanelLayout: create.reducer(
       (state, action: PayloadAction<TwoPanelLayout>) => {
