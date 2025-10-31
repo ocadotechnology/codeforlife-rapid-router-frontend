@@ -1,9 +1,9 @@
 import Cookies from "js-cookie"
-
 import { SERVICE_NAME } from "codeforlife/settings"
+
 import { type SettingsState } from "../slices"
 
-export function getSettingCookie() {
+export function getSettingsCookie() {
   const settingsCookie = Cookies.get(SERVICE_NAME)
   if (settingsCookie === undefined) return settingsCookie
 
