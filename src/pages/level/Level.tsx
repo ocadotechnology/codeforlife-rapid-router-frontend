@@ -32,6 +32,7 @@ const Level: FC<LevelProps> = () => {
       <Box sx={{ display: "flex" }}>
         <Controls />
         <Box component="main" sx={{ flexGrow: 1 }}>
+          {/* TODO: fix style */}
           <PanelGroup
             direction="horizontal"
             style={{ height: "100vh", width: "100%" }}
@@ -57,6 +58,7 @@ const Level: FC<LevelProps> = () => {
                 ]}
               />
             </Panel>
+            {/* TODO: fix style */}
             <PanelResizeHandle
               style={{
                 color: "#000",

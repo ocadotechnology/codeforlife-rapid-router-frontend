@@ -15,6 +15,7 @@ import { type WorkspaceSvg } from "blockly/core"
 export interface BlocklyWorkspaceHandle {
   resize: () => void
 }
+
 export interface BlocklyWorkspaceProps {
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[]
   ref: RefObject<BlocklyWorkspaceHandle | null>
