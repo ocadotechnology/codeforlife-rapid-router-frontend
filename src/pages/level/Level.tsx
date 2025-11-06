@@ -1,11 +1,13 @@
 import * as yup from "yup"
 import { Box, Typography } from "@mui/material"
-import { type FC, useState } from "react"
+import { type FC, useRef, useState } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 import { useParamsRequired } from "codeforlife/hooks"
 
-import BlocklyWorkspace, { Block } from "./BlocklyWorkspace"
+import BlocklyWorkspace, {
+  type BlocklyWorkspaceHandle,
+} from "./BlocklyWorkspace"
 import Controls from "./Controls"
 import { paths } from "../../routes"
 import { useSettings } from "../../app/hooks"
@@ -22,6 +24,7 @@ const Level: FC<LevelProps> = () => {
   })
 
   const settings = useSettings()
+  const blocklyHandle = useRef<BlocklyWorkspaceHandle | null>(null)
 
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
@@ -29,18 +32,30 @@ const Level: FC<LevelProps> = () => {
       <Box sx={{ display: "flex" }}>
         <Controls />
         <Box component="main" sx={{ flexGrow: 1 }}>
-          <PanelGroup direction="horizontal">
+          <PanelGroup
+            direction="horizontal"
+            style={{ height: "100vh", width: "100%" }}
+            onLayout={() => {
+              window.setTimeout(
+                () => window.dispatchEvent(new Event("resize")),
+                10,
+              )
+            }}
+          >
             <Panel
-              style={{ height: "100vh", width: "100%" }}
+              id="blockly-panel"
+              style={{ width: "100%" }}
               defaultSize={50}
               minSize={20}
             >
-              <BlocklyWorkspace>
-                <Block type="logic_compare" />
-                <Block type="math_number" />
-                <Block type="math_number" />
-                <Block type="math_arithmetic" />
-              </BlocklyWorkspace>
+              <BlocklyWorkspace
+                ref={blocklyHandle}
+                toolboxContents={[
+                  { kind: "block", type: "logic_compare" },
+                  { kind: "block", type: "logic_compare" },
+                  { kind: "block", type: "logic_compare" },
+                ]}
+              />
             </Panel>
             <PanelResizeHandle
               style={{
