@@ -38,11 +38,9 @@ const Level: FC<LevelProps> = () => {
             style={{ height: "100vh", width: "100%" }}
             onLayout={() => {
               // Trigger Blockly workspace resize after layout change
-              window.setTimeout(() => {
-                if (blocklyHandle.current) {
-                  blocklyHandle.current.resize()
-                }
-              }, 10)
+              if (blocklyHandle.current) {
+                blocklyHandle.current.resize()
+              }
             }}
           >
             <Panel

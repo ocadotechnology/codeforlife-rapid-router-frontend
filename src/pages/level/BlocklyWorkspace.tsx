@@ -1,6 +1,7 @@
 import "blockly/blocks"
 import * as Blockly from "blockly/core"
 import * as En from "blockly/msg/en"
+import { Box, debounce } from "@mui/material"
 import {
   type FC,
   type RefObject,
@@ -9,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react"
-import { Box } from "@mui/material"
 import { type WorkspaceSvg } from "blockly/core"
 
 export interface BlocklyWorkspaceHandle {
@@ -28,14 +28,14 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const injectionDivRef = useRef(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
 
-  // Handle to imperatively trigger resize from parent
+  // Handle to imperatively trigger (debounced) resize from parent
   useImperativeHandle(ref, () => {
     return {
-      resize() {
+      resize: debounce(() => {
         if (workspace) {
           Blockly.svgResize(workspace)
         }
-      },
+      }, 10),
     }
   }, [workspace])
 
