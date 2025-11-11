@@ -10,17 +10,28 @@ import {
   type CSSObject,
   Divider,
   Drawer,
+  FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
+  Select,
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
+import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
+import { type ThreePanelLayouts, type TwoPanelLayouts } from "../../app/slices"
 
-export interface ControlsProps {}
+type Layout = TwoPanelLayout | ThreePanelLayout
+export interface ControlsProps {
+  layout: Layout
+  layoutOptions: typeof TwoPanelLayouts | typeof ThreePanelLayouts
+  onLayoutChange: (layout: Layout) => void
+}
 
 const DRAWER_WIDTH = 240
 
@@ -97,45 +108,56 @@ const MiniDrawer: FC<{
 const MiniDrawerList: FC<{
   isDrawerOpen: boolean
   items: Array<{
-    icon: ReactNode
-    text: string
+    icon?: ReactNode
+    text?: string
+    content?: ReactNode
   }>
 }> = ({ items, isDrawerOpen }) => {
   return (
     <List>
-      {items.map(({ text, icon }) => (
-        <ListItem key={text} disablePadding sx={{ display: "block" }}>
-          <ListItemButton
-            sx={{
-              minHeight: 48,
-              px: 2.5,
-              justifyContent: isDrawerOpen ? "initial" : "center",
-            }}
-          >
-            <ListItemIcon
-              sx={{
-                minWidth: 0,
-                justifyContent: "center",
-                mr: isDrawerOpen ? 1 : "auto",
-              }}
-            >
-              {icon}
-            </ListItemIcon>
-            <ListItemText
-              primary={text}
-              sx={{
-                opacity: isDrawerOpen ? 1 : 0,
-                "& span": { marginBottom: "auto" },
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-      ))}
+      {items.map(({ text, icon, content }) => {
+        if (text && icon) {
+          return (
+            <ListItem key={text} disablePadding sx={{ display: "block" }}>
+              <ListItemButton
+                sx={{
+                  minHeight: 48,
+                  px: 2.5,
+                  justifyContent: isDrawerOpen ? "initial" : "center",
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    justifyContent: "center",
+                    mr: isDrawerOpen ? 1 : "auto",
+                  }}
+                >
+                  {icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={text}
+                  sx={{
+                    opacity: isDrawerOpen ? 1 : 0,
+                    "& span": { marginBottom: "auto" },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          )
+        } else {
+          return <ListItem key={""}>{content}</ListItem>
+        }
+      })}
     </List>
   )
 }
 
-const Controls: FC<ControlsProps> = () => {
+const Controls: FC<ControlsProps> = ({
+  layoutOptions,
+  layout,
+  onLayoutChange,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
   return (
     <MiniDrawer
@@ -162,6 +184,26 @@ const Controls: FC<ControlsProps> = () => {
           {
             icon: <CastIcon />,
             text: "Item 4",
+          },
+          {
+            content: (
+              <FormControl fullWidth>
+                <InputLabel id="layout-select-label">Layout</InputLabel>
+                <Select
+                  labelId="layout-select-label"
+                  id="layout-select"
+                  value={layout}
+                  label="Panels count"
+                  onChange={e => onLayoutChange(e.target.value)}
+                >
+                  {layoutOptions.map(layout => (
+                    <MenuItem key={layout} value={layout}>
+                      {layout}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ),
           },
         ]}
       />

@@ -3,12 +3,15 @@ import { createSlice } from "codeforlife/slices"
 
 import { getSettingsCookie } from "../utils"
 
-export type TwoPanelLayout = "auto" | "vertical" | "horizontal"
-export type ThreePanelLayout =
-  | "auto"
-  | "verticalWithLeftHorizontal"
-  | "vertical"
-  | "horizontal"
+export const TwoPanelLayouts = ["auto", "vertical", "horizontal"] as const
+export const ThreePanelLayouts = [
+  "auto",
+  "verticalWithLeftHorizontal",
+  "vertical",
+  "horizontal",
+] as const
+export type TwoPanelLayout = (typeof TwoPanelLayouts)[number]
+export type ThreePanelLayout = (typeof ThreePanelLayouts)[number]
 
 export interface SettingsState {
   twoPanelLayout: TwoPanelLayout
