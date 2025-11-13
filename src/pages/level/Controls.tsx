@@ -193,7 +193,7 @@ const Controls: FC<ControlsProps> = ({
                   labelId="layout-select-label"
                   id="layout-select"
                   value={layout}
-                  label="Panels count"
+                  label="Layout"
                   onChange={e => onLayoutChange(e.target.value)}
                 >
                   {layoutOptions.map(layout => (

@@ -31,6 +31,16 @@ interface LevelState {
 
 const THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL = ThreePanelLayouts[1]
 
+/**
+ * Function that calculates the required panel configuration (default sizes,
+ * panel group directions, order of panels) based on the number of panels
+ * and preferred layout option
+ * Layout of panels contains 2 groups: inner and outer. Outer group is
+ * used only for "vertical split with horizontal left split" 3-panel
+ * layout. Inner group contains all 2 or 3 panels in all cases, except
+ * this one when the 3rd panel moves to the outer group, while the rest stay
+ * in the inner.
+ */
 function calculatePanelsConfig(
   panels: number,
   layout: TwoPanelLayout | ThreePanelLayout,
@@ -38,6 +48,12 @@ function calculatePanelsConfig(
   innerPGDirection: Direction
   outerPGDirection: Direction
   panels: {
+    /*
+      Array of default sizes of panels in %. First element is
+      the size of the panel containing the entire inner
+      panel group, followed by 2 or 3 numbers for panels
+      inside the inner panel group
+    */
     defaultSizes: number[]
     reverseOrder: boolean
   }
@@ -45,13 +61,10 @@ function calculatePanelsConfig(
   let panelsDefaultSizes: number[],
     reverseOrder = false,
     innerPGDirection: Direction,
-    outerPGDirection: Direction
+    outerPGDirection: Direction = "horizontal"
 
   if (panels === 2) {
-    // Does not affect 2 panel layouts
-    outerPGDirection = "horizontal"
     panelsDefaultSizes = [100, 50, 50]
-
     switch (layout) {
       case "horizontal":
         innerPGDirection = "vertical"
@@ -73,7 +86,6 @@ function calculatePanelsConfig(
         break
       case "horizontal":
         innerPGDirection = "vertical"
-        outerPGDirection = "vertical"
         panelsDefaultSizes = [100, 34, 33, 33]
         reverseOrder = true
         break
@@ -81,7 +93,6 @@ function calculatePanelsConfig(
       case "vertical":
       default:
         innerPGDirection = "horizontal"
-        outerPGDirection = "horizontal"
         panelsDefaultSizes = [100, 34, 33, 33]
     }
   }
@@ -95,7 +106,7 @@ function calculatePanelsConfig(
   }
 }
 
-const Panel3: FC = () => (
+const Panel3Content: FC = () => (
   <>
     <Typography variant="h2">This is Panel #3</Typography>
     <Typography>
@@ -187,7 +198,7 @@ const Level: FC<LevelProps> = () => {
       order={reverseOrder ? 1 : 3}
       minSize={20}
     >
-      <Panel3 />
+      <Panel3Content />
     </Panel>,
   ]
   if (reverseOrder) {
