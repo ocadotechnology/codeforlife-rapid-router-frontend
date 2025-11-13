@@ -37,19 +37,25 @@ function calculatePanelsConfig(
 ): {
   innerPGDirection: Direction
   outerPGDirection: Direction
-  defaultPanelSizes: number[]
+  panels: {
+    defaultSizes: number[]
+    reverseOrder: boolean
+  }
 } {
-  let defaultPanelSizes: number[],
+  let panelsDefaultSizes: number[],
+    reverseOrder = false,
     innerPGDirection: Direction,
     outerPGDirection: Direction
 
   if (panels === 2) {
     // Does not affect 2 panel layouts
     outerPGDirection = "horizontal"
-    defaultPanelSizes = [100, 50, 50]
+    panelsDefaultSizes = [100, 50, 50]
+
     switch (layout) {
       case "horizontal":
         innerPGDirection = "vertical"
+        reverseOrder = true
         break
       case "auto":
       case "vertical":
@@ -63,25 +69,29 @@ function calculatePanelsConfig(
       case "verticalWithLeftHorizontal":
         innerPGDirection = "vertical"
         outerPGDirection = "horizontal"
-        defaultPanelSizes = [50, 50, 50, 50]
+        panelsDefaultSizes = [50, 50, 50, 50]
         break
       case "horizontal":
         innerPGDirection = "vertical"
         outerPGDirection = "vertical"
-        defaultPanelSizes = [100, 33, 33, 33]
+        panelsDefaultSizes = [100, 34, 33, 33]
+        reverseOrder = true
         break
       case "auto":
       case "vertical":
       default:
         innerPGDirection = "horizontal"
         outerPGDirection = "horizontal"
-        defaultPanelSizes = [100, 33, 33, 33]
+        panelsDefaultSizes = [100, 34, 33, 33]
     }
   }
   return {
     innerPGDirection,
     outerPGDirection,
-    defaultPanelSizes,
+    panels: {
+      defaultSizes: panelsDefaultSizes,
+      reverseOrder,
+    },
   }
 }
 
@@ -119,7 +129,7 @@ const AppResizeHandle: FC = () => (
 
 const Level: FC<LevelProps> = () => {
   const [level] = useState<LevelState>({
-    panels: 2,
+    panels: 3,
     toolbox_contents: [
       { kind: "block", type: "logic_compare" },
       { kind: "block", type: "logic_compare" },
@@ -135,12 +145,54 @@ const Level: FC<LevelProps> = () => {
 
   const twoPanels = level.panels === 2,
     threePanels = !twoPanels
-  const { innerPGDirection, outerPGDirection, defaultPanelSizes } =
-    calculatePanelsConfig(
-      level.panels,
-      threePanels ? settings.threePanelLayout : settings.twoPanelLayout,
-    )
-
+  const {
+    innerPGDirection,
+    outerPGDirection,
+    panels: { defaultSizes: defaultPanelSizes, reverseOrder },
+  } = calculatePanelsConfig(
+    level.panels,
+    threePanels ? settings.threePanelLayout : settings.twoPanelLayout,
+  )
+  const panels = [
+    <Panel
+      key="blockly-panel"
+      id="blockly-panel"
+      defaultSize={defaultPanelSizes[1]}
+      order={reverseOrder ? 3 : 1}
+      minSize={20}
+    >
+      <BlocklyWorkspace
+        ref={blocklyWorkspaceRef}
+        toolboxContents={[
+          { kind: "block", type: "logic_compare" },
+          { kind: "block", type: "logic_compare" },
+          { kind: "block", type: "logic_compare" },
+        ]}
+      />
+    </Panel>,
+    <Panel
+      key="panel-2"
+      id="panel-2"
+      defaultSize={defaultPanelSizes[2]}
+      order={2}
+      minSize={20}
+    >
+      <Typography>Settings: {JSON.stringify(settings)}</Typography>
+      <Typography>Level state: {JSON.stringify(level)}</Typography>
+    </Panel>,
+    <Panel
+      key="panel-3"
+      id="panel-3"
+      defaultSize={defaultPanelSizes[3]}
+      order={reverseOrder ? 1 : 3}
+      minSize={20}
+    >
+      <Panel3 />
+    </Panel>,
+  ]
+  if (reverseOrder) {
+    panels.reverse()
+  }
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
     children: () => (
@@ -166,47 +218,26 @@ const Level: FC<LevelProps> = () => {
         <Box component="main" sx={{ flexGrow: 1 }}>
           {/* TODO: fix style */}
           <PanelGroup
+            id="outer-pg"
             direction={outerPGDirection}
             style={{ height: "100vh" }}
             onLayout={resizeBlockly}
           >
-            <Panel defaultSize={defaultPanelSizes[0]} minSize={20}>
-              <PanelGroup direction={innerPGDirection} onLayout={resizeBlockly}>
-                <Panel
-                  id="blockly-panel"
-                  defaultSize={defaultPanelSizes[1]}
-                  minSize={20}
-                >
-                  <BlocklyWorkspace
-                    ref={blocklyWorkspaceRef}
-                    toolboxContents={[
-                      { kind: "block", type: "logic_compare" },
-                      { kind: "block", type: "logic_compare" },
-                      { kind: "block", type: "logic_compare" },
-                    ]}
-                  />
-                </Panel>
+            <Panel defaultSize={defaultPanelSizes[0]} order={1} minSize={20}>
+              <PanelGroup
+                id="inner-pg"
+                direction={innerPGDirection}
+                onLayout={resizeBlockly}
+              >
+                {panels[0]}
                 <AppResizeHandle />
-                <Panel
-                  id="panel-2"
-                  defaultSize={defaultPanelSizes[2]}
-                  minSize={20}
-                >
-                  <Typography>Settings: {JSON.stringify(settings)}</Typography>
-                  <Typography>Level state: {JSON.stringify(level)}</Typography>
-                </Panel>
+                {panels[1]}
                 {threePanels &&
                   settings.threePanelLayout !==
                     THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
                     <>
                       <AppResizeHandle />
-                      <Panel
-                        id="panel-3"
-                        defaultSize={defaultPanelSizes[3]}
-                        minSize={20}
-                      >
-                        <Panel3 />
-                      </Panel>
+                      {panels[2]}
                     </>
                   )}
               </PanelGroup>
@@ -216,13 +247,7 @@ const Level: FC<LevelProps> = () => {
                 THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
                 <>
                   <AppResizeHandle />
-                  <Panel
-                    id="panel-3"
-                    defaultSize={defaultPanelSizes[3]}
-                    minSize={20}
-                  >
-                    <Panel3 />
-                  </Panel>
+                  {panels[2]}
                 </>
               )}
           </PanelGroup>
