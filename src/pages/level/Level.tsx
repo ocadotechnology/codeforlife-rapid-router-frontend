@@ -6,7 +6,8 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 import { useParamsRequired } from "codeforlife/hooks"
 
 import BlocklyWorkspace, {
-  type BlocklyWorkspaceHandle,
+  type BlocklyWorkspaceProps,
+  type ToolboxItemInfo,
 } from "./BlocklyWorkspace"
 import Controls from "./Controls"
 import { paths } from "../../routes"
@@ -16,15 +17,21 @@ export interface LevelProps {}
 
 interface LevelState {
   panels: 2 | 3
+  toolbox_contents: ToolboxItemInfo[]
 }
 
 const Level: FC<LevelProps> = () => {
   const [level] = useState<LevelState>({
     panels: 2,
+    toolbox_contents: [
+      { kind: "block", type: "logic_compare" },
+      { kind: "block", type: "logic_compare" },
+      { kind: "block", type: "logic_compare" },
+    ],
   })
 
   const settings = useSettings()
-  const blocklyHandle = useRef<BlocklyWorkspaceHandle | null>(null)
+  const blocklyWorkspaceRef: BlocklyWorkspaceProps["ref"] = useRef(null)
 
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
@@ -37,25 +44,14 @@ const Level: FC<LevelProps> = () => {
             direction="horizontal"
             style={{ height: "100vh", width: "100%" }}
             onLayout={() => {
-              // Trigger Blockly workspace resize after layout change
-              if (blocklyHandle.current) {
-                blocklyHandle.current.resize()
-              }
+              if (blocklyWorkspaceRef.current)
+                blocklyWorkspaceRef.current.resize()
             }}
           >
-            <Panel
-              id="blockly-panel"
-              style={{ width: "100%" }}
-              defaultSize={50}
-              minSize={20}
-            >
+            <Panel defaultSize={50} minSize={20}>
               <BlocklyWorkspace
-                ref={blocklyHandle}
-                toolboxContents={[
-                  { kind: "block", type: "logic_compare" },
-                  { kind: "block", type: "logic_compare" },
-                  { kind: "block", type: "logic_compare" },
-                ]}
+                ref={blocklyWorkspaceRef}
+                toolboxContents={level.toolbox_contents}
               />
             </Panel>
             {/* TODO: fix style */}

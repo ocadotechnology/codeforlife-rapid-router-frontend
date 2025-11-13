@@ -12,63 +12,51 @@ import {
 } from "react"
 import { type WorkspaceSvg } from "blockly/core"
 
-export interface BlocklyWorkspaceHandle {
-  resize: () => void
-}
+export type ToolboxItemInfo = Blockly.utils.toolbox.ToolboxItemInfo
 
 export interface BlocklyWorkspaceProps {
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[]
-  ref: RefObject<BlocklyWorkspaceHandle | null>
+  ref: RefObject<{ resize: () => void } | null>
 }
+
+const RESIZE_DEBOUNCE_MS = 10
 
 const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   toolboxContents,
   ref,
 }) => {
-  const injectionDivRef = useRef(null)
+  const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
 
   // Handle to imperatively trigger (debounced) resize from parent
   useImperativeHandle(ref, () => {
     return {
       resize: debounce(() => {
-        if (workspace) {
-          Blockly.svgResize(workspace)
-        }
-      }, 10),
+        if (workspace) Blockly.svgResize(workspace)
+      }, RESIZE_DEBOUNCE_MS),
     }
   }, [workspace])
 
   // Workspace creation
   useEffect(() => {
-    if (!injectionDivRef.current) {
-      return
-    }
+    if (!divRef.current) return
     // @ts-expect-error Locale type isn't inferred correctly after export
     Blockly.setLocale(En)
-    const newWorkspace = Blockly.inject(injectionDivRef.current, {
-      toolbox: {
-        kind: "flyoutToolbox",
-        contents: toolboxContents,
-      },
+    const newWorkspace = Blockly.inject(divRef.current, {
+      toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
       trashcan: true,
     })
     setWorkspace(newWorkspace)
-    return () => {
-      newWorkspace.dispose()
-    }
-  }, [injectionDivRef, toolboxContents])
+    return () => newWorkspace.dispose()
+  }, [divRef, toolboxContents])
 
   return (
-    <>
-      <Box
-        sx={{
-          height: "100%",
-        }}
-        ref={injectionDivRef}
-        id="blocklyDiv"
-      />
-    </>
+    <Box
+      component={"div"}
+      id="blockly-workspace"
+      ref={divRef}
+      sx={{ height: "100%" }}
+    />
   )
 }
 
