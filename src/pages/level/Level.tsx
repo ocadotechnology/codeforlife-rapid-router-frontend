@@ -1,5 +1,5 @@
 import * as yup from "yup"
-import { Box, Typography } from "@mui/material"
+import { Box, type Breakpoint, Typography } from "@mui/material"
 import { type FC, useCallback, useRef, useState } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
@@ -10,6 +10,7 @@ import BlocklyWorkspace, {
   type ToolboxItemInfo,
 } from "./BlocklyWorkspace"
 import {
+  type Layout,
   type ThreePanelLayout,
   ThreePanelLayouts,
   type TwoPanelLayout,
@@ -17,7 +18,13 @@ import {
   setThreePanelLayout,
   setTwoPanelLayout,
 } from "../../app/slices"
-import { useAppDispatch, useSettings } from "../../app/hooks"
+import {
+  type ScreenOrientation,
+  useAppDispatch,
+  useBreakpoint,
+  useScreenOrientation,
+  useSettings,
+} from "../../app/hooks"
 import Controls from "./Controls"
 import { paths } from "../../routes"
 
@@ -43,7 +50,7 @@ const THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL = ThreePanelLayouts[1]
  */
 function calculatePanelsConfig(
   panels: number,
-  layout: TwoPanelLayout | ThreePanelLayout,
+  layout: Layout,
 ): {
   innerPGDirection: Direction
   outerPGDirection: Direction
@@ -106,6 +113,29 @@ function calculatePanelsConfig(
   }
 }
 
+function chooseAutoLayout(
+  panelsCount: number,
+  screenOrientation: ScreenOrientation,
+  breakpoint: Breakpoint,
+): Layout {
+  if (screenOrientation === "portrait") {
+    if (["xs", "sm"].indexOf(breakpoint) !== -1) {
+      // XS,SM: horizontal split
+      return "horizontal"
+    } else {
+      // MD,LG,XL: vertical split
+      return "vertical"
+    }
+  } else {
+    // landscape
+    if (panelsCount === 2) {
+      return "vertical"
+    } else {
+      return "verticalWithLeftHorizontal"
+    }
+  }
+}
+
 const Panel3Content: FC = () => (
   <>
     <Typography variant="h2">This is Panel #3</Typography>
@@ -153,17 +183,23 @@ const Level: FC<LevelProps> = () => {
   const resizeBlockly = useCallback(() => {
     if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.resize()
   }, [blocklyWorkspaceRef])
+  const screenOrientation = useScreenOrientation()
+  const breakpoint = useBreakpoint()
 
   const twoPanels = level.panels === 2,
     threePanels = !twoPanels
+  const selectedLayout = threePanels
+    ? settings.threePanelLayout
+    : settings.twoPanelLayout
+  const finalLayout =
+    selectedLayout === "auto"
+      ? chooseAutoLayout(level.panels, screenOrientation, breakpoint)
+      : selectedLayout
   const {
     innerPGDirection,
     outerPGDirection,
     panels: { defaultSizes: defaultPanelSizes, reverseOrder },
-  } = calculatePanelsConfig(
-    level.panels,
-    threePanels ? settings.threePanelLayout : settings.twoPanelLayout,
-  )
+  } = calculatePanelsConfig(level.panels, finalLayout)
   const panels = [
     <Panel
       key="blockly-panel"
@@ -244,8 +280,7 @@ const Level: FC<LevelProps> = () => {
                 <AppResizeHandle />
                 {panels[1]}
                 {threePanels &&
-                  settings.threePanelLayout !==
-                    THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
+                  finalLayout !== THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
                     <>
                       <AppResizeHandle />
                       {panels[2]}
@@ -254,8 +289,7 @@ const Level: FC<LevelProps> = () => {
               </PanelGroup>
             </Panel>
             {threePanels &&
-              settings.threePanelLayout ===
-                THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
+              finalLayout === THREE_PANEL_VERTICAL_WITH_LEFT_HORIZONTAL && (
                 <>
                   <AppResizeHandle />
                   {panels[2]}

@@ -12,6 +12,7 @@ export const ThreePanelLayouts = [
 ] as const
 export type TwoPanelLayout = (typeof TwoPanelLayouts)[number]
 export type ThreePanelLayout = (typeof ThreePanelLayouts)[number]
+export type Layout = ThreePanelLayout | TwoPanelLayout
 
 export interface SettingsState {
   twoPanelLayout: TwoPanelLayout

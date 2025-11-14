@@ -23,10 +23,12 @@ import {
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
-import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
-import { type ThreePanelLayouts, type TwoPanelLayouts } from "../../app/slices"
+import type {
+  Layout,
+  ThreePanelLayouts,
+  TwoPanelLayouts,
+} from "../../app/slices"
 
-type Layout = TwoPanelLayout | ThreePanelLayout
 export interface ControlsProps {
   layout: Layout
   layoutOptions: typeof TwoPanelLayouts | typeof ThreePanelLayouts
