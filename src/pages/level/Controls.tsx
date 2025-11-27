@@ -23,11 +23,11 @@ import {
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
-import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
 import {
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
 } from "../../app/slices"
+import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
 
 type Layout = TwoPanelLayout | ThreePanelLayout
 
