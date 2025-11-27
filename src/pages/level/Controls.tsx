@@ -24,7 +24,10 @@ import {
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
 import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
-import { type ThreePanelLayouts, type TwoPanelLayouts } from "../../app/slices"
+import {
+  type THREE_PANEL_LAYOUTS,
+  type TWO_PANEL_LAYOUTS,
+} from "../../app/slices"
 
 type Layout = TwoPanelLayout | ThreePanelLayout
 
@@ -33,7 +36,7 @@ interface BaseMiniDrawerItemProps {
 }
 export interface ControlsProps {
   layout: Layout
-  layoutOptions: typeof TwoPanelLayouts | typeof ThreePanelLayouts
+  layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
   onLayoutChange: (layout: Layout) => void
 }
 
@@ -95,7 +98,7 @@ const MiniDrawerButtonItem: FC<
 const MiniDrawerSelectLayout: FC<
   BaseMiniDrawerItemProps & {
     layout: Layout
-    layoutOptions: typeof TwoPanelLayouts | typeof ThreePanelLayouts
+    layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
     onLayoutChange: (layout: Layout) => void
   }
 > = ({ onLayoutChange, layoutOptions, layout }) => (

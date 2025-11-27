@@ -4,10 +4,10 @@ import { Box } from "@mui/material"
 import { useParamsRequired } from "codeforlife/hooks"
 
 import {
+  THREE_PANEL_LAYOUTS,
+  TWO_PANEL_LAYOUTS,
   type ThreePanelLayout,
-  ThreePanelLayouts,
   type TwoPanelLayout,
-  TwoPanelLayouts,
   setThreePanelLayout,
   setTwoPanelLayout,
 } from "../../app/slices"
@@ -44,7 +44,7 @@ const Level: FC<LevelProps> = () => {
         {twoPanels && (
           <Controls
             layout={settings.twoPanelLayout}
-            layoutOptions={TwoPanelLayouts}
+            layoutOptions={TWO_PANEL_LAYOUTS}
             onLayoutChange={l => {
               dispatch(setTwoPanelLayout(l as TwoPanelLayout))
             }}
@@ -53,7 +53,7 @@ const Level: FC<LevelProps> = () => {
         {threePanels && (
           <Controls
             layout={settings.threePanelLayout}
-            layoutOptions={ThreePanelLayouts}
+            layoutOptions={THREE_PANEL_LAYOUTS}
             onLayoutChange={l => {
               dispatch(setThreePanelLayout(l as ThreePanelLayout))
             }}
