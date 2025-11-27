@@ -4,7 +4,7 @@ import type { FC } from "react"
 const PhaserGame: FC = () => (
   <Box>
     <Typography variant="h3">Mock Phaser Game content</Typography>
-    <Typography variant="h3">
+    <Typography>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
       tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
       veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea

@@ -3,7 +3,7 @@ import { Typography } from "@mui/material"
 
 const PythonEditor: FC = () => (
   <>
-    <Typography variant="h2">Python Editor Panel</Typography>
+    <Typography variant="h2">Mock Python Editor content</Typography>
     <Typography>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
       tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
