@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.1.0...v1.2.0) (2025-11-14)
+
+
+### Features
+
+* **level:** add Blockly, Blockly component ([#29](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/issues/29)) ([fb7c058](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/commit/fb7c058c17786ad1a8446866006a54c942b6ea7f))
+
 # [1.1.0](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.0.0...v1.1.0) (2025-10-31)
 
 
