@@ -20,6 +20,7 @@ export interface BlocklyWorkspaceProps {
 }
 
 const RESIZE_DEBOUNCE_MS = 10
+const LOCAL_STORAGE_KEY = "blockly-workspace-state"
 
 const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   toolboxContents,
@@ -46,8 +47,20 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
       trashcan: true,
     })
+    const state = localStorage.getItem(LOCAL_STORAGE_KEY)
+    if (state) {
+      Blockly.serialization.workspaces.load(
+        JSON.parse(state) as { [key: string]: any },
+        newWorkspace,
+      )
+    }
+
     setWorkspace(newWorkspace)
-    return () => newWorkspace.dispose()
+    return () => {
+      const state = Blockly.serialization.workspaces.save(newWorkspace)
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
+      newWorkspace.dispose()
+    }
   }, [divRef, toolboxContents])
 
   return (
