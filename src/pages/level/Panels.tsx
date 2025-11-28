@@ -3,7 +3,14 @@ import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 import { type FC } from "react"
 
+import type {
+  PanelCount,
+  PanelLayout,
+  ThreePanelLayout,
+  TwoPanelLayout,
+} from "../../app/slices"
 import {
+  type ScreenOrientation,
   useBreakpoint,
   useLevelPanelCount,
   useLevelToolbox,
@@ -14,13 +21,6 @@ import BlocklyWorkspace from "./BlocklyWorkspace"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
 import { useBlocklyContext } from "./context/BlocklyContext"
-import { type ScreenOrientation } from "../../app/hooks"
-import type {
-  PanelCount,
-  PanelLayout,
-  ThreePanelLayout,
-  TwoPanelLayout,
-} from "../../app/slices"
 
 type Direction = "horizontal" | "vertical"
 
@@ -229,19 +229,18 @@ const Panels: FC<{
   const layout = twoPanels ? settings.twoPanelLayout : settings.threePanelLayout
 
   const finalLayout =
-    selectedLayout === "auto"
-      ? chooseAutoLayout(levelPanelCount, screenOrientation, breakpoint)
-      : selectedLayout
+    layout === "auto"
+      ? chooseAutoLayout(panels, screenOrientation, breakpoint)
+      : layout
 
   let direction: Direction | undefined,
     reverseOrder = false
   if (panels === 2) {
-    switch (layout) {
+    switch (finalLayout) {
       case "horizontal":
         direction = "vertical"
         reverseOrder = true
         break
-      case "auto":
       case "vertical":
       default:
         direction = "horizontal"
@@ -255,7 +254,7 @@ const Panels: FC<{
       />
     )
   } else {
-    switch (layout) {
+    switch (finalLayout) {
       case "verticalWithLeftHorizontal":
         return <Nested3PanelLayout onResize={onResize} />
         break
@@ -263,7 +262,6 @@ const Panels: FC<{
         direction = "vertical"
         reverseOrder = true
         break
-      case "auto":
       case "vertical":
       default:
         direction = "horizontal"

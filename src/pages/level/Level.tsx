@@ -1,10 +1,9 @@
 import * as yup from "yup"
-import { Box, type Breakpoint } from "@mui/material"
 import { type FC, useCallback } from "react"
+import { Box } from "@mui/material"
 import { useParamsRequired } from "codeforlife/hooks"
 
 import {
-  type PanelLayout,
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
   type ThreePanelLayout,
@@ -13,11 +12,8 @@ import {
   setTwoPanelLayout,
 } from "../../app/slices"
 import {
-  type ScreenOrientation,
   useAppDispatch,
-  useBreakpoint,
   useLevelPanelCount,
-  useScreenOrientation,
   useSettings,
 } from "../../app/hooks"
 import Controls from "./Controls"

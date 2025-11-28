@@ -18,11 +18,10 @@ export const useAppSelector = useSelector.withTypes<RootState>()
 
 export const useSettings = () => useSelector(selectSettings)
 
-export function useScreenOrientation() {
-  if (typeof window !== "undefined")
-    return window.screen.orientation.type.split("-")[0] as ScreenOrientation
-  else return "landscape"
-}
+export const useScreenOrientation = () =>
+  typeof window !== "undefined"
+    ? (window.screen.orientation.type.split("-")[0] as ScreenOrientation)
+    : "landscape"
 
 export function useBreakpoint() {
   let result
