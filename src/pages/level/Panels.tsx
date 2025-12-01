@@ -1,6 +1,6 @@
+import { type FC, useCallback } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
-import { type FC } from "react"
 
 import {
   useLevelPanelCount,
@@ -159,18 +159,20 @@ const Nested3PanelLayout: FC<Pick<LayoutProps, "onResize">> = ({
   )
 }
 
-const Panels: FC<{
-  onResize: () => void
-}> = ({ onResize }) => {
+const Panels: FC = () => {
   const settings = useSettings()
   const panels = useLevelPanelCount()
-  const twoPanels = panels === 2
-  const layout = twoPanels ? settings.twoPanelLayout : settings.threePanelLayout
+
+  const blocklyContext = useBlocklyContext()
+  const resizeBlockly = useCallback(() => {
+    const { workspaceRef } = blocklyContext
+    if (workspaceRef.current) workspaceRef.current.resize()
+  }, [blocklyContext])
 
   let direction: Direction | undefined,
     reverseOrder = false
   if (panels === 2) {
-    switch (layout) {
+    switch (settings.twoPanelLayout) {
       case "horizontal":
         direction = "vertical"
         reverseOrder = true
@@ -184,33 +186,31 @@ const Panels: FC<{
     return (
       <Flat2PanelLayout
         direction={direction}
-        onResize={onResize}
-        reverseOrder={reverseOrder}
-      />
-    )
-  } else {
-    switch (layout) {
-      case "verticalWithLeftHorizontal":
-        return <Nested3PanelLayout onResize={onResize} />
-        break
-      case "horizontal":
-        direction = "vertical"
-        reverseOrder = true
-        break
-      case "auto":
-      case "vertical":
-      default:
-        direction = "horizontal"
-        break
-    }
-    return (
-      <Flat3PanelLayout
-        direction={direction}
-        onResize={onResize}
+        onResize={resizeBlockly}
         reverseOrder={reverseOrder}
       />
     )
   }
+  switch (settings.threePanelLayout) {
+    case "verticalWithLeftHorizontal":
+      return <Nested3PanelLayout onResize={resizeBlockly} />
+    case "horizontal":
+      direction = "vertical"
+      reverseOrder = true
+      break
+    case "auto":
+    case "vertical":
+    default:
+      direction = "horizontal"
+      break
+  }
+  return (
+    <Flat3PanelLayout
+      direction={direction}
+      onResize={resizeBlockly}
+      reverseOrder={reverseOrder}
+    />
+  )
 }
 
 export default Panels
