@@ -4,39 +4,40 @@ import * as En from "blockly/msg/en"
 import { Box, debounce } from "@mui/material"
 import {
   type FC,
-  type RefObject,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from "react"
 import { type WorkspaceSvg } from "blockly/core"
+import { useBlocklyContext } from "./context/BlocklyContext"
+import { useLevelToolbox } from "../../app/hooks"
 
 export type ToolboxItemInfo = Blockly.utils.toolbox.ToolboxItemInfo
 
-export interface BlocklyWorkspaceProps {
-  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[]
-  ref: RefObject<{ resize: () => void } | null>
-}
+export interface BlocklyWorkspaceProps {}
 
 const RESIZE_DEBOUNCE_MS = 10
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"
 
-const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
-  toolboxContents,
-  ref,
-}) => {
+const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
+  const blocklyCtx = useBlocklyContext()
+  const toolboxContents = useLevelToolbox()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
 
   // Handle to imperatively trigger (debounced) resize from parent
-  useImperativeHandle(ref, () => {
-    return {
-      resize: debounce(() => {
-        if (workspace) Blockly.svgResize(workspace)
-      }, RESIZE_DEBOUNCE_MS),
-    }
-  }, [workspace])
+  useImperativeHandle(
+    blocklyCtx.workspaceRef,
+    () => {
+      return {
+        resize: debounce(() => {
+          if (workspace) Blockly.svgResize(workspace)
+        }, RESIZE_DEBOUNCE_MS),
+      }
+    },
+    [workspace],
+  )
 
   // Workspace creation
   useEffect(() => {

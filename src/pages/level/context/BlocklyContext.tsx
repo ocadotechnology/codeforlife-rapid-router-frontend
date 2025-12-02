@@ -1,16 +1,7 @@
-import {
-  type FC,
-  type ReactNode,
-  createContext,
-  createRef,
-  useContext,
-  useRef,
-} from "react"
-
-import { type BlocklyWorkspaceProps } from "../BlocklyWorkspace"
+import { type RefObject, createContext, createRef, useContext } from "react"
 
 interface IBlocklyContext {
-  workspaceRef: BlocklyWorkspaceProps["ref"]
+  workspaceRef: RefObject<{ resize: () => void } | null>
 }
 
 const DEFAULT_CONTEXT: IBlocklyContext = {
@@ -19,20 +10,4 @@ const DEFAULT_CONTEXT: IBlocklyContext = {
 
 const BlocklyContext = createContext(DEFAULT_CONTEXT)
 
-const BlocklyContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const workspaceRef: BlocklyWorkspaceProps["ref"] = useRef(null)
-  return (
-    <BlocklyContext.Provider
-      value={{
-        workspaceRef,
-      }}
-    >
-      {children}
-    </BlocklyContext.Provider>
-  )
-}
-
-/* eslint-disable-next-line react-refresh/only-export-components */
 export const useBlocklyContext = () => useContext(BlocklyContext)
-
-export default BlocklyContextProvider

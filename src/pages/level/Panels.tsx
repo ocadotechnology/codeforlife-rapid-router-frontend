@@ -2,11 +2,7 @@ import { type FC, useCallback } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
-import {
-  useLevelPanelCount,
-  useLevelToolbox,
-  useSettings,
-} from "../../app/hooks"
+import { useLevelPanelCount, useSettings } from "../../app/hooks"
 import BlocklyWorkspace from "./BlocklyWorkspace"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
@@ -43,8 +39,6 @@ const AppResizeHandle: FC = () => (
 )
 
 const BlocklyPanel: FC<PanelProps> = ({ order, defaultSize }) => {
-  const blocklyCtx = useBlocklyContext()
-  const levelToolbox = useLevelToolbox()
   return (
     <Panel
       id="blockly-panel"
@@ -52,10 +46,7 @@ const BlocklyPanel: FC<PanelProps> = ({ order, defaultSize }) => {
       order={order}
       minSize={20}
     >
-      <BlocklyWorkspace
-        ref={blocklyCtx.workspaceRef}
-        toolboxContents={levelToolbox}
-      />
+      <BlocklyWorkspace />
     </Panel>
   )
 }
