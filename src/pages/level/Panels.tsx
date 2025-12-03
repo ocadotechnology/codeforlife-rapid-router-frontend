@@ -1,8 +1,21 @@
 import { type FC, useCallback } from "react"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
-import { useLevelPanelCount, useSettings } from "../../app/hooks"
+import type {
+  PanelCount,
+  PanelLayout,
+  ThreePanelLayout,
+  TwoPanelLayout,
+} from "../../app/slices"
+import {
+  type ScreenOrientation,
+  useBreakpoint,
+  useLevelPanelCount,
+  useScreenOrientation,
+  useSettings,
+} from "../../app/hooks"
 import BlocklyWorkspace from "./BlocklyWorkspace"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
@@ -19,6 +32,55 @@ interface LayoutProps {
   onResize: () => void
   direction: Direction
   reverseOrder: boolean
+}
+
+type AutoPanelLayout<PL extends PanelLayout> = Record<
+  ScreenOrientation,
+  Record<Breakpoint, PL>
+>
+
+const AUTO_TWO_PANEL_LAYOUTS: AutoPanelLayout<TwoPanelLayout> = {
+  landscape: {
+    xs: "vertical",
+    sm: "vertical",
+    md: "vertical",
+    lg: "vertical",
+    xl: "vertical",
+  },
+  portrait: {
+    xs: "horizontal",
+    sm: "horizontal",
+    md: "vertical",
+    lg: "vertical",
+    xl: "vertical",
+  },
+}
+
+const AUTO_THREE_PANEL_LAYOUTS: AutoPanelLayout<ThreePanelLayout> = {
+  landscape: {
+    xs: "verticalWithLeftHorizontal",
+    sm: "verticalWithLeftHorizontal",
+    md: "verticalWithLeftHorizontal",
+    lg: "verticalWithLeftHorizontal",
+    xl: "verticalWithLeftHorizontal",
+  },
+  portrait: {
+    xs: "horizontal",
+    sm: "horizontal",
+    md: "vertical",
+    lg: "vertical",
+    xl: "vertical",
+  },
+}
+
+function chooseAutoLayout(
+  panelCount: PanelCount,
+  screenOrientation: ScreenOrientation,
+  breakpoint: Breakpoint,
+): PanelLayout {
+  const autoLayouts =
+    panelCount === 2 ? AUTO_TWO_PANEL_LAYOUTS : AUTO_THREE_PANEL_LAYOUTS
+  return autoLayouts[screenOrientation][breakpoint]
 }
 
 const AppResizeHandle: FC = () => (
@@ -152,6 +214,8 @@ const Nested3PanelLayout: FC<Pick<LayoutProps, "onResize">> = ({
 
 const Panels: FC = () => {
   const settings = useSettings()
+  const screenOrientation = useScreenOrientation()
+  const breakpoint = useBreakpoint()
   const panels = useLevelPanelCount()
 
   const blocklyContext = useBlocklyContext()
@@ -160,15 +224,22 @@ const Panels: FC = () => {
     if (workspaceRef.current) workspaceRef.current.resize()
   }, [blocklyContext])
 
+  const layout =
+    panels === 2 ? settings.twoPanelLayout : settings.threePanelLayout
+
+  const finalLayout =
+    layout === "auto"
+      ? chooseAutoLayout(panels, screenOrientation, breakpoint)
+      : layout
+
   let direction: Direction | undefined,
     reverseOrder = false
   if (panels === 2) {
-    switch (settings.twoPanelLayout) {
+    switch (finalLayout) {
       case "horizontal":
         direction = "vertical"
         reverseOrder = true
         break
-      case "auto":
       case "vertical":
       default:
         direction = "horizontal"
@@ -182,7 +253,7 @@ const Panels: FC = () => {
       />
     )
   }
-  switch (settings.threePanelLayout) {
+  switch (finalLayout) {
     case "verticalWithLeftHorizontal":
       return <Nested3PanelLayout onResize={resizeBlockly} />
     case "horizontal":
