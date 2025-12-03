@@ -7,12 +7,13 @@
 import { useDispatch, useSelector } from "react-redux"
 
 import type { AppDispatch, RootState } from "./store"
-import { selectSettings } from "./slices"
+import { selectPanelCount, selectSettings, selectToolbox } from "./slices"
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
 
-export function useSettings() {
-  return useSelector(selectSettings)
-}
+export const useSettings = () => useSelector(selectSettings)
+
+export const useLevelPanelCount = () => useSelector(selectPanelCount)
+export const useLevelToolbox = () => useSelector(selectToolbox)

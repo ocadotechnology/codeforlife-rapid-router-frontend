@@ -1,78 +1,61 @@
 import * as yup from "yup"
-import { Box, Typography } from "@mui/material"
-import { type FC, useRef, useState } from "react"
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
+import { Box } from "@mui/material"
+import { type FC } from "react"
 import { useParamsRequired } from "codeforlife/hooks"
 
-import BlocklyWorkspace, {
-  type BlocklyWorkspaceProps,
-  type ToolboxItemInfo,
-} from "./BlocklyWorkspace"
+import {
+  THREE_PANEL_LAYOUTS,
+  TWO_PANEL_LAYOUTS,
+  type ThreePanelLayout,
+  type TwoPanelLayout,
+  setThreePanelLayout,
+  setTwoPanelLayout,
+} from "../../app/slices"
+import {
+  useAppDispatch,
+  useLevelPanelCount,
+  useSettings,
+} from "../../app/hooks"
 import Controls from "./Controls"
+import Panels from "./Panels"
 import { paths } from "../../routes"
-import { useSettings } from "../../app/hooks"
 
 export interface LevelProps {}
 
-interface LevelState {
-  panels: 2 | 3
-  toolbox_contents: ToolboxItemInfo[]
-}
-
 const Level: FC<LevelProps> = () => {
-  const [level] = useState<LevelState>({
-    panels: 2,
-    toolbox_contents: [
-      { kind: "block", type: "logic_compare" },
-      { kind: "block", type: "logic_compare" },
-      { kind: "block", type: "logic_compare" },
-    ],
-  })
-
+  const dispatch = useAppDispatch()
   const settings = useSettings()
-  const blocklyWorkspaceRef: BlocklyWorkspaceProps["ref"] = useRef(null)
+
+  const levelPanelCount = useLevelPanelCount()
+
+  const twoPanels = levelPanelCount === 2,
+    threePanels = !twoPanels
 
   return useParamsRequired({
     shape: { id: yup.number().required().min(1) },
     children: () => (
       <Box sx={{ display: "flex" }}>
-        <Controls />
-        <Box component="main" sx={{ flexGrow: 1 }}>
-          {/* TODO: fix style */}
-          <PanelGroup
-            direction="horizontal"
-            style={{ height: "100vh", width: "100%" }}
-            onLayout={() => {
-              if (blocklyWorkspaceRef.current)
-                blocklyWorkspaceRef.current.resize()
+        {twoPanels && (
+          <Controls
+            layout={settings.twoPanelLayout}
+            layoutOptions={TWO_PANEL_LAYOUTS}
+            onLayoutChange={l => {
+              dispatch(setTwoPanelLayout(l as TwoPanelLayout))
             }}
-          >
-            <Panel defaultSize={50} minSize={20}>
-              <BlocklyWorkspace
-                ref={blocklyWorkspaceRef}
-                toolboxContents={level.toolbox_contents}
-              />
-            </Panel>
-            {/* TODO: fix style */}
-            <PanelResizeHandle
-              style={{
-                color: "#000",
-                border: "1px solid gray",
-                outline: "none",
-                flex: "0 0 .5rem",
-                justifyContent: "center",
-                alignItems: "center",
-                display: "flex",
-              }}
-            >
-              <DragIndicatorIcon />
-            </PanelResizeHandle>
-            <Panel defaultSize={50} minSize={20}>
-              <Typography>Settings: {JSON.stringify(settings)}</Typography>
-              <Typography>Level state: {JSON.stringify(level)}</Typography>
-            </Panel>
-          </PanelGroup>
+          />
+        )}
+        {threePanels && (
+          <Controls
+            layout={settings.threePanelLayout}
+            layoutOptions={THREE_PANEL_LAYOUTS}
+            onLayoutChange={l => {
+              dispatch(setThreePanelLayout(l as ThreePanelLayout))
+            }}
+          />
+        )}
+        {/* TODO: fix style*/}
+        <Box component="main" sx={{ height: "100vh" }}>
+          <Panels />
         </Box>
       </Box>
     ),
