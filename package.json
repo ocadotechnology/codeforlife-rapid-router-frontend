@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "blockly": "12.3.1",
-    "codeforlife": "2.12.2",
+    "codeforlife": "2.12.4",
     "react-resizable-panels": "3.0.6"
   },
   "devDependencies": {
