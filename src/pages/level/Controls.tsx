@@ -23,22 +23,19 @@ import {
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
-
 import {
+  type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
 } from "../../app/slices"
-import type { ThreePanelLayout, TwoPanelLayout } from "../../app/slices"
-
-type Layout = TwoPanelLayout | ThreePanelLayout
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
 }
 export interface ControlsProps {
-  layout: Layout
+  layout: PanelLayout
   layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-  onLayoutChange: (layout: Layout) => void
+  onLayoutChange: (layout: PanelLayout) => void
 }
 
 const DRAWER_WIDTH = 240
@@ -98,9 +95,9 @@ const MiniDrawerButtonItem: FC<
 
 const MiniDrawerSelectLayout: FC<
   BaseMiniDrawerItemProps & {
-    layout: Layout
+    layout: PanelLayout
     layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-    onLayoutChange: (layout: Layout) => void
+    onLayoutChange: (layout: PanelLayout) => void
   }
 > = ({ onLayoutChange, layoutOptions, layout }) => (
   <ListItem>

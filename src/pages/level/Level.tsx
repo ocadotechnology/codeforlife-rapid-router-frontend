@@ -1,6 +1,6 @@
 import * as yup from "yup"
-import { type FC, useCallback } from "react"
 import { Box } from "@mui/material"
+import { type FC } from "react"
 import { useParamsRequired } from "codeforlife/hooks"
 
 import {
@@ -19,18 +19,12 @@ import {
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
-import { useBlocklyContext } from "./context/BlocklyContext"
 
 export interface LevelProps {}
 
 const Level: FC<LevelProps> = () => {
   const dispatch = useAppDispatch()
   const settings = useSettings()
-  const blocklyContext = useBlocklyContext()
-  const resizeBlockly = useCallback(() => {
-    const { workspaceRef } = blocklyContext
-    if (workspaceRef.current) workspaceRef.current.resize()
-  }, [blocklyContext])
 
   const levelPanelCount = useLevelPanelCount()
 
@@ -61,7 +55,7 @@ const Level: FC<LevelProps> = () => {
         )}
         {/* TODO: fix style*/}
         <Box component="main" sx={{ height: "100vh" }}>
-          <Panels onResize={resizeBlockly} />
+          <Panels />
         </Box>
       </Box>
     ),
