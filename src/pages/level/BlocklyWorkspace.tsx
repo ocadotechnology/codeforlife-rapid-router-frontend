@@ -9,7 +9,9 @@ import {
   useRef,
   useState,
 } from "react"
+import EnTokens from "./blockly/messages/en"
 import { type WorkspaceSvg } from "blockly/core"
+import { registerCustomBlockDefinitions } from "./blockly/blocks"
 import { useBlocklyContext } from "./context/BlocklyContext"
 import { useLevelToolbox } from "../../app/hooks"
 
@@ -44,6 +46,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
     if (!divRef.current) return
     // @ts-expect-error Locale type isn't inferred correctly after export
     Blockly.setLocale(En)
+    Blockly.setLocale(EnTokens)
+    registerCustomBlockDefinitions()
     const newWorkspace = Blockly.inject(divRef.current, {
       toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
       trashcan: true,
@@ -55,7 +59,9 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
         newWorkspace,
       )
     }
-
+    if (!newWorkspace.getTopBlocks().some(b => b.type === "start")) {
+      newWorkspace.newBlock("start").setDeletable(false)
+    }
     setWorkspace(newWorkspace)
     return () => {
       const state = Blockly.serialization.workspaces.save(newWorkspace)
