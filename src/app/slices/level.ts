@@ -13,9 +13,19 @@ export interface LevelState {
 const initialState: LevelState = Object.freeze({
   panels: 3,
   toolbox_contents: [
-    { kind: "block", type: "logic_compare" },
-    { kind: "block", type: "logic_compare" },
-    { kind: "block", type: "logic_compare" },
+    { kind: "block", type: "move_forwards" },
+    { kind: "block", type: "turn_left" },
+    { kind: "block", type: "turn_right" },
+    { kind: "block", type: "turn_around" },
+    { kind: "block", type: "wait" },
+    { kind: "block", type: "deliver" },
+    { kind: "block", type: "sound_horn" },
+    { kind: "block", type: "road_exists" },
+    { kind: "block", type: "traffic_light" },
+    { kind: "block", type: "dead_end" },
+    { kind: "block", type: "at_destination" },
+    { kind: "block", type: "cow_crossing" },
+    { kind: "block", type: "pigeon_crossing" },
   ],
 })
 
