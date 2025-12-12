@@ -1,7 +1,12 @@
 import { type RefObject, createContext, createRef, useContext } from "react"
 
 interface IBlocklyContext {
-  workspaceRef: RefObject<{ resize: () => void } | null>
+  workspaceRef: RefObject<{
+    resize: () => void
+    step: () => void
+    play: () => void
+    stop: () => void
+  } | null>
 }
 
 const DEFAULT_CONTEXT: IBlocklyContext = {

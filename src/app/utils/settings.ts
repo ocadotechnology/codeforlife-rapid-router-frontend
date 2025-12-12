@@ -4,7 +4,7 @@ import { SERVICE_NAME } from "codeforlife/settings"
 import { type SettingsState } from "../slices"
 
 export function getSettingsCookie() {
-  const settingsCookie = Cookies.get(SERVICE_NAME)
+  const settingsCookie = Cookies.get(SERVICE_NAME + "a")
   if (settingsCookie === undefined) return settingsCookie
 
   try {

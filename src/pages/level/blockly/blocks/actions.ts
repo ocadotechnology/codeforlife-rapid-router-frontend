@@ -6,6 +6,16 @@ import turnLeftIcon from "../../../../images/blocks/turn_left.svg"
 import turnRightIcon from "../../../../images/blocks/turn_right.svg"
 import waitIcon from "../../../../images/blocks/wait.svg"
 
+export const ACTION_BLOCK_TYPES = {
+  MOVE_FORWARDS: "move_forwards",
+  TURN_LEFT: "turn_left",
+  TURN_RIGHT: "turn_right",
+  TURN_AROUND: "turn_around",
+  WAIT: "wait",
+  DELIVER: "deliver",
+  SOUND_HORN: "sound_horn",
+} as const
+
 const BLOCK_COLOUR = 160,
   BLOCK_IMAGE_WIDTH = 15,
   BLOCK_IMAGE_HEIGHT = 15
@@ -34,13 +44,13 @@ const actionBlock = (type: string, icon: string) => ({
 })
 
 const actionBlocks = [
-  actionBlock("move_forwards", moveForwardsIcon),
-  actionBlock("turn_left", turnLeftIcon),
-  actionBlock("turn_right", turnRightIcon),
-  actionBlock("turn_around", turnAroundIcon),
-  actionBlock("wait", waitIcon),
-  actionBlock("deliver", deliverIcon),
-  actionBlock("sound_horn", emptyIcon),
+  actionBlock(ACTION_BLOCK_TYPES.MOVE_FORWARDS, moveForwardsIcon),
+  actionBlock(ACTION_BLOCK_TYPES.TURN_LEFT, turnLeftIcon),
+  actionBlock(ACTION_BLOCK_TYPES.TURN_RIGHT, turnRightIcon),
+  actionBlock(ACTION_BLOCK_TYPES.TURN_AROUND, turnAroundIcon),
+  actionBlock(ACTION_BLOCK_TYPES.WAIT, waitIcon),
+  actionBlock(ACTION_BLOCK_TYPES.DELIVER, deliverIcon),
+  actionBlock(ACTION_BLOCK_TYPES.SOUND_HORN, emptyIcon),
 ]
 
 export default actionBlocks

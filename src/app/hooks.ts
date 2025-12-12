@@ -8,7 +8,13 @@ import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
 
 import type { AppDispatch, RootState } from "./store"
-import { selectPanelCount, selectSettings, selectToolbox } from "./slices"
+import {
+  selectCommandQueue,
+  selectPanelCount,
+  selectPlaySpeed,
+  selectSettings,
+  selectToolbox,
+} from "./slices"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -17,6 +23,7 @@ export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
 
 export const useSettings = () => useSelector(selectSettings)
+export const useSettingsPlaySpeed = () => useSelector(selectPlaySpeed)
 
 export const useScreenOrientation = () =>
   typeof window !== "undefined"
@@ -36,3 +43,5 @@ export function useBreakpoint() {
 
 export const useLevelPanelCount = () => useSelector(selectPanelCount)
 export const useLevelToolbox = () => useSelector(selectToolbox)
+
+export const usePhaserGameCommandQueue = () => useSelector(selectCommandQueue)

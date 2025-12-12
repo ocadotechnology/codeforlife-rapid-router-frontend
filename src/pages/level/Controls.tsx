@@ -1,12 +1,4 @@
 import {
-  Agriculture as AgricultureIcon,
-  BusAlert as BusIcon,
-  Call as CallIcon,
-  Cast as CastIcon,
-  ChevronLeft as ChevronLeftIcon,
-  Menu as MenuIcon,
-} from "@mui/icons-material"
-import {
   type CSSObject,
   Divider,
   Drawer,
@@ -22,12 +14,23 @@ import {
   Select,
   type Theme,
 } from "@mui/material"
+import {
+  ChevronLeft as ChevronLeftIcon,
+  Delete as DeleteIcon,
+  Menu as MenuIcon,
+  PlayArrow as PlayArrowIcon,
+  Redo as RedoIcon,
+  Stop as StopIcon,
+} from "@mui/icons-material"
 import { type FC, type ReactNode, useState } from "react"
 import {
   type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
+  setPlaySpeed,
 } from "../../app/slices"
+import { useAppDispatch, useSettingsPlaySpeed } from "../../app/hooks"
+import { useBlocklyContext } from "./context/BlocklyContext"
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
@@ -39,6 +42,7 @@ export interface ControlsProps {
 }
 
 const DRAWER_WIDTH = 240
+const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: DRAWER_WIDTH,
@@ -63,10 +67,12 @@ const MiniDrawerButtonItem: FC<
   BaseMiniDrawerItemProps & {
     icon: ReactNode
     text: string
+    onClick: () => void
   }
-> = ({ isDrawerOpen, icon, text }) => (
+> = ({ isDrawerOpen, onClick, icon, text }) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <ListItemButton
+      onClick={onClick}
       sx={{
         minHeight: 48,
         px: 2.5,
@@ -119,6 +125,31 @@ const MiniDrawerSelectLayout: FC<
     </FormControl>
   </ListItem>
 )
+
+const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = () => {
+  const dispatch = useAppDispatch()
+  const playSpeed = useSettingsPlaySpeed()
+  return (
+    <ListItem>
+      <FormControl fullWidth>
+        <InputLabel id="speed-select-label">Speed</InputLabel>
+        <Select
+          labelId="speed-select-label"
+          id="speed-select"
+          value={playSpeed}
+          label="Speed"
+          onChange={e => dispatch(setPlaySpeed(e.target.value))}
+        >
+          {SPEED_OPTIONS.map(speed => (
+            <MenuItem key={speed} value={speed}>
+              {speed}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </ListItem>
+  )
+}
 
 const MiniDrawer: FC<{
   open: boolean
@@ -179,6 +210,8 @@ const Controls: FC<ControlsProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
+  const blocklyCtx = useBlocklyContext()
+
   return (
     <MiniDrawer
       open={isDrawerOpen}
@@ -189,23 +222,42 @@ const Controls: FC<ControlsProps> = ({
       <List>
         <MiniDrawerButtonItem
           {...baseItemProps}
-          text="Item 1"
-          icon={<AgricultureIcon />}
+          text="Clear"
+          icon={<DeleteIcon />}
+          onClick={() => {
+            console.log("Clear clicked")
+          }}
         />
         <MiniDrawerButtonItem
           {...baseItemProps}
-          text="Item 2"
-          icon={<BusIcon />}
+          text="Play"
+          icon={<PlayArrowIcon />}
+          onClick={() => {
+            if (blocklyCtx.workspaceRef.current) {
+              blocklyCtx.workspaceRef.current.play()
+            }
+          }}
+        />
+        <MiniDrawerSelectSpeed {...baseItemProps} />
+        <MiniDrawerButtonItem
+          {...baseItemProps}
+          text="Stop"
+          icon={<StopIcon />}
+          onClick={() => {
+            if (blocklyCtx.workspaceRef.current) {
+              blocklyCtx.workspaceRef.current.stop()
+            }
+          }}
         />
         <MiniDrawerButtonItem
           {...baseItemProps}
-          text="Item 3"
-          icon={<CallIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 4"
-          icon={<CastIcon />}
+          text="Step"
+          icon={<RedoIcon />}
+          onClick={() => {
+            if (blocklyCtx.workspaceRef.current) {
+              blocklyCtx.workspaceRef.current.step()
+            }
+          }}
         />
         <MiniDrawerSelectLayout
           {...baseItemProps}
