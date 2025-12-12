@@ -17,11 +17,13 @@ export type PanelLayout = TwoPanelLayout | ThreePanelLayout
 export interface SettingsState {
   twoPanelLayout: TwoPanelLayout
   threePanelLayout: ThreePanelLayout
+  playSpeed: number
 }
 
 const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   twoPanelLayout: "auto",
   threePanelLayout: "auto",
+  playSpeed: 1,
 })
 
 const settingsSlice = createSlice({
@@ -38,12 +40,17 @@ const settingsSlice = createSlice({
         state.threePanelLayout = action.payload
       },
     ),
+    setPlaySpeed: create.reducer((state, action: PayloadAction<number>) => {
+      state.playSpeed = action.payload
+    }),
   }),
   selectors: {
     selectSettings: settings => settings,
+    selectPlaySpeed: settings => settings.playSpeed,
   },
 })
 
 export default settingsSlice
-export const { setTwoPanelLayout, setThreePanelLayout } = settingsSlice.actions
-export const { selectSettings } = settingsSlice.selectors
+export const { setTwoPanelLayout, setThreePanelLayout, setPlaySpeed } =
+  settingsSlice.actions
+export const { selectSettings, selectPlaySpeed } = settingsSlice.selectors

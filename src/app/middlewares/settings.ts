@@ -1,12 +1,16 @@
 import { type Middleware, isAction } from "@reduxjs/toolkit"
 
-import { setThreePanelLayout, setTwoPanelLayout } from "../slices"
+import { setPlaySpeed, setThreePanelLayout, setTwoPanelLayout } from "../slices"
 import type { RootState } from "../store"
 import { setSettingsCookie } from "../utils"
 
 // List of actions that will trigger saving the updated state of
 // settings to a cookie when middleware is executed
-const SETTINGS_WRITE_ACTIONS = [setThreePanelLayout, setTwoPanelLayout]
+const SETTINGS_WRITE_ACTIONS = [
+  setThreePanelLayout,
+  setTwoPanelLayout,
+  setPlaySpeed,
+]
 
 // Middleware to save settings to cookies whenever user makes changes
 export const settingsMiddleware: Middleware<any, RootState> =

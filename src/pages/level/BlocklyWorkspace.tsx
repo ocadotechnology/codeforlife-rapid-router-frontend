@@ -9,11 +9,17 @@ import {
   useRef,
   useState,
 } from "react"
+
+import {
+  useAppDispatch,
+  useLevelToolbox,
+  useSettingsPlaySpeed,
+} from "../../app/hooks"
 import EnTokens from "./blockly/messages/en"
+import Interpreter from "./blockly/interpreter"
 import { type WorkspaceSvg } from "blockly/core"
 import { registerCustomBlockDefinitions } from "./blockly/blocks"
 import { useBlocklyContext } from "./context/BlocklyContext"
-import { useLevelToolbox } from "../../app/hooks"
 
 export type ToolboxItemInfo = Blockly.utils.toolbox.ToolboxItemInfo
 
@@ -27,8 +33,10 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
   const toolboxContents = useLevelToolbox()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
+  const [interpreter, setInterpreter] = useState<Interpreter | null>(null)
+  const playSpeed = useSettingsPlaySpeed()
+  const dispatch = useAppDispatch()
 
-  // Handle to imperatively trigger (debounced) resize from parent
   useImperativeHandle(
     blocklyCtx.workspaceRef,
     () => {
@@ -36,9 +44,27 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
         resize: debounce(() => {
           if (workspace) Blockly.svgResize(workspace)
         }, RESIZE_DEBOUNCE_MS),
+        play: () => {
+          if (workspace && interpreter) {
+            interpreter.setSpeed(playSpeed)
+            interpreter.interpretBlocks(workspace.getTopBlocks())
+            interpreter.play()
+          }
+        },
+        step: () => {
+          if (workspace && interpreter) {
+            interpreter.interpretBlocks(workspace.getTopBlocks())
+            interpreter.step()
+          }
+        },
+        stop: () => {
+          if (workspace && interpreter) {
+            interpreter.stop()
+          }
+        },
       }
     },
-    [workspace],
+    [interpreter, playSpeed, workspace],
   )
 
   // Workspace creation
@@ -52,6 +78,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
       toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
       trashcan: true,
     })
+    setInterpreter(
+      new Interpreter(dispatch, (blockId: string) =>
+        newWorkspace.highlightBlock(blockId),
+      ),
+    )
     const state = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (state) {
       Blockly.serialization.workspaces.load(
@@ -68,7 +99,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
       newWorkspace.dispose()
     }
-  }, [divRef, toolboxContents])
+  }, [dispatch, divRef, toolboxContents])
 
   return (
     <Box
