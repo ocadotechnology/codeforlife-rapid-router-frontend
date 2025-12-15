@@ -1,5 +1,6 @@
 import {
   Agriculture as AgricultureIcon,
+  AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   BusAlert as BusIcon,
   Call as CallIcon,
   Cast as CastIcon,
@@ -10,16 +11,14 @@ import {
   type CSSObject,
   Divider,
   Drawer,
-  FormControl,
   IconButton,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
   MenuItem,
-  Select,
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
@@ -99,26 +98,70 @@ const MiniDrawerSelectLayout: FC<
     layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
     onLayoutChange: (layout: PanelLayout) => void
   }
-> = ({ onLayoutChange, layoutOptions, layout }) => (
-  <ListItem>
-    <FormControl fullWidth>
-      <InputLabel id="layout-select-label">Layout</InputLabel>
-      <Select
-        labelId="layout-select-label"
-        id="layout-select"
-        value={layout}
-        label="Layout"
-        onChange={e => onLayoutChange(e.target.value)}
+> = ({ isDrawerOpen, onLayoutChange, layoutOptions }) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (!open) setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+  return (
+    <ListItem disablePadding>
+      <ListItemButton
+        onClick={handleClick}
+        sx={{
+          minHeight: 48,
+          px: 2.5,
+          justifyContent: isDrawerOpen ? "initial" : "center",
+        }}
       >
-        {layoutOptions.map(layout => (
-          <MenuItem key={layout} value={layout}>
-            {layout}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </ListItem>
-)
+        <ListItemIcon
+          sx={{
+            minWidth: 0,
+            justifyContent: "center",
+            mr: isDrawerOpen ? 1 : "auto",
+          }}
+        >
+          <AutoAwesomeMosaicIcon />
+        </ListItemIcon>
+        {/* TODO: i18n */}
+        <ListItemText
+          primary="Layout"
+          sx={{
+            opacity: isDrawerOpen ? 1 : 0,
+            "& span": { marginBottom: "auto" },
+          }}
+        />
+        <Menu
+          id="basic-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          slotProps={{
+            list: {
+              "aria-labelledby": "basic-button",
+            },
+          }}
+        >
+          {layoutOptions.map(layout => (
+            <MenuItem
+              onClick={() => {
+                onLayoutChange(layout)
+                handleClose()
+              }}
+              key={layout}
+              value={layout}
+            >
+              {layout}
+            </MenuItem>
+          ))}
+        </Menu>
+      </ListItemButton>
+    </ListItem>
+  )
+}
 
 const MiniDrawer: FC<{
   open: boolean
