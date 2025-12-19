@@ -19,7 +19,7 @@ import {
 import BlocklyWorkspace from "./BlocklyWorkspace"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
-import { useBlocklyContext } from "./context/BlocklyContext"
+import { useLevelContext } from "./LevelContext"
 
 type Direction = "horizontal" | "vertical"
 
@@ -217,25 +217,21 @@ const Panels: FC = () => {
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
   const panels = useLevelPanelCount()
+  const { blocklyWorkspaceRef } = useLevelContext()!
 
-  const blocklyContext = useBlocklyContext()
   const resizeBlockly = useCallback(() => {
-    const { workspaceRef } = blocklyContext
-    if (workspaceRef.current) workspaceRef.current.resize()
-  }, [blocklyContext])
+    if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.resize()
+  }, [blocklyWorkspaceRef])
 
-  const layout =
+  let layout =
     panels === 2 ? settings.twoPanelLayout : settings.threePanelLayout
-
-  const finalLayout =
-    layout === "auto"
-      ? chooseAutoLayout(panels, screenOrientation, breakpoint)
-      : layout
+  if (layout === "auto")
+    layout = chooseAutoLayout(panels, screenOrientation, breakpoint)
 
   let direction: Direction | undefined,
     reverseOrder = false
   if (panels === 2) {
-    switch (finalLayout) {
+    switch (layout) {
       case "horizontal":
         direction = "vertical"
         reverseOrder = true
@@ -253,7 +249,7 @@ const Panels: FC = () => {
       />
     )
   }
-  switch (finalLayout) {
+  switch (layout) {
     case "verticalWithLeftHorizontal":
       return <Nested3PanelLayout onResize={resizeBlockly} />
     case "horizontal":

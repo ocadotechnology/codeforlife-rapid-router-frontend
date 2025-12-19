@@ -32,7 +32,7 @@ import {
   setPlaySpeed,
 } from "../../app/slices"
 import { useAppDispatch, useSettingsPlaySpeed } from "../../app/hooks"
-import { useBlocklyContext } from "./context/BlocklyContext"
+import { useLevelContext } from "./LevelContext"
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
@@ -208,10 +208,10 @@ const Controls: FC<ControlsProps> = ({
   layout,
   onLayoutChange,
 }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
-  const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const { blocklyWorkspaceRef } = useLevelContext()!
 
-  const blocklyCtx = useBlocklyContext()
+  const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
   return (
     <MiniDrawer
@@ -234,9 +234,7 @@ const Controls: FC<ControlsProps> = ({
           text="Play"
           icon={<PlayArrowIcon />}
           onClick={() => {
-            if (blocklyCtx.workspaceRef.current) {
-              blocklyCtx.workspaceRef.current.play()
-            }
+            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.play()
           }}
         />
         <MiniDrawerSelectSpeed {...baseItemProps} />
@@ -245,9 +243,7 @@ const Controls: FC<ControlsProps> = ({
           text="Stop"
           icon={<StopIcon />}
           onClick={() => {
-            if (blocklyCtx.workspaceRef.current) {
-              blocklyCtx.workspaceRef.current.stop()
-            }
+            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.stop()
           }}
         />
         <MiniDrawerButtonItem
@@ -255,9 +251,7 @@ const Controls: FC<ControlsProps> = ({
           text="Step"
           icon={<RedoIcon />}
           onClick={() => {
-            if (blocklyCtx.workspaceRef.current) {
-              blocklyCtx.workspaceRef.current.step()
-            }
+            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.step()
           }}
         />
         <MiniDrawerSelectLayout

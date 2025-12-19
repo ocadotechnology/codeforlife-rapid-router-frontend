@@ -20,7 +20,7 @@ import { type WorkspaceSvg } from "blockly/core"
 
 import * as en_custom from "./blockly/messages/en"
 import { registerCustomBlockDefinitions } from "./blockly/blocks"
-import { useBlocklyContext } from "./context/BlocklyContext"
+import { useLevelContext } from "./LevelContext"
 
 export type ToolboxItemInfo = Blockly.utils.toolbox.ToolboxItemInfo
 
@@ -30,7 +30,7 @@ const RESIZE_DEBOUNCE_MS = 10
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"
 
 const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
-  const blocklyCtx = useBlocklyContext()
+  const { blocklyWorkspaceRef } = useLevelContext()!
   const toolboxContents = useLevelToolbox()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
@@ -38,35 +38,29 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
   const playSpeed = useSettingsPlaySpeed()
   const dispatch = useAppDispatch()
 
-  useImperativeHandle(
-    blocklyCtx.workspaceRef,
-    () => {
-      return {
-        resize: debounce(() => {
-          if (workspace) Blockly.svgResize(workspace)
-        }, RESIZE_DEBOUNCE_MS),
-        play: () => {
-          if (workspace && interpreter) {
-            interpreter.setSpeed(playSpeed)
-            interpreter.interpretBlocks(workspace.getTopBlocks())
-            interpreter.play()
-          }
-        },
-        step: () => {
-          if (workspace && interpreter) {
-            interpreter.interpretBlocks(workspace.getTopBlocks())
-            interpreter.step()
-          }
-        },
-        stop: () => {
-          if (workspace && interpreter) {
-            interpreter.stop()
-          }
-        },
-      }
-    },
-    [interpreter, playSpeed, workspace],
-  )
+  useImperativeHandle(blocklyWorkspaceRef, () => {
+    return {
+      resize: debounce(() => {
+        if (workspace) Blockly.svgResize(workspace)
+      }, RESIZE_DEBOUNCE_MS),
+      play: () => {
+        if (workspace && interpreter) {
+          interpreter.setSpeed(playSpeed)
+          interpreter.interpretBlocks(workspace.getTopBlocks())
+          interpreter.play()
+        }
+      },
+      step: () => {
+        if (workspace && interpreter) {
+          interpreter.interpretBlocks(workspace.getTopBlocks())
+          interpreter.step()
+        }
+      },
+      stop: () => {
+        if (workspace && interpreter) interpreter.stop()
+      },
+    }
+  }, [interpreter, playSpeed, workspace])
 
   // Workspace creation
   useEffect(() => {
