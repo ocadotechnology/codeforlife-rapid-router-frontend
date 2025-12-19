@@ -1,6 +1,6 @@
 export type BlockDefinition = {
   type: string
-  tooltip: string
+  tooltip?: string
   colour: number
   message0: string
   args0: Array<

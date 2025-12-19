@@ -1,21 +1,22 @@
 import * as Blockly from "blockly/core"
 
-import actionDefinitions from "./actions"
-import conditionDefinitions from "./conditions"
-import otherDefinitions from "./other"
+import * as actions from "./actions"
+import * as conditions from "./conditions"
+import * as other from "./other"
 
-export { ACTION_BLOCK_TYPES } from "./actions"
-
-let alreadyRegistered = false
+let ALREADY_REGISTERED = false
 
 export const registerCustomBlockDefinitions = () => {
-  if (alreadyRegistered) return
-  const definitions = Blockly.common.createBlockDefinitionsFromJsonArray([
-    ...actionDefinitions,
-    ...conditionDefinitions,
-    ...otherDefinitions,
-  ])
+  if (ALREADY_REGISTERED) return
+  ALREADY_REGISTERED = true
 
-  Blockly.common.defineBlocks(definitions)
-  alreadyRegistered = true
+  Blockly.common.defineBlocks(
+    Blockly.common.createBlockDefinitionsFromJsonArray([
+      ...Object.values(actions),
+      ...Object.values(conditions),
+      ...Object.values(other),
+    ]),
+  )
 }
+
+export default { actions, conditions, other }

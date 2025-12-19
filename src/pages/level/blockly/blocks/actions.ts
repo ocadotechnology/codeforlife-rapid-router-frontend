@@ -1,3 +1,4 @@
+import type { BlockDefinition } from "./definition"
 import deliverIcon from "../../../../images/blocks/deliver.svg"
 import emptyIcon from "../../../../images/blocks/empty.svg"
 import moveForwardsIcon from "../../../../images/blocks/move_forwards.svg"
@@ -6,21 +7,11 @@ import turnLeftIcon from "../../../../images/blocks/turn_left.svg"
 import turnRightIcon from "../../../../images/blocks/turn_right.svg"
 import waitIcon from "../../../../images/blocks/wait.svg"
 
-export const ACTION_BLOCK_TYPES = {
-  MOVE_FORWARDS: "move_forwards",
-  TURN_LEFT: "turn_left",
-  TURN_RIGHT: "turn_right",
-  TURN_AROUND: "turn_around",
-  WAIT: "wait",
-  DELIVER: "deliver",
-  SOUND_HORN: "sound_horn",
-} as const
-
 const BLOCK_COLOUR = 160,
   BLOCK_IMAGE_WIDTH = 15,
   BLOCK_IMAGE_HEIGHT = 15
 
-const actionBlock = (type: string, icon: string) => ({
+const actionBlock = (type: string, icon: string): BlockDefinition => ({
   type,
   tooltip: `%{BKY_${type.toLocaleUpperCase()}_TOOLTIP}`,
   colour: BLOCK_COLOUR,
@@ -43,14 +34,10 @@ const actionBlock = (type: string, icon: string) => ({
   nextStatement: null,
 })
 
-const actionBlocks = [
-  actionBlock(ACTION_BLOCK_TYPES.MOVE_FORWARDS, moveForwardsIcon),
-  actionBlock(ACTION_BLOCK_TYPES.TURN_LEFT, turnLeftIcon),
-  actionBlock(ACTION_BLOCK_TYPES.TURN_RIGHT, turnRightIcon),
-  actionBlock(ACTION_BLOCK_TYPES.TURN_AROUND, turnAroundIcon),
-  actionBlock(ACTION_BLOCK_TYPES.WAIT, waitIcon),
-  actionBlock(ACTION_BLOCK_TYPES.DELIVER, deliverIcon),
-  actionBlock(ACTION_BLOCK_TYPES.SOUND_HORN, emptyIcon),
-]
-
-export default actionBlocks
+export const MOVE_FORWARDS = actionBlock("move_forwards", moveForwardsIcon)
+export const TURN_LEFT = actionBlock("turn_left", turnLeftIcon)
+export const TURN_RIGHT = actionBlock("turn_right", turnRightIcon)
+export const TURN_AROUND = actionBlock("turn_around", turnAroundIcon)
+export const WAIT = actionBlock("wait", waitIcon)
+export const DELIVER = actionBlock("deliver", deliverIcon)
+export const SOUND_HORN = actionBlock("sound_horn", emptyIcon)

@@ -1,10 +1,9 @@
-const CHARACTER_NAME = "Van"
+import type { BlockDefinition } from "./definition"
 
-const startBlock = (characterName: string) => ({
+const startBlock = (characterName: string): BlockDefinition => ({
   type: "start",
   tooltip: "%{BKY_START_TOOLTIP}",
   colour: 50,
-  deletable: false,
   message0: "%{BKY_START_TITLE} %1 %2",
   args0: [
     {
@@ -26,4 +25,4 @@ const startBlock = (characterName: string) => ({
   nextStatement: null,
 })
 
-export default [startBlock(CHARACTER_NAME)]
+export const START_VAN = startBlock("Van")

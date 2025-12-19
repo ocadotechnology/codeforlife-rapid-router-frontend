@@ -4,8 +4,8 @@ import {
   type GameCommand,
   pushToCommandQueue,
 } from "../../../app/slices/phaserGame"
-import { ACTION_BLOCK_TYPES as AB } from "./blocks"
 import type { AppDispatch } from "../../../app/store"
+import customBlocks from "./blocks"
 
 interface Command {
   blockId: string
@@ -64,13 +64,13 @@ class Interpreter {
     let nextBlock = blocks[0]
     while (nextBlock) {
       switch (nextBlock.type) {
-        case AB.MOVE_FORWARDS:
-        case AB.TURN_LEFT:
-        case AB.TURN_RIGHT:
-        case AB.TURN_AROUND:
-        case AB.WAIT:
-        case AB.DELIVER:
-        case AB.SOUND_HORN:
+        case customBlocks.actions.MOVE_FORWARDS.type:
+        case customBlocks.actions.TURN_LEFT.type:
+        case customBlocks.actions.TURN_RIGHT.type:
+        case customBlocks.actions.TURN_AROUND.type:
+        case customBlocks.actions.WAIT.type:
+        case customBlocks.actions.DELIVER.type:
+        case customBlocks.actions.SOUND_HORN.type:
           result.push({ gc: { type: nextBlock.type }, blockId: nextBlock.id })
           break
       }
