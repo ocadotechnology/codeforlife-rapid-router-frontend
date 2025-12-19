@@ -23,7 +23,9 @@ import {
   Stop as StopIcon,
 } from "@mui/icons-material"
 import { type FC, type ReactNode, useState } from "react"
+
 import {
+  PLAY_SPEEDS,
   type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
@@ -42,7 +44,6 @@ export interface ControlsProps {
 }
 
 const DRAWER_WIDTH = 240
-const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: DRAWER_WIDTH,
@@ -140,7 +141,7 @@ const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = () => {
           label="Speed"
           onChange={e => dispatch(setPlaySpeed(e.target.value))}
         >
-          {SPEED_OPTIONS.map(speed => (
+          {PLAY_SPEEDS.map(speed => (
             <MenuItem key={speed} value={speed}>
               {speed}
             </MenuItem>
