@@ -1,6 +1,6 @@
 import "blockly/blocks"
 import * as Blockly from "blockly/core"
-import * as En from "blockly/msg/en"
+import * as en_default from "blockly/msg/en"
 import { Box, debounce } from "@mui/material"
 import {
   type FC,
@@ -15,9 +15,10 @@ import {
   useLevelToolbox,
   useSettingsPlaySpeed,
 } from "../../app/hooks"
-import EnTokens from "./blockly/messages/en"
 import Interpreter from "./blockly/interpreter"
 import { type WorkspaceSvg } from "blockly/core"
+
+import * as en_custom from "./blockly/messages/en"
 import { registerCustomBlockDefinitions } from "./blockly/blocks"
 import { useBlocklyContext } from "./context/BlocklyContext"
 
@@ -71,8 +72,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
   useEffect(() => {
     if (!divRef.current) return
     // @ts-expect-error Locale type isn't inferred correctly after export
-    Blockly.setLocale(En)
-    Blockly.setLocale(EnTokens)
+    Blockly.setLocale({ ...en_default, ...en_custom })
     registerCustomBlockDefinitions()
     const newWorkspace = Blockly.inject(divRef.current, {
       toolbox: { kind: "flyoutToolbox", contents: toolboxContents },

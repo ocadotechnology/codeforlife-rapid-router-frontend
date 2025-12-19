@@ -1,29 +1,25 @@
-const EnTokens = {
-  START_TITLE: "Start",
-  START_TOOLTIP: "The beginning of the program",
-  MOVE_FORWARDS_TITLE: "move forwards",
-  MOVE_FORWARDS_TOOLTIP: "Move the van forwards",
-  TURN_LEFT_TITLE: "turn left",
-  TURN_LEFT_TOOLTIP: "Turn the van left",
-  TURN_RIGHT_TITLE: "turn right",
-  TURN_RIGHT_TOOLTIP: "Turn the van right",
-  TURN_AROUND_TITLE: "turn around",
-  TURN_AROUND_TOOLTIP: "Turn the van around",
-  WAIT_TITLE: "wait",
-  WAIT_TOOLTIP: "Keep the van stationary",
-  DELIVER_TITLE: "deliver",
-  DELIVER_TOOLTIP: "Deliver the goods from the van",
-  SOUND_HORN_TITLE: "sound horn",
-  SOUND_HORN_TOOLTIP: "Sound the horn to scare away the cows",
-  ROAD_EXISTS_FORWARD_TITLE: "road exists forward",
-  ROAD_EXISTS_LEFT_TITLE: "road exists left",
-  ROAD_EXISTS_RIGHT_TITLE: "road exists right",
-  TRAFFIC_LIGHT_RED_TITLE: "traffic light red",
-  TRAFFIC_LIGHT_GREEN_TITLE: "traffic light green",
-  DEAD_END_TITLE: "is dead end",
-  AT_DESTINATION_TITLE: "at destination",
-  COW_CROSSING_TITLE: "cows",
-  PIGEON_CROSSING_TITLE: "pigeons",
-}
-
-export default EnTokens
+export const START_TITLE = "Start"
+export const START_TOOLTIP = "The beginning of the program"
+export const MOVE_FORWARDS_TITLE = "move forwards"
+export const MOVE_FORWARDS_TOOLTIP = "Move the van forwards"
+export const TURN_LEFT_TITLE = "turn left"
+export const TURN_LEFT_TOOLTIP = "Turn the van left"
+export const TURN_RIGHT_TITLE = "turn right"
+export const TURN_RIGHT_TOOLTIP = "Turn the van right"
+export const TURN_AROUND_TITLE = "turn around"
+export const TURN_AROUND_TOOLTIP = "Turn the van around"
+export const WAIT_TITLE = "wait"
+export const WAIT_TOOLTIP = "Keep the van stationary"
+export const DELIVER_TITLE = "deliver"
+export const DELIVER_TOOLTIP = "Deliver the goods from the van"
+export const SOUND_HORN_TITLE = "sound horn"
+export const SOUND_HORN_TOOLTIP = "Sound the horn to scare away the cows"
+export const ROAD_EXISTS_FORWARD_TITLE = "road exists forward"
+export const ROAD_EXISTS_LEFT_TITLE = "road exists left"
+export const ROAD_EXISTS_RIGHT_TITLE = "road exists right"
+export const TRAFFIC_LIGHT_RED_TITLE = "traffic light red"
+export const TRAFFIC_LIGHT_GREEN_TITLE = "traffic light green"
+export const DEAD_END_TITLE = "is dead end"
+export const AT_DESTINATION_TITLE = "at destination"
+export const COW_CROSSING_TITLE = "cows"
+export const PIGEON_CROSSING_TITLE = "pigeons"
