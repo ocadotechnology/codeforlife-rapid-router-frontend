@@ -10,11 +10,7 @@ import {
   useState,
 } from "react"
 
-import {
-  useAppDispatch,
-  useLevelToolbox,
-  useSettingsPlaySpeed,
-} from "../../app/hooks"
+import { useAppDispatch, useLevelToolbox, useSettings } from "../../app/hooks"
 import Interpreter from "./blockly/interpreter"
 import { type WorkspaceSvg } from "blockly/core"
 
@@ -35,7 +31,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
   const [interpreter, setInterpreter] = useState<Interpreter | null>(null)
-  const playSpeed = useSettingsPlaySpeed()
+  const { playSpeed } = useSettings()
   const dispatch = useAppDispatch()
 
   useImperativeHandle(blocklyWorkspaceRef, () => {

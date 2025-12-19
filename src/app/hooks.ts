@@ -11,7 +11,6 @@ import type { AppDispatch, RootState } from "./store"
 import {
   selectCommandQueue,
   selectPanelCount,
-  selectPlaySpeed,
   selectSettings,
   selectToolbox,
 } from "./slices"
@@ -23,7 +22,6 @@ export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
 
 export const useSettings = () => useSelector(selectSettings)
-export const useSettingsPlaySpeed = () => useSelector(selectPlaySpeed)
 
 export const useScreenOrientation = () =>
   typeof window !== "undefined"

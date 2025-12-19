@@ -31,7 +31,7 @@ import {
   type TWO_PANEL_LAYOUTS,
   setPlaySpeed,
 } from "../../app/slices"
-import { useAppDispatch, useSettingsPlaySpeed } from "../../app/hooks"
+import { useAppDispatch, useSettings } from "../../app/hooks"
 import { useLevelContext } from "./LevelContext"
 
 interface BaseMiniDrawerItemProps {
@@ -129,7 +129,8 @@ const MiniDrawerSelectLayout: FC<
 
 const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = () => {
   const dispatch = useAppDispatch()
-  const playSpeed = useSettingsPlaySpeed()
+  const { playSpeed } = useSettings()
+
   return (
     <ListItem>
       <FormControl fullWidth>

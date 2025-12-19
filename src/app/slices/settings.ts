@@ -47,13 +47,10 @@ const settingsSlice = createSlice({
       state.playSpeed = action.payload
     }),
   }),
-  selectors: {
-    selectSettings: settings => settings,
-    selectPlaySpeed: settings => settings.playSpeed,
-  },
+  selectors: { selectSettings: settings => settings },
 })
 
 export default settingsSlice
 export const { setTwoPanelLayout, setThreePanelLayout, setPlaySpeed } =
   settingsSlice.actions
-export const { selectSettings, selectPlaySpeed } = settingsSlice.selectors
+export const { selectSettings } = settingsSlice.selectors
