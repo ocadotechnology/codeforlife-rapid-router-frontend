@@ -1,6 +1,10 @@
 import { type Middleware, isAction } from "@reduxjs/toolkit"
 
-import { setPlaySpeed, setThreePanelLayout, setTwoPanelLayout } from "../slices"
+import {
+  setPlaySpeed,
+  setThreePanelLayout,
+  setTwoPanelLayout,
+} from "../slices/settings"
 import type { RootState } from "../store"
 import { setSettingsCookie } from "../utils"
 

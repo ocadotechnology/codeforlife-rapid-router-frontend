@@ -8,6 +8,7 @@ import {
   List,
   ListItem,
   ListItemButton,
+  type ListItemButtonProps,
   ListItemIcon,
   ListItemText,
   MenuItem,
@@ -18,21 +19,36 @@ import {
   ChevronLeft as ChevronLeftIcon,
   Delete as DeleteIcon,
   Menu as MenuIcon,
+  Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
   Redo as RedoIcon,
   Stop as StopIcon,
 } from "@mui/icons-material"
-import { type FC, type ReactNode, useState } from "react"
+import {
+  type FC,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 
 import {
   PLAY_SPEEDS,
   type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
+  nextGameCommand,
+  restartGame,
+  setGameCommands,
   setPlaySpeed,
 } from "../../app/slices"
-import { useAppDispatch, useSettings } from "../../app/hooks"
-import { useLevelContext } from "./LevelContext"
+import {
+  useAppDispatch,
+  useGameHasFinished,
+  useGameHasStarted,
+  useSettings,
+} from "../../app/hooks"
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
@@ -65,15 +81,15 @@ const closedMixin = (theme: Theme): CSSObject => ({
 })
 
 const MiniDrawerButtonItem: FC<
-  BaseMiniDrawerItemProps & {
-    icon: ReactNode
-    text: string
-    onClick: () => void
-  }
-> = ({ isDrawerOpen, onClick, icon, text }) => (
+  BaseMiniDrawerItemProps &
+    Omit<ListItemButtonProps, "children"> & {
+      icon: ReactNode
+      text: string
+    }
+> = ({ isDrawerOpen, icon, text, ...listItemButtonProps }) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <ListItemButton
-      onClick={onClick}
+      {...listItemButtonProps}
       sx={{
         minHeight: 48,
         px: 2.5,
@@ -200,7 +216,7 @@ const MiniDrawer: FC<{
       {open ? <ChevronLeftIcon /> : <MenuIcon />}
     </IconButton>
     <Divider />
-    {children}
+    <List>{children}</List>
   </Drawer>
 )
 
@@ -210,7 +226,37 @@ const Controls: FC<ControlsProps> = ({
   onLayoutChange,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
-  const { blocklyWorkspaceRef } = useLevelContext()!
+  const dispatch = useAppDispatch()
+  const { playSpeed } = useSettings()
+  const gameHasStarted = useGameHasStarted()
+  const gameHasFinished = useGameHasFinished()
+
+  // Play interval management to dispatch nextGameCommand at correct speed.
+  const playInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+  const setPlayInterval = useCallback(() => {
+    playInterval.current = setInterval(() => {
+      dispatch(nextGameCommand())
+    }, 1000 / playSpeed)
+  }, [dispatch, playSpeed])
+  const clearPlayInterval = useCallback(() => {
+    if (!playInterval.current) return false
+    clearInterval(playInterval.current)
+    playInterval.current = null
+    return true
+  }, [])
+
+  useEffect(() => {
+    if (gameHasFinished) clearPlayInterval()
+
+    return () => {
+      clearPlayInterval()
+    }
+  }, [gameHasFinished, clearPlayInterval])
+
+  // Update interval if playSpeed changes.
+  useEffect(() => {
+    if (clearPlayInterval()) setPlayInterval()
+  }, [clearPlayInterval, setPlayInterval, playSpeed])
 
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
@@ -221,47 +267,49 @@ const Controls: FC<ControlsProps> = ({
         setIsDrawerOpen(!isDrawerOpen)
       }}
     >
-      <List>
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Clear"
-          icon={<DeleteIcon />}
-          onClick={() => {
-            console.log("Clear clicked")
-          }}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Play"
-          icon={<PlayArrowIcon />}
-          onClick={() => {
-            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.play()
-          }}
-        />
-        <MiniDrawerSelectSpeed {...baseItemProps} />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Stop"
-          icon={<StopIcon />}
-          onClick={() => {
-            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.stop()
-          }}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Step"
-          icon={<RedoIcon />}
-          onClick={() => {
-            if (blocklyWorkspaceRef.current) blocklyWorkspaceRef.current.step()
-          }}
-        />
-        <MiniDrawerSelectLayout
-          {...baseItemProps}
-          layout={layout}
-          layoutOptions={layoutOptions}
-          onLayoutChange={onLayoutChange}
-        />
-      </List>
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Clear"
+        icon={<DeleteIcon />}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(setGameCommands([]))
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text={playInterval.current ? "Pause" : "Play"}
+        icon={playInterval.current ? <PauseIcon /> : <PlayArrowIcon />}
+        onClick={() => {
+          if (!clearPlayInterval()) setPlayInterval()
+        }}
+      />
+      <MiniDrawerSelectSpeed {...baseItemProps} />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Stop"
+        icon={<StopIcon />}
+        disabled={!gameHasStarted}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(restartGame())
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Step"
+        icon={<RedoIcon />}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(nextGameCommand())
+        }}
+      />
+      <MiniDrawerSelectLayout
+        {...baseItemProps}
+        layout={layout}
+        layoutOptions={layoutOptions}
+        onLayoutChange={onLayoutChange}
+      />
     </MiniDrawer>
   )
 }

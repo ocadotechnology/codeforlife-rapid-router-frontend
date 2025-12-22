@@ -9,7 +9,10 @@ import { useDispatch, useSelector } from "react-redux"
 
 import type { AppDispatch, RootState } from "./store"
 import {
-  selectCommandQueue,
+  selectCurrentGameCommand,
+  selectGameCommands,
+  selectGameHasFinished,
+  selectGameHasStarted,
   selectPanelCount,
   selectSettings,
   selectToolbox,
@@ -20,8 +23,6 @@ export type ScreenOrientation = "portrait" | "landscape"
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
-
-export const useSettings = () => useSelector(selectSettings)
 
 export const useScreenOrientation = () =>
   typeof window !== "undefined"
@@ -39,7 +40,11 @@ export function useBreakpoint() {
   return result as Breakpoint
 }
 
+// Slice selectors
+export const useSettings = () => useSelector(selectSettings)
 export const useLevelPanelCount = () => useSelector(selectPanelCount)
 export const useLevelToolbox = () => useSelector(selectToolbox)
-
-export const usePhaserGameCommandQueue = () => useSelector(selectCommandQueue)
+export const useGameCommands = () => useSelector(selectGameCommands)
+export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
+export const useGameHasStarted = () => useSelector(selectGameHasStarted)
+export const useGameHasFinished = () => useSelector(selectGameHasFinished)

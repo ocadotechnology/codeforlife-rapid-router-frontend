@@ -10,11 +10,9 @@ import {
   useState,
 } from "react"
 
-import { useAppDispatch, useLevelToolbox, useSettings } from "../../app/hooks"
-import Interpreter from "./blockly/interpreter"
-import { type WorkspaceSvg } from "blockly/core"
-
 import * as en_custom from "./blockly/messages/en"
+import { type GameCommand, setGameCommands } from "../../app/slices"
+import { useAppDispatch, useLevelToolbox } from "../../app/hooks"
 import { registerCustomBlockDefinitions } from "./blockly/blocks"
 import { useLevelContext } from "./LevelContext"
 
@@ -24,14 +22,15 @@ export interface BlocklyWorkspaceProps {}
 
 const RESIZE_DEBOUNCE_MS = 10
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"
+const BLOCK_GAME_COMMAND_MAPPING: Record<string, GameCommand> = {
+  moveForwards: "moveForwards",
+}
 
 const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
   const { blocklyWorkspaceRef } = useLevelContext()!
   const toolboxContents = useLevelToolbox()
   const divRef = useRef<HTMLDivElement | null>(null)
-  const [workspace, setWorkspace] = useState<WorkspaceSvg | null>(null)
-  const [interpreter, setInterpreter] = useState<Interpreter | null>(null)
-  const { playSpeed } = useSettings()
+  const [workspace, setWorkspace] = useState<Blockly.WorkspaceSvg | null>(null)
   const dispatch = useAppDispatch()
 
   useImperativeHandle(blocklyWorkspaceRef, () => {
@@ -39,54 +38,59 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
       resize: debounce(() => {
         if (workspace) Blockly.svgResize(workspace)
       }, RESIZE_DEBOUNCE_MS),
-      play: () => {
-        if (workspace && interpreter) {
-          interpreter.setSpeed(playSpeed)
-          interpreter.interpretBlocks(workspace.getTopBlocks())
-          interpreter.play()
-        }
-      },
-      step: () => {
-        if (workspace && interpreter) {
-          interpreter.interpretBlocks(workspace.getTopBlocks())
-          interpreter.step()
-        }
-      },
-      stop: () => {
-        if (workspace && interpreter) interpreter.stop()
-      },
     }
-  }, [interpreter, playSpeed, workspace])
+  }, [workspace])
 
   // Workspace creation
   useEffect(() => {
     if (!divRef.current) return
+
     // @ts-expect-error Locale type isn't inferred correctly after export
     Blockly.setLocale({ ...en_default, ...en_custom })
+
     registerCustomBlockDefinitions()
+
     const newWorkspace = Blockly.inject(divRef.current, {
       toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
       trashcan: true,
     })
-    setInterpreter(
-      new Interpreter(dispatch, (blockId: string) =>
-        newWorkspace.highlightBlock(blockId),
-      ),
-    )
     const state = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (state) {
       Blockly.serialization.workspaces.load(
-        JSON.parse(state) as { [key: string]: any },
+        JSON.parse(state) as ReturnType<
+          typeof Blockly.serialization.workspaces.save
+        >,
         newWorkspace,
       )
     }
     if (!newWorkspace.getTopBlocks().some(b => b.type === "start")) {
       newWorkspace.newBlock("start").setDeletable(false)
     }
+
+    function onBlocksChanged(event: Blockly.Events.Abstract) {
+      const BLOCK_EVENTS = [
+        Blockly.Events.BLOCK_CREATE,
+        Blockly.Events.BLOCK_DELETE,
+        Blockly.Events.BLOCK_MOVE,
+      ] as string[]
+      if (!BLOCK_EVENTS.includes(event.type)) return
+
+      const gameCommands = newWorkspace
+        .getTopBlocks(true)
+        .reduce((gameCommands, block) => {
+          return [...gameCommands, BLOCK_GAME_COMMAND_MAPPING[block.type]]
+        }, [] as GameCommand[])
+
+      dispatch(setGameCommands(gameCommands))
+    }
+
+    newWorkspace.addChangeListener(onBlocksChanged)
     setWorkspace(newWorkspace)
+
     return () => {
       const state = Blockly.serialization.workspaces.save(newWorkspace)
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
+      newWorkspace.removeChangeListener(onBlocksChanged)
       newWorkspace.dispose()
     }
   }, [dispatch, divRef, toolboxContents])

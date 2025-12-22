@@ -1,4 +1,5 @@
 import type { BlockDefinition } from "./definition"
+import { type GameCommand } from "../../../../app/slices"
 import deliverIcon from "../../../../images/blocks/deliver.svg"
 import emptyIcon from "../../../../images/blocks/empty.svg"
 import moveForwardsIcon from "../../../../images/blocks/move_forwards.svg"
@@ -11,7 +12,7 @@ const BLOCK_COLOUR = 160,
   BLOCK_IMAGE_WIDTH = 15,
   BLOCK_IMAGE_HEIGHT = 15
 
-const actionBlock = (type: string, icon: string): BlockDefinition => ({
+const actionBlock = (type: GameCommand, icon: string): BlockDefinition => ({
   type,
   tooltip: `%{BKY_${type.toLocaleUpperCase()}_TOOLTIP}`,
   colour: BLOCK_COLOUR,
@@ -34,10 +35,10 @@ const actionBlock = (type: string, icon: string): BlockDefinition => ({
   nextStatement: null,
 })
 
-export const MOVE_FORWARDS = actionBlock("move_forwards", moveForwardsIcon)
-export const TURN_LEFT = actionBlock("turn_left", turnLeftIcon)
-export const TURN_RIGHT = actionBlock("turn_right", turnRightIcon)
-export const TURN_AROUND = actionBlock("turn_around", turnAroundIcon)
+export const MOVE_FORWARDS = actionBlock("moveForwards", moveForwardsIcon)
+export const TURN_LEFT = actionBlock("turnLeft", turnLeftIcon)
+export const TURN_RIGHT = actionBlock("turnRight", turnRightIcon)
+export const TURN_AROUND = actionBlock("turnAround", turnAroundIcon)
 export const WAIT = actionBlock("wait", waitIcon)
 export const DELIVER = actionBlock("deliver", deliverIcon)
-export const SOUND_HORN = actionBlock("sound_horn", emptyIcon)
+export const SOUND_HORN = actionBlock("soundHorn", emptyIcon)

@@ -2,9 +2,6 @@ import { type RefObject, createContext, useContext } from "react"
 
 export type BlocklyWorkspace = {
   resize: () => void
-  step: () => void
-  play: () => void
-  stop: () => void
 }
 
 const LevelContext = createContext<{

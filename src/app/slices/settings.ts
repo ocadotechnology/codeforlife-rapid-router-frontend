@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   playSpeed: 1,
 })
 
-const settingsSlice = createSlice({
+export const settingsSlice = createSlice({
   name: "settings",
   initialState: getSettingsCookie() ?? DEFAULT_SETTINGS,
   reducers: create => ({
@@ -50,7 +50,6 @@ const settingsSlice = createSlice({
   selectors: { selectSettings: settings => settings },
 })
 
-export default settingsSlice
 export const { setTwoPanelLayout, setThreePanelLayout, setPlaySpeed } =
   settingsSlice.actions
 export const { selectSettings } = settingsSlice.selectors

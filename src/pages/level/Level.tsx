@@ -11,7 +11,7 @@ import {
   type TwoPanelLayout,
   setThreePanelLayout,
   setTwoPanelLayout,
-} from "../../app/slices"
+} from "../../app/slices/settings"
 import {
   useAppDispatch,
   useLevelPanelCount,

@@ -1,9 +1,6 @@
 import type * as Blockly from "blockly/core"
 
-import {
-  type GameCommand,
-  pushToCommandQueue,
-} from "../../../app/slices/phaserGame"
+import { type GameCommand, pushToCommandQueue } from "../../../app/slices/game"
 import type { AppDispatch } from "../../../app/store"
 import customBlocks from "./blocks"
 
