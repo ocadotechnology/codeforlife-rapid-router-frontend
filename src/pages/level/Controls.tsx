@@ -1,12 +1,4 @@
 import {
-  Agriculture as AgricultureIcon,
-  BusAlert as BusIcon,
-  Call as CallIcon,
-  Cast as CastIcon,
-  ChevronLeft as ChevronLeftIcon,
-  Menu as MenuIcon,
-} from "@mui/icons-material"
-import {
   type CSSObject,
   Divider,
   Drawer,
@@ -16,18 +8,47 @@ import {
   List,
   ListItem,
   ListItemButton,
+  type ListItemButtonProps,
   ListItemIcon,
   ListItemText,
   MenuItem,
   Select,
   type Theme,
 } from "@mui/material"
-import { type FC, type ReactNode, useState } from "react"
 import {
+  ChevronLeft as ChevronLeftIcon,
+  Delete as DeleteIcon,
+  Menu as MenuIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayArrowIcon,
+  Redo as RedoIcon,
+  Stop as StopIcon,
+} from "@mui/icons-material"
+import {
+  type FC,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+
+import {
+  PLAY_SPEEDS,
   type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
+  nextGameCommand,
+  restartGame,
+  setGameCommands,
+  setPlaySpeed,
 } from "../../app/slices"
+import {
+  useAppDispatch,
+  useGameHasFinished,
+  useGameHasStarted,
+  useSettings,
+} from "../../app/hooks"
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
@@ -60,13 +81,15 @@ const closedMixin = (theme: Theme): CSSObject => ({
 })
 
 const MiniDrawerButtonItem: FC<
-  BaseMiniDrawerItemProps & {
-    icon: ReactNode
-    text: string
-  }
-> = ({ isDrawerOpen, icon, text }) => (
+  BaseMiniDrawerItemProps &
+    Omit<ListItemButtonProps, "children"> & {
+      icon: ReactNode
+      text: string
+    }
+> = ({ isDrawerOpen, icon, text, ...listItemButtonProps }) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <ListItemButton
+      {...listItemButtonProps}
       sx={{
         minHeight: 48,
         px: 2.5,
@@ -120,6 +143,32 @@ const MiniDrawerSelectLayout: FC<
   </ListItem>
 )
 
+const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = () => {
+  const dispatch = useAppDispatch()
+  const { playSpeed } = useSettings()
+
+  return (
+    <ListItem>
+      <FormControl fullWidth>
+        <InputLabel id="speed-select-label">Speed</InputLabel>
+        <Select
+          labelId="speed-select-label"
+          id="speed-select"
+          value={playSpeed}
+          label="Speed"
+          onChange={e => dispatch(setPlaySpeed(e.target.value))}
+        >
+          {PLAY_SPEEDS.map(speed => (
+            <MenuItem key={speed} value={speed}>
+              {speed}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </ListItem>
+  )
+}
+
 const MiniDrawer: FC<{
   open: boolean
   children: ReactNode
@@ -167,7 +216,7 @@ const MiniDrawer: FC<{
       {open ? <ChevronLeftIcon /> : <MenuIcon />}
     </IconButton>
     <Divider />
-    {children}
+    <List>{children}</List>
   </Drawer>
 )
 
@@ -176,7 +225,39 @@ const Controls: FC<ControlsProps> = ({
   layout,
   onLayoutChange,
 }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const dispatch = useAppDispatch()
+  const { playSpeed } = useSettings()
+  const gameHasStarted = useGameHasStarted()
+  const gameHasFinished = useGameHasFinished()
+
+  // Play interval management to dispatch nextGameCommand at correct speed.
+  const playInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+  const setPlayInterval = useCallback(() => {
+    playInterval.current = setInterval(() => {
+      dispatch(nextGameCommand())
+    }, 1000 / playSpeed)
+  }, [dispatch, playSpeed])
+  const clearPlayInterval = useCallback(() => {
+    if (!playInterval.current) return false
+    clearInterval(playInterval.current)
+    playInterval.current = null
+    return true
+  }, [])
+
+  useEffect(() => {
+    if (gameHasFinished) clearPlayInterval()
+
+    return () => {
+      clearPlayInterval()
+    }
+  }, [gameHasFinished, clearPlayInterval])
+
+  // Update interval if playSpeed changes.
+  useEffect(() => {
+    if (clearPlayInterval()) setPlayInterval()
+  }, [clearPlayInterval, setPlayInterval, playSpeed])
+
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
   return (
@@ -186,34 +267,49 @@ const Controls: FC<ControlsProps> = ({
         setIsDrawerOpen(!isDrawerOpen)
       }}
     >
-      <List>
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 1"
-          icon={<AgricultureIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 2"
-          icon={<BusIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 3"
-          icon={<CallIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 4"
-          icon={<CastIcon />}
-        />
-        <MiniDrawerSelectLayout
-          {...baseItemProps}
-          layout={layout}
-          layoutOptions={layoutOptions}
-          onLayoutChange={onLayoutChange}
-        />
-      </List>
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Clear"
+        icon={<DeleteIcon />}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(setGameCommands([]))
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text={playInterval.current ? "Pause" : "Play"}
+        icon={playInterval.current ? <PauseIcon /> : <PlayArrowIcon />}
+        onClick={() => {
+          if (!clearPlayInterval()) setPlayInterval()
+        }}
+      />
+      <MiniDrawerSelectSpeed {...baseItemProps} />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Stop"
+        icon={<StopIcon />}
+        disabled={!gameHasStarted}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(restartGame())
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Step"
+        icon={<RedoIcon />}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(nextGameCommand())
+        }}
+      />
+      <MiniDrawerSelectLayout
+        {...baseItemProps}
+        layout={layout}
+        layoutOptions={layoutOptions}
+        onLayoutChange={onLayoutChange}
+      />
     </MiniDrawer>
   )
 }

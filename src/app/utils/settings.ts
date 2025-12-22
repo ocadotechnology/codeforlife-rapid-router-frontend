@@ -1,7 +1,7 @@
 import Cookies from "js-cookie"
 import { SERVICE_NAME } from "codeforlife/settings"
 
-import { type SettingsState } from "../slices"
+import { type SettingsState } from "../slices/settings"
 
 export function getSettingsCookie() {
   const settingsCookie = Cookies.get(SERVICE_NAME)
