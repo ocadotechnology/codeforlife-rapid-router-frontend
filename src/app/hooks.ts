@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-restricted-imports */
 import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
+import { useContext } from "react"
 
 import type { AppDispatch, RootState } from "./store"
 import {
@@ -13,10 +14,9 @@ import {
   selectGameCommands,
   selectGameHasFinished,
   selectGameHasStarted,
-  selectPanelCount,
   selectSettings,
-  selectToolbox,
 } from "./slices"
+import { BlocklyWorkspaceContext } from "../blockly"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -42,9 +42,11 @@ export function useBreakpoint() {
 
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
-export const useLevelPanelCount = () => useSelector(selectPanelCount)
-export const useLevelToolbox = () => useSelector(selectToolbox)
 export const useGameCommands = () => useSelector(selectGameCommands)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
 export const useGameHasStarted = () => useSelector(selectGameHasStarted)
 export const useGameHasFinished = () => useSelector(selectGameHasFinished)
+
+// Contexts
+export const useBlocklyWorkspaceContext = () =>
+  useContext(BlocklyWorkspaceContext)

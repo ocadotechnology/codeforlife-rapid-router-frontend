@@ -10,30 +10,33 @@ import {
   useState,
 } from "react"
 
-import * as en_custom from "./blockly/messages/en"
-import { type GameCommand, setGameCommands } from "../../app/slices"
-import { useAppDispatch, useLevelToolbox } from "../../app/hooks"
-import { registerCustomBlockDefinitions } from "./blockly/blocks"
-import { useLevelContext } from "./LevelContext"
-
-export type ToolboxItemInfo = Blockly.utils.toolbox.ToolboxItemInfo
-
-export interface BlocklyWorkspaceProps {}
+import * as en_custom from "./messages/en"
+import { type GameCommand, setGameCommands } from "../app/slices"
+import {
+  useAppDispatch,
+  useBlocklyWorkspaceContext,
+  useCurrentGameCommand,
+} from "../app/hooks"
+import { registerCustomBlockDefinitions } from "./utils"
 
 const RESIZE_DEBOUNCE_MS = 10
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"
-const BLOCK_GAME_COMMAND_MAPPING: Record<string, GameCommand> = {
-  moveForwards: "moveForwards",
-}
+
+export interface BlocklyWorkspaceProps {}
 
 const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
-  const { blocklyWorkspaceRef } = useLevelContext()!
-  const toolboxContents = useLevelToolbox()
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<Blockly.WorkspaceSvg | null>(null)
+  const [blocks, setBlocks] = useState<Blockly.BlockSvg[]>([])
   const dispatch = useAppDispatch()
+  const currentGameCommand = useCurrentGameCommand()
 
-  useImperativeHandle(blocklyWorkspaceRef, () => {
+  if (!blocklyWorkspaceContext)
+    throw ReferenceError("Reference to Blockly workspace context not provided.")
+  const { ref, toolboxContents } = blocklyWorkspaceContext
+
+  useImperativeHandle(ref, () => {
     return {
       resize: debounce(() => {
         if (workspace) Blockly.svgResize(workspace)
@@ -77,9 +80,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
 
       const gameCommands = newWorkspace
         .getTopBlocks(true)
-        .reduce((gameCommands, block) => {
-          return [...gameCommands, BLOCK_GAME_COMMAND_MAPPING[block.type]]
-        }, [] as GameCommand[])
+        .map(block => block.type as GameCommand)
 
       dispatch(setGameCommands(gameCommands))
     }
@@ -97,7 +98,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
 
   return (
     <Box
-      component={"div"}
+      component="div"
       id="blockly-workspace"
       ref={divRef}
       sx={{ height: "100%" }}

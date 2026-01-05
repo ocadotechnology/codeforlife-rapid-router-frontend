@@ -3,9 +3,8 @@ import { createSlice } from "codeforlife/slices"
 
 import { getSettingsCookie } from "../utils"
 
-export const TWO_PANEL_LAYOUTS = ["auto", "vertical", "horizontal"] as const
+export const TWO_PANEL_LAYOUTS = ["vertical", "horizontal"] as const
 export const THREE_PANEL_LAYOUTS = [
-  "auto",
   "verticalWithLeftHorizontal",
   "vertical",
   "horizontal",
@@ -18,14 +17,14 @@ export const PLAY_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const
 export type PlaySpeed = (typeof PLAY_SPEEDS)[number]
 
 export interface SettingsState {
-  twoPanelLayout: TwoPanelLayout
-  threePanelLayout: ThreePanelLayout
+  twoPanelLayout?: TwoPanelLayout
+  threePanelLayout?: ThreePanelLayout
   playSpeed: PlaySpeed
 }
 
 const DEFAULT_SETTINGS: SettingsState = Object.freeze({
-  twoPanelLayout: "auto",
-  threePanelLayout: "auto",
+  twoPanelLayout: undefined,
+  threePanelLayout: undefined,
   playSpeed: 1,
 })
 

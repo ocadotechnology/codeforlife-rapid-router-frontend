@@ -53,11 +53,6 @@ import {
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
 }
-export interface ControlsProps {
-  layout: PanelLayout
-  layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-  onLayoutChange: (layout: PanelLayout) => void
-}
 
 const DRAWER_WIDTH = 240
 
@@ -116,26 +111,30 @@ const MiniDrawerButtonItem: FC<
   </ListItem>
 )
 
-const MiniDrawerSelectLayout: FC<
-  BaseMiniDrawerItemProps & {
-    layout: PanelLayout
-    layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-    onLayoutChange: (layout: PanelLayout) => void
-  }
-> = ({ onLayoutChange, layoutOptions, layout }) => (
+type MiniDrawerPanelLayoutSelectProps = BaseMiniDrawerItemProps & {
+  panelLayout?: PanelLayout
+  panelLayoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
+  onPanelLayoutChange: (panelLayout: PanelLayout) => void
+}
+
+const MiniDrawerPanelLayoutSelect: FC<MiniDrawerPanelLayoutSelectProps> = ({
+  onPanelLayoutChange,
+  panelLayoutOptions,
+  panelLayout,
+}) => (
   <ListItem>
     <FormControl fullWidth>
       <InputLabel id="layout-select-label">Layout</InputLabel>
       <Select
         labelId="layout-select-label"
         id="layout-select"
-        value={layout}
+        value={panelLayout}
         label="Layout"
-        onChange={e => onLayoutChange(e.target.value)}
+        onChange={e => onPanelLayoutChange(e.target.value)}
       >
-        {layoutOptions.map(layout => (
-          <MenuItem key={layout} value={layout}>
-            {layout}
+        {panelLayoutOptions.map(panelLayoutOption => (
+          <MenuItem key={panelLayoutOption} value={panelLayoutOption}>
+            {panelLayoutOption}
           </MenuItem>
         ))}
       </Select>
@@ -220,11 +219,12 @@ const MiniDrawer: FC<{
   </Drawer>
 )
 
-const Controls: FC<ControlsProps> = ({
-  layoutOptions,
-  layout,
-  onLayoutChange,
-}) => {
+export type ControlsProps = Pick<
+  MiniDrawerPanelLayoutSelectProps,
+  "onPanelLayoutChange" | "panelLayout" | "panelLayoutOptions"
+>
+
+const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
   const { playSpeed } = useSettings()
@@ -304,11 +304,9 @@ const Controls: FC<ControlsProps> = ({
           dispatch(nextGameCommand())
         }}
       />
-      <MiniDrawerSelectLayout
+      <MiniDrawerPanelLayoutSelect
         {...baseItemProps}
-        layout={layout}
-        layoutOptions={layoutOptions}
-        onLayoutChange={onLayoutChange}
+        {...panelLayoutSelectProps}
       />
     </MiniDrawer>
   )

@@ -1,13 +1,20 @@
-import type { BlockDefinition } from "./definition"
+import { type BlockDefinition, defineBlock } from "../utils"
 import cowIcon from "../../../../images/blocks/cow_crossing.svg"
 import emptyIcon from "../../../../images/blocks/empty.svg"
 import pigeonIcon from "../../../../images/blocks/pigeon_crossing.svg"
 
-const DEFAULT_COLOUR = 210
+function defineBooleanBlock<T extends string>(
+  blockDefinition: Omit<BlockDefinition<T>, "output" | "colour">,
+) {
+  return defineBlock({
+    colour: 210,
+    output: "Boolean",
+    ...blockDefinition,
+  })
+}
 
-export const ROAD_EXISTS: BlockDefinition = {
+export const ROAD_EXISTS_BLOCK = defineBooleanBlock({
   type: "road_exists",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2 %3",
   args0: [
     {
@@ -32,11 +39,9 @@ export const ROAD_EXISTS: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
-export const TRAFFIC_LIGHT: BlockDefinition = {
+})
+export const TRAFFIC_LIGHT_BLOCK = defineBooleanBlock({
   type: "traffic_light",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2 %3",
   args0: [
     {
@@ -60,11 +65,9 @@ export const TRAFFIC_LIGHT: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
-export const DEAD_END: BlockDefinition = {
+})
+export const DEAD_END_BLOCK = defineBooleanBlock({
   type: "dead_end",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2",
   args0: [
     {
@@ -80,11 +83,9 @@ export const DEAD_END: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
-export const AT_DESTINATION: BlockDefinition = {
+})
+export const AT_DESTINATION_BLOCK = defineBooleanBlock({
   type: "at_destination",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2",
   args0: [
     {
@@ -100,11 +101,9 @@ export const AT_DESTINATION: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
-export const COW_CROSSING: BlockDefinition = {
+})
+export const COW_CROSSING_BLOCK = defineBooleanBlock({
   type: "cow_crossing",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2",
   args0: [
     {
@@ -120,11 +119,9 @@ export const COW_CROSSING: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
-export const PIGEON_CROSSING: BlockDefinition = {
+})
+export const PIGEON_CROSSING_BLOCK = defineBooleanBlock({
   type: "pigeon_crossing",
-  colour: DEFAULT_COLOUR,
   message0: "%1 %2",
   args0: [
     {
@@ -140,5 +137,14 @@ export const PIGEON_CROSSING: BlockDefinition = {
       flipRtl: "FALSE",
     },
   ],
-  output: "Boolean",
-}
+})
+
+export const BOOLEAN_BLOCK_TYPES = [
+  ROAD_EXISTS_BLOCK.type,
+  TRAFFIC_LIGHT_BLOCK.type,
+  DEAD_END_BLOCK.type,
+  AT_DESTINATION_BLOCK.type,
+  COW_CROSSING_BLOCK.type,
+  PIGEON_CROSSING_BLOCK.type,
+] as const
+export type BooleanBlockType = (typeof BOOLEAN_BLOCK_TYPES)[number]
