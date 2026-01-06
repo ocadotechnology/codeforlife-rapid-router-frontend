@@ -1,6 +1,5 @@
 import "blockly/blocks"
 import * as Blockly from "blockly/core"
-import * as en_default from "blockly/msg/en"
 import { Box, debounce } from "@mui/material"
 import {
   type FC,
@@ -10,25 +9,36 @@ import {
   useState,
 } from "react"
 
-import * as en_custom from "./messages/en"
-import { type GameCommand, setGameCommands } from "../app/slices"
+import {
+  blocksToGameCommands,
+  initializeWorkspace,
+  resizeWorkspace,
+  saveWorkspaceState,
+} from "./utils"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
   useCurrentGameCommand,
 } from "../app/hooks"
-import { registerCustomBlockDefinitions } from "./utils"
+import { type StartBlockType } from "./blocks"
+import { setGameCommands } from "../app/slices"
 
-const RESIZE_DEBOUNCE_MS = 10
-const LOCAL_STORAGE_KEY = "blockly-workspace-state"
+const BLOCK_EVENTS = [
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_DELETE,
+  Blockly.Events.BLOCK_MOVE,
+]
 
-export interface BlocklyWorkspaceProps {}
+export interface BlocklyWorkspaceProps {
+  startBlockType?: StartBlockType
+}
 
-const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
+const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
+  startBlockType = "van",
+}) => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [workspace, setWorkspace] = useState<Blockly.WorkspaceSvg | null>(null)
-  const [blocks, setBlocks] = useState<Blockly.BlockSvg[]>([])
   const dispatch = useAppDispatch()
   const currentGameCommand = useCurrentGameCommand()
 
@@ -36,65 +46,40 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = () => {
     throw ReferenceError("Reference to Blockly workspace context not provided.")
   const { ref, toolboxContents } = blocklyWorkspaceContext
 
-  useImperativeHandle(ref, () => {
-    return {
-      resize: debounce(() => {
-        if (workspace) Blockly.svgResize(workspace)
-      }, RESIZE_DEBOUNCE_MS),
-    }
-  }, [workspace])
+  // Expose workspace methods to parent components.
+  useImperativeHandle(
+    ref,
+    () =>
+      workspace ? { resize: resizeWorkspace(workspace) } : { resize: () => {} },
+    [workspace],
+  )
 
-  // Workspace creation
+  // Workspace initialization and disposal.
   useEffect(() => {
     if (!divRef.current) return
-
-    // @ts-expect-error Locale type isn't inferred correctly after export
-    Blockly.setLocale({ ...en_default, ...en_custom })
-
-    registerCustomBlockDefinitions()
-
-    const newWorkspace = Blockly.inject(divRef.current, {
-      toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
-      trashcan: true,
-    })
-    const state = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (state) {
-      Blockly.serialization.workspaces.load(
-        JSON.parse(state) as ReturnType<
-          typeof Blockly.serialization.workspaces.save
-        >,
-        newWorkspace,
-      )
-    }
-    if (!newWorkspace.getTopBlocks().some(b => b.type === "start")) {
-      newWorkspace.newBlock("start").setDeletable(false)
-    }
+    const newWorkspace = initializeWorkspace(
+      divRef.current,
+      startBlockType,
+      toolboxContents,
+    )
 
     function onBlocksChanged(event: Blockly.Events.Abstract) {
-      const BLOCK_EVENTS = [
-        Blockly.Events.BLOCK_CREATE,
-        Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.BLOCK_MOVE,
-      ] as string[]
-      if (!BLOCK_EVENTS.includes(event.type)) return
+      // Only respond to block events that modify the workspace.
+      const eventType = event.type as (typeof BLOCK_EVENTS)[number]
+      if (!BLOCK_EVENTS.includes(eventType)) return
 
-      const gameCommands = newWorkspace
-        .getTopBlocks(true)
-        .map(block => block.type as GameCommand)
-
-      dispatch(setGameCommands(gameCommands))
+      dispatch(setGameCommands(blocksToGameCommands(newWorkspace)))
     }
 
     newWorkspace.addChangeListener(onBlocksChanged)
     setWorkspace(newWorkspace)
 
     return () => {
-      const state = Blockly.serialization.workspaces.save(newWorkspace)
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
+      saveWorkspaceState(newWorkspace)
       newWorkspace.removeChangeListener(onBlocksChanged)
       newWorkspace.dispose()
     }
-  }, [dispatch, divRef, toolboxContents])
+  }, [dispatch, divRef, toolboxContents, startBlockType])
 
   return (
     <Box

@@ -20,7 +20,7 @@ import {
   useScreenOrientation,
   useSettings,
 } from "../../app/hooks"
-import BlocklyWorkspace from "../../blockly/BlocklyWorkspace"
+import { BlocklyWorkspace } from "../../blockly"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
 

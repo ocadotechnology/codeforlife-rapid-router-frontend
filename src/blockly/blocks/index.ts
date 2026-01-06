@@ -1,10 +1,12 @@
 import * as booleans from "./booleans"
 import * as commands from "./commands"
-import * as defaults from "./defaults"
+import type * as defaults from "./defaults"
 import * as starts from "./starts"
 import { type BlockDefinition } from "../utils"
 
-export { booleans, commands, defaults, starts }
+export { type BooleanBlockType, BOOLEAN_BLOCK_TYPES } from "./booleans"
+export { type CommandBlockType, COMMAND_BLOCK_TYPES } from "./commands"
+export { type StartBlockType, START_BLOCK_TYPES } from "./starts"
 
 export const CUSTOM_BLOCKS: BlockDefinition<any>[] = [
   // booleans
