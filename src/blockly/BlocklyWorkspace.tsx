@@ -67,8 +67,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     // Set up event listeners.
     const onChange = debounce(() => {
-      console.log("Saving workspace state...")
-
       saveWorkspaceState(blockly.workspace)
 
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
