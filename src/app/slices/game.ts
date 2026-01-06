@@ -60,12 +60,14 @@ export const gameSlice = createSlice({
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
+    selectGameCommandIndex: state => state.gameCommandIndex,
     selectCurrentGameCommand: state =>
       gameInPlay(state)
         ? state.gameCommands[state.gameCommandIndex]
         : undefined,
     selectGameHasStarted: gameHasStarted,
     selectGameHasFinished: gameHasFinished,
+    selectGameInPlay: gameInPlay,
   },
 })
 
@@ -73,7 +75,9 @@ export const { setGameCommands, nextGameCommand, restartGame } =
   gameSlice.actions
 export const {
   selectGameCommands,
+  selectGameCommandIndex,
   selectCurrentGameCommand,
   selectGameHasStarted,
   selectGameHasFinished,
+  selectGameInPlay,
 } = gameSlice.selectors

@@ -88,7 +88,21 @@ function initializeStartBlock(
   return startBlock
 }
 
-export function initializeWorkspace(
+function initializeWorkspace(
+  div: HTMLDivElement,
+  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+) {
+  const workspace = Blockly.inject(div, {
+    toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
+    trashcan: true,
+  })
+
+  loadWorkspaceState(workspace)
+
+  return workspace
+}
+
+export function initializeBlockly(
   div: HTMLDivElement,
   startBlockType: StartBlockType,
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
@@ -98,16 +112,11 @@ export function initializeWorkspace(
 
   registerCustomBlockDefinitions()
 
-  const workspace = Blockly.inject(div, {
-    toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
-    trashcan: true,
-  })
+  const workspace = initializeWorkspace(div, toolboxContents)
 
-  loadWorkspaceState(workspace)
+  const startBlock = initializeStartBlock(workspace, startBlockType)
 
-  initializeStartBlock(workspace, startBlockType)
-
-  return workspace
+  return { workspace, startBlock }
 }
 
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"
@@ -137,16 +146,31 @@ export function resizeWorkspace(
 }
 
 /**
- * Convert workspace blocks to game commands, defaulting to "wait" for unknown
- * blocks.
- * @param workspace the Blockly workspace containing the blocks.
- * @returns an array of game commands for each block in the workspace.
+ * Convert the blocks connected to the given start block into game commands.
+ * Non-command blocks are converted to "wait" commands.
+ * @param startBlock The starting block to convert from.
+ * @returns An array of game commands.
  */
-export function blocksToGameCommands(
-  workspace: Blockly.WorkspaceSvg,
+export function getGameCommandsFromStartBlock(
+  startBlock: Blockly.BlockSvg,
 ): GameCommand[] {
-  return workspace.getTopBlocks(true).map(block => {
+  if (!START_BLOCK_TYPES.includes(startBlock.type as StartBlockType))
+    throw Error("Block is not one of the accepted start types.")
+
+  return getNextBlocks(startBlock).map(block => {
     const blockType = block.type as CommandBlockType
     return COMMAND_BLOCK_TYPES.includes(blockType) ? blockType : "wait"
   })
+}
+
+export function getNextBlocks(block: Blockly.BlockSvg) {
+  const blocks: Blockly.BlockSvg[] = []
+
+  let currentBlock = block.getNextBlock()
+  while (currentBlock) {
+    blocks.push(currentBlock)
+    currentBlock = currentBlock.getNextBlock()
+  }
+
+  return blocks
 }

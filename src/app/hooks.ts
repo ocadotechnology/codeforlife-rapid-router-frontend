@@ -11,9 +11,11 @@ import { useContext } from "react"
 import type { AppDispatch, RootState } from "./store"
 import {
   selectCurrentGameCommand,
+  selectGameCommandIndex,
   selectGameCommands,
   selectGameHasFinished,
   selectGameHasStarted,
+  selectGameInPlay,
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
@@ -43,8 +45,10 @@ export function useBreakpoint() {
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
+export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
 export const useGameHasStarted = () => useSelector(selectGameHasStarted)
+export const useGameInPlay = () => useSelector(selectGameInPlay)
 export const useGameHasFinished = () => useSelector(selectGameHasFinished)
 
 // Contexts
