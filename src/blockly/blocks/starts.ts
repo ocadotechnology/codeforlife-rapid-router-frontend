@@ -10,7 +10,7 @@ function defineStartBlock<T extends string>(type: T, imageName: string) {
       {
         type: "field_image",
         src: new URL(
-          `../../../../images/characters/top_view/${imageName}.svg`,
+          `../../images/characters/top_view/${imageName}.svg`,
           import.meta.url,
         ).href,
         width: 30,

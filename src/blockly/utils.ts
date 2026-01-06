@@ -45,28 +45,10 @@ export type BlockDefinition<T extends string> = {
   nextStatement?: string | null
 }
 
-const BLOCK_TYPES: string[] = []
-
-export function defineBlock<T extends string>({
-  type,
-  ...remainingBlockDefinition
-}: BlockDefinition<T>): BlockDefinition<T> {
-  if (BLOCK_TYPES.includes(type))
-    throw Error(`Block type: "${type}" is already defined.`)
-  BLOCK_TYPES.push(type)
-
-  return { type, ...remainingBlockDefinition }
-}
-
-let ALREADY_REGISTERED = false
-
-export function registerCustomBlockDefinitions() {
-  if (ALREADY_REGISTERED) return
-  ALREADY_REGISTERED = true
-
-  Blockly.common.defineBlocks(
-    Blockly.common.createBlockDefinitionsFromJsonArray(CUSTOM_BLOCKS),
-  )
+export function defineBlock<T extends string>(
+  blockDefinition: BlockDefinition<T>,
+): BlockDefinition<T> {
+  return blockDefinition
 }
 
 function initializeStartBlock(
@@ -82,7 +64,12 @@ function initializeStartBlock(
     }
   }
 
-  if (!startBlock) startBlock = workspace.newBlock(startBlockType)
+  if (!startBlock) {
+    startBlock = workspace.newBlock(startBlockType)
+    startBlock.initSvg()
+    startBlock.render()
+    startBlock.moveBy(10, 10)
+  }
   if (startBlock.isDeletable()) startBlock.setDeletable(false)
 
   return startBlock
@@ -102,6 +89,8 @@ function initializeWorkspace(
   return workspace
 }
 
+let DEFINED_CUSTOM_BLOCKS = false
+
 export function initializeBlockly(
   div: HTMLDivElement,
   startBlockType: StartBlockType,
@@ -110,7 +99,17 @@ export function initializeBlockly(
   // @ts-expect-error Locale type isn't inferred correctly after export
   Blockly.setLocale({ ...en_default, ...en_custom })
 
-  registerCustomBlockDefinitions()
+  // Define custom blocks.
+  if (!DEFINED_CUSTOM_BLOCKS) {
+    Blockly.common.defineBlocks(
+      Blockly.common.createBlockDefinitionsFromJsonArray(CUSTOM_BLOCKS),
+    )
+    DEFINED_CUSTOM_BLOCKS = true
+  }
+
+  // Override block selection visuals to disable them.
+  Blockly.BlockSvg.prototype.addSelect = () => {}
+  Blockly.BlockSvg.prototype.removeSelect = () => {}
 
   const workspace = initializeWorkspace(div, toolboxContents)
 

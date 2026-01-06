@@ -1,5 +1,5 @@
 import "blockly/blocks"
-import * as Blockly from "blockly/core"
+import { Box, debounce } from "@mui/material"
 import {
   type FC,
   useEffect,
@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from "react"
-import { Box } from "@mui/material"
 
 import {
   getGameCommandsFromStartBlock,
@@ -24,12 +23,6 @@ import {
 } from "../app/hooks"
 import { type StartBlockType } from "./blocks"
 import { setGameCommands } from "../app/slices"
-
-const BLOCK_EVENTS = [
-  Blockly.Events.BLOCK_CREATE,
-  Blockly.Events.BLOCK_DELETE,
-  Blockly.Events.BLOCK_MOVE,
-]
 
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType
@@ -64,6 +57,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   // Workspace initialization and disposal.
   useEffect(() => {
     if (!divRef.current) return
+
     const blockly = initializeBlockly(
       divRef.current,
       startBlockType,
@@ -71,23 +65,24 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     )
     setBlockly(blockly)
 
-    // Set up event listener to update game commands on block changes.
-    function onBlocksChanged(event: Blockly.Events.Abstract) {
-      // Only respond to block events that modify the workspace.
-      const eventType = event.type as (typeof BLOCK_EVENTS)[number]
-      if (!BLOCK_EVENTS.includes(eventType)) return
+    // Set up event listeners.
+    const onChange = debounce(() => {
+      console.log("Saving workspace state...")
+
+      saveWorkspaceState(blockly.workspace)
 
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
       dispatch(setGameCommands(gameCommands))
-    }
-    blockly.workspace.addChangeListener(onBlocksChanged)
+    }, 250)
+
+    blockly.workspace.addChangeListener(onChange)
 
     return () => {
       saveWorkspaceState(blockly.workspace)
-      blockly.workspace.removeChangeListener(onBlocksChanged)
+      blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [dispatch, divRef, toolboxContents, startBlockType])
+  }, [divRef, startBlockType, toolboxContents, dispatch])
 
   // Highlight the current block during game play.
   useEffect(() => {

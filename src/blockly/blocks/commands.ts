@@ -1,12 +1,12 @@
 import { type GameCommand } from "../../app/slices"
 import { defineBlock } from "../utils"
-import deliverIcon from "../../../../images/blocks/deliver.svg"
-import emptyIcon from "../../../../images/blocks/empty.svg"
-import moveForwardsIcon from "../../../../images/blocks/move_forwards.svg"
-import turnAroundIcon from "../../../../images/blocks/turn_around.svg"
-import turnLeftIcon from "../../../../images/blocks/turn_left.svg"
-import turnRightIcon from "../../../../images/blocks/turn_right.svg"
-import waitIcon from "../../../../images/blocks/wait.svg"
+import deliverIcon from "../../images/blocks/deliver.svg"
+import emptyIcon from "../../images/blocks/empty.svg"
+import moveForwardsIcon from "../../images/blocks/move_forwards.svg"
+import turnAroundIcon from "../../images/blocks/turn_around.svg"
+import turnLeftIcon from "../../images/blocks/turn_left.svg"
+import turnRightIcon from "../../images/blocks/turn_right.svg"
+import waitIcon from "../../images/blocks/wait.svg"
 
 function defineCommandBlock<T extends GameCommand>(type: T, icon: string) {
   return defineBlock({
