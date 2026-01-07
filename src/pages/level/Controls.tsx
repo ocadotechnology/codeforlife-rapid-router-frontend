@@ -1,39 +1,42 @@
 import {
-  type CSSObject,
-  Divider,
-  Drawer,
-  FormControl,
-  IconButton,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemButton,
-  type ListItemButtonProps,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Select,
-  type Theme,
-} from "@mui/material"
-import {
+  AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   ChevronLeft as ChevronLeftIcon,
   Delete as DeleteIcon,
   Menu as MenuIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
   Redo as RedoIcon,
+  Speed as SpeedIcon,
   Stop as StopIcon,
 } from "@mui/icons-material"
-import { type FC, type ReactNode, useState } from "react"
+import {
+  type CSSObject,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  type ListItemButtonProps,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  type MenuItemProps,
+  type Theme,
+} from "@mui/material"
+import { type FC, type Key, type ReactNode, useState } from "react"
+import type { PayloadAction } from "@reduxjs/toolkit"
 
 import {
   PLAY_SPEEDS,
-  type PanelLayout,
-  type THREE_PANEL_LAYOUTS,
-  type TWO_PANEL_LAYOUTS,
+  THREE_PANEL_LAYOUTS,
+  TWO_PANEL_LAYOUTS,
   nextGameCommand,
   restartGame,
   setPlaySpeed,
+  setThreePanelLayout,
+  setTwoPanelLayout,
 } from "../../app/slices"
 import {
   useAppDispatch,
@@ -70,13 +73,19 @@ const closedMixin = (theme: Theme): CSSObject => ({
   },
 })
 
-const MiniDrawerButtonItem: FC<
-  BaseMiniDrawerItemProps &
-    Omit<ListItemButtonProps, "children"> & {
-      icon: ReactNode
-      text: string
-    }
-> = ({ isDrawerOpen, icon, text, ...listItemButtonProps }) => (
+type MiniDrawerButtonItemProps = BaseMiniDrawerItemProps &
+  ListItemButtonProps & {
+    icon: ReactNode
+    text: string
+  }
+
+const MiniDrawerButtonItem: FC<MiniDrawerButtonItemProps> = ({
+  isDrawerOpen,
+  icon,
+  text,
+  children,
+  ...listItemButtonProps
+}) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <ListItemButton
       {...listItemButtonProps}
@@ -102,64 +111,63 @@ const MiniDrawerButtonItem: FC<
           "& span": { marginBottom: "auto" },
         }}
       />
+      {children}
     </ListItemButton>
   </ListItem>
 )
 
-type MiniDrawerPanelLayoutSelectProps = BaseMiniDrawerItemProps & {
-  panelLayout?: PanelLayout
-  panelLayoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-  onPanelLayoutChange: (panelLayout: PanelLayout) => void
+type MiniDrawerButtonMenuItemProps<V extends MenuItemProps["value"]> = Omit<
+  MiniDrawerButtonItemProps,
+  "onClick" | "children"
+> & {
+  menuItems: Array<{
+    value: V
+    title?: string
+    key: Key
+    onClick: () => void
+  }>
+  selectedValue: V
 }
 
-const MiniDrawerPanelLayoutSelect: FC<MiniDrawerPanelLayoutSelectProps> = ({
-  onPanelLayoutChange,
-  panelLayoutOptions,
-  panelLayout,
-}) => (
-  <ListItem>
-    <FormControl fullWidth>
-      <InputLabel id="layout-select-label">Layout</InputLabel>
-      <Select
-        labelId="layout-select-label"
-        id="layout-select"
-        value={panelLayout}
-        label="Layout"
-        onChange={e => onPanelLayoutChange(e.target.value)}
-      >
-        {panelLayoutOptions.map(panelLayoutOption => (
-          <MenuItem key={panelLayoutOption} value={panelLayoutOption}>
-            {panelLayoutOption}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </ListItem>
-)
+const MiniDrawerButtonMenuItem = <V extends MenuItemProps["value"]>({
+  menuItems,
+  selectedValue,
+  ...miniDrawerButtonItemProps
+}: MiniDrawerButtonMenuItemProps<V>) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = () => {
-  const dispatch = useAppDispatch()
-  const { playSpeed } = useSettings()
+  const open = Boolean(anchorEl)
+  const handleClose = () => setAnchorEl(null)
 
   return (
-    <ListItem>
-      <FormControl fullWidth>
-        <InputLabel id="speed-select-label">Speed</InputLabel>
-        <Select
-          labelId="speed-select-label"
-          id="speed-select"
-          value={playSpeed}
-          label="Speed"
-          onChange={e => dispatch(setPlaySpeed(e.target.value))}
-        >
-          {PLAY_SPEEDS.map(speed => (
-            <MenuItem key={speed} value={speed}>
-              {speed}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </ListItem>
+    <MiniDrawerButtonItem
+      onClick={event => {
+        if (!open) setAnchorEl(event.currentTarget)
+      }}
+      {...miniDrawerButtonItemProps}
+    >
+      <Menu
+        id="speed-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        slotProps={{ list: { "aria-labelledby": "basic-button" } }}
+      >
+        {menuItems.map(({ value, title, key, onClick }) => (
+          <MenuItem
+            onClick={() => {
+              onClick()
+              handleClose()
+            }}
+            key={key}
+            value={value}
+            selected={selectedValue === value}
+          >
+            {title ?? key}
+          </MenuItem>
+        ))}
+      </Menu>
+    </MiniDrawerButtonItem>
   )
 }
 
@@ -214,14 +222,12 @@ const MiniDrawer: FC<{
   </Drawer>
 )
 
-export type ControlsProps = Pick<
-  MiniDrawerPanelLayoutSelectProps,
-  "onPanelLayoutChange" | "panelLayout" | "panelLayoutOptions"
->
+export type ControlsProps = { panelCount: number }
 
-const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
+const Controls: FC<ControlsProps> = ({ panelCount }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
+  const settings = useSettings()
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
@@ -229,6 +235,20 @@ const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
   const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
 
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
+
+  // Helper to map panel layout options to menu items.
+  function mapPanelLayoutsToMenuItems<
+    O extends readonly (string | undefined)[],
+  >(
+    panelLayoutOptions: O,
+    setPanelLayout: (layout: O[number]) => PayloadAction<O[number]>,
+  ): MiniDrawerButtonMenuItemProps<O[number]>["menuItems"] {
+    return panelLayoutOptions.map(panelLayout => ({
+      value: panelLayout,
+      key: panelLayout ?? "auto",
+      onClick: () => dispatch(setPanelLayout(panelLayout)),
+    }))
+  }
 
   return (
     <MiniDrawer
@@ -257,7 +277,17 @@ const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
           if (!clearPlayInterval()) setPlayInterval()
         }}
       />
-      <MiniDrawerSelectSpeed {...baseItemProps} />
+      <MiniDrawerButtonMenuItem
+        {...baseItemProps}
+        icon={<SpeedIcon />}
+        text="Speed"
+        menuItems={PLAY_SPEEDS.map(playSpeed => ({
+          value: playSpeed,
+          key: playSpeed,
+          onClick: () => dispatch(setPlaySpeed(playSpeed)),
+        }))}
+        selectedValue={settings.playSpeed}
+      />
       <MiniDrawerButtonItem
         {...baseItemProps}
         text="Stop"
@@ -278,9 +308,25 @@ const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
           dispatch(nextGameCommand())
         }}
       />
-      <MiniDrawerPanelLayoutSelect
+      <MiniDrawerButtonMenuItem
         {...baseItemProps}
-        {...panelLayoutSelectProps}
+        text="Layout"
+        icon={<AutoAwesomeMosaicIcon />}
+        {...(panelCount === 2
+          ? {
+              menuItems: mapPanelLayoutsToMenuItems(
+                TWO_PANEL_LAYOUTS,
+                setTwoPanelLayout,
+              ),
+              selectedValue: settings.twoPanelLayout,
+            }
+          : {
+              menuItems: mapPanelLayoutsToMenuItems(
+                THREE_PANEL_LAYOUTS,
+                setThreePanelLayout,
+              ),
+              selectedValue: settings.threePanelLayout,
+            })}
       />
     </MiniDrawer>
   )
