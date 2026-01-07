@@ -1,37 +1,32 @@
 import { type FC, useCallback } from "react"
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import {
+  Panel,
+  PanelResizeHandle,
+  PanelGroup as _PanelGroup,
+  type PanelGroupProps as _PanelGroupProps,
+} from "react-resizable-panels"
 import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
 import type {
-  PanelCount,
   PanelLayout,
   ThreePanelLayout,
   TwoPanelLayout,
 } from "../../app/slices"
 import {
   type ScreenOrientation,
+  useBlocklyWorkspaceContext,
   useBreakpoint,
-  useLevelPanelCount,
   useScreenOrientation,
   useSettings,
 } from "../../app/hooks"
-import BlocklyWorkspace from "./BlocklyWorkspace"
+import { BlocklyWorkspace } from "../../blockly"
 import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
-import { useBlocklyContext } from "./context/BlocklyContext"
-
-type Direction = "horizontal" | "vertical"
 
 interface PanelProps {
   order?: number
   defaultSize: number
-}
-
-interface LayoutProps {
-  onResize: () => void
-  direction: Direction
-  reverseOrder: boolean
 }
 
 type AutoPanelLayout<PL extends PanelLayout> = Record<
@@ -71,16 +66,6 @@ const AUTO_THREE_PANEL_LAYOUTS: AutoPanelLayout<ThreePanelLayout> = {
     lg: "vertical",
     xl: "vertical",
   },
-}
-
-function chooseAutoLayout(
-  panelCount: PanelCount,
-  screenOrientation: ScreenOrientation,
-  breakpoint: Breakpoint,
-): PanelLayout {
-  const autoLayouts =
-    panelCount === 2 ? AUTO_TWO_PANEL_LAYOUTS : AUTO_THREE_PANEL_LAYOUTS
-  return autoLayouts[screenOrientation][breakpoint]
 }
 
 const AppResizeHandle: FC = () => (
@@ -135,11 +120,22 @@ const PhaserGamePanel: FC<PanelProps> = ({ order, defaultSize }) => (
   </Panel>
 )
 
-const Flat2PanelLayout: FC<LayoutProps> = ({
-  onResize,
-  direction,
-  reverseOrder,
-}) => {
+type PanelGroupProps = Omit<_PanelGroupProps, "onLayout">
+
+const PanelGroup: FC<PanelGroupProps> = panelGroupProps => {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  const resizeBlocklyWorkspace = useCallback(() => {
+    if (blocklyWorkspaceContext && blocklyWorkspaceContext.ref.current)
+      blocklyWorkspaceContext.ref.current.resize()
+  }, [blocklyWorkspaceContext])
+
+  return <_PanelGroup onLayout={resizeBlocklyWorkspace} {...panelGroupProps} />
+}
+
+const Flat2PanelLayout: FC<
+  Pick<PanelGroupProps, "direction"> & { reverseOrder?: boolean }
+> = ({ direction, reverseOrder = false }) => {
   const panels = [
     <BlocklyPanel
       key="blockly-panel"
@@ -154,7 +150,7 @@ const Flat2PanelLayout: FC<LayoutProps> = ({
   ]
   if (reverseOrder) panels.reverse()
   return (
-    <PanelGroup onLayout={onResize} direction={direction}>
+    <PanelGroup direction={direction}>
       {panels[0]}
       <AppResizeHandle />
       {panels[1]}
@@ -162,11 +158,9 @@ const Flat2PanelLayout: FC<LayoutProps> = ({
   )
 }
 
-const Flat3PanelLayout: FC<LayoutProps> = ({
-  direction,
-  reverseOrder,
-  onResize,
-}) => {
+const Flat3PanelLayout: FC<
+  Pick<PanelGroupProps, "direction"> & { reverseOrder?: boolean }
+> = ({ direction, reverseOrder = false }) => {
   const panels = [
     <BlocklyPanel
       key="blockly-panel"
@@ -182,7 +176,7 @@ const Flat3PanelLayout: FC<LayoutProps> = ({
   ]
   if (reverseOrder) panels.reverse()
   return (
-    <PanelGroup direction={direction} onLayout={onResize}>
+    <PanelGroup direction={direction}>
       {panels[0]}
       <AppResizeHandle />
       {panels[1]}
@@ -192,13 +186,11 @@ const Flat3PanelLayout: FC<LayoutProps> = ({
   )
 }
 
-const Nested3PanelLayout: FC<Pick<LayoutProps, "onResize">> = ({
-  onResize,
-}) => {
+const Nested3PanelLayout: FC = () => {
   return (
-    <PanelGroup direction="horizontal" onLayout={onResize}>
+    <PanelGroup direction="horizontal">
       <Panel defaultSize={50} minSize={20}>
-        <PanelGroup direction="vertical" onLayout={onResize}>
+        <PanelGroup direction="vertical">
           <BlocklyPanel defaultSize={50} />
           <AppResizeHandle />
           <Panel key="panel-2" id="panel-2" defaultSize={50} minSize={20}>
@@ -212,67 +204,40 @@ const Nested3PanelLayout: FC<Pick<LayoutProps, "onResize">> = ({
   )
 }
 
-const Panels: FC = () => {
+interface PanelsProps {
+  count: number
+}
+
+const Panels: FC<PanelsProps> = ({ count }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
-  const panels = useLevelPanelCount()
 
-  const blocklyContext = useBlocklyContext()
-  const resizeBlockly = useCallback(() => {
-    const { workspaceRef } = blocklyContext
-    if (workspaceRef.current) workspaceRef.current.resize()
-  }, [blocklyContext])
-
-  const layout =
-    panels === 2 ? settings.twoPanelLayout : settings.threePanelLayout
-
-  const finalLayout =
-    layout === "auto"
-      ? chooseAutoLayout(panels, screenOrientation, breakpoint)
-      : layout
-
-  let direction: Direction | undefined,
-    reverseOrder = false
-  if (panels === 2) {
-    switch (finalLayout) {
+  if (count === 2) {
+    switch (
+      settings.twoPanelLayout ??
+      AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]
+    ) {
       case "horizontal":
-        direction = "vertical"
-        reverseOrder = true
-        break
+        return <Flat2PanelLayout direction="vertical" reverseOrder />
       case "vertical":
       default:
-        direction = "horizontal"
-        break
+        return <Flat2PanelLayout direction="horizontal" />
     }
-    return (
-      <Flat2PanelLayout
-        direction={direction}
-        onResize={resizeBlockly}
-        reverseOrder={reverseOrder}
-      />
-    )
   }
-  switch (finalLayout) {
+
+  switch (
+    settings.threePanelLayout ??
+    AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
+  ) {
     case "verticalWithLeftHorizontal":
-      return <Nested3PanelLayout onResize={resizeBlockly} />
+      return <Nested3PanelLayout />
     case "horizontal":
-      direction = "vertical"
-      reverseOrder = true
-      break
-    case "auto":
+      return <Flat3PanelLayout direction="vertical" reverseOrder />
     case "vertical":
     default:
-      direction = "horizontal"
-      break
+      return <Flat3PanelLayout direction="horizontal" />
   }
-  return (
-    <Flat3PanelLayout
-      direction={direction}
-      onResize={resizeBlockly}
-      reverseOrder={reverseOrder}
-    />
-  )
 }
 
 export default Panels

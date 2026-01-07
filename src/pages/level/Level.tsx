@@ -1,8 +1,17 @@
 import * as yup from "yup"
+import { type FC, useRef } from "react"
 import { Box } from "@mui/material"
-import { type FC } from "react"
+// import { handleResultState } from "codeforlife/utils/api"
 import { useParamsRequired } from "codeforlife/hooks"
 
+import {
+  BlocklyWorkspaceContext,
+  type BlocklyWorkspaceRef,
+} from "../../blockly"
+import {
+  type Level as LevelModel,
+  useRetrieveLevelQuery,
+} from "../../api/level"
 import {
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
@@ -10,55 +19,65 @@ import {
   type TwoPanelLayout,
   setThreePanelLayout,
   setTwoPanelLayout,
-} from "../../app/slices"
-import {
-  useAppDispatch,
-  useLevelPanelCount,
-  useSettings,
-} from "../../app/hooks"
+} from "../../app/slices/settings"
+import { useAppDispatch, useSettings } from "../../app/hooks"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
 
 export interface LevelProps {}
 
-const Level: FC<LevelProps> = () => {
+const InnerLevel: FC<Pick<LevelModel, "id">> = ({ id }) => {
   const dispatch = useAppDispatch()
   const settings = useSettings()
+  const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
+  // TODO: swap these when pulling from the API
+  // const result = useRetrieveLevelQuery(id)
+  const level = useRetrieveLevelQuery(id)
 
-  const levelPanelCount = useLevelPanelCount()
-
-  const twoPanels = levelPanelCount === 2,
-    threePanels = !twoPanels
-
-  return useParamsRequired({
-    shape: { id: yup.number().required().min(1) },
-    children: () => (
+  // TODO: swap these when pulling from the API
+  // return handleResultState(result, level => (
+  return (
+    <BlocklyWorkspaceContext.Provider
+      value={{
+        ref: blocklyWorkspaceRef,
+        toolboxContents: level.blockly_toolbox_block_types.map(type => ({
+          kind: "block",
+          type,
+        })),
+      }}
+    >
       <Box sx={{ display: "flex" }}>
-        {twoPanels && (
+        {level.panel_count === 2 ? (
           <Controls
-            layout={settings.twoPanelLayout}
-            layoutOptions={TWO_PANEL_LAYOUTS}
-            onLayoutChange={l => {
-              dispatch(setTwoPanelLayout(l as TwoPanelLayout))
+            panelLayout={settings.twoPanelLayout}
+            panelLayoutOptions={TWO_PANEL_LAYOUTS}
+            onPanelLayoutChange={panelLayout => {
+              dispatch(setTwoPanelLayout(panelLayout as TwoPanelLayout))
             }}
           />
-        )}
-        {threePanels && (
+        ) : (
           <Controls
-            layout={settings.threePanelLayout}
-            layoutOptions={THREE_PANEL_LAYOUTS}
-            onLayoutChange={l => {
-              dispatch(setThreePanelLayout(l as ThreePanelLayout))
+            panelLayout={settings.threePanelLayout}
+            panelLayoutOptions={THREE_PANEL_LAYOUTS}
+            onPanelLayoutChange={panelLayout => {
+              dispatch(setThreePanelLayout(panelLayout as ThreePanelLayout))
             }}
           />
         )}
         {/* TODO: fix style*/}
         <Box component="main" sx={{ height: "100vh" }}>
-          <Panels />
+          <Panels count={level.panel_count} />
         </Box>
       </Box>
-    ),
+    </BlocklyWorkspaceContext.Provider>
+  )
+}
+
+const Level: FC<LevelProps> = () =>
+  useParamsRequired({
+    shape: { id: yup.number().required().min(1) },
+    children: ({ id }) => <InnerLevel id={id} />,
     onValidationSuccess: params => {
       console.log(`Level ID from URL: ${params.id}`)
       // TODO: call API
@@ -74,6 +93,5 @@ const Level: FC<LevelProps> = () => {
       })
     },
   })
-}
 
 export default Level

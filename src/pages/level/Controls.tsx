@@ -1,11 +1,13 @@
 import {
-  Agriculture as AgricultureIcon,
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
-  BusAlert as BusIcon,
-  Call as CallIcon,
-  Cast as CastIcon,
   ChevronLeft as ChevronLeftIcon,
+  Delete as DeleteIcon,
   Menu as MenuIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayArrowIcon,
+  Redo as RedoIcon,
+  Speed as SpeedIcon,
+  Stop as StopIcon,
 } from "@mui/icons-material"
 import {
   type CSSObject,
@@ -15,6 +17,7 @@ import {
   List,
   ListItem,
   ListItemButton,
+  type ListItemButtonProps,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -22,19 +25,28 @@ import {
   type Theme,
 } from "@mui/material"
 import { type FC, type ReactNode, useState } from "react"
+
 import {
+  PLAY_SPEEDS,
   type PanelLayout,
   type THREE_PANEL_LAYOUTS,
   type TWO_PANEL_LAYOUTS,
+  nextGameCommand,
+  restartGame,
+  setPlaySpeed,
 } from "../../app/slices"
+import {
+  useAppDispatch,
+  useBlocklyWorkspaceContext,
+  useGameHasStarted,
+  useGameInPlay,
+  useGameIsDefined,
+  usePlayInterval,
+  useSettings,
+} from "../../app/hooks"
 
 interface BaseMiniDrawerItemProps {
   isDrawerOpen: boolean
-}
-export interface ControlsProps {
-  layout: PanelLayout
-  layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-  onLayoutChange: (layout: PanelLayout) => void
 }
 
 const DRAWER_WIDTH = 240
@@ -59,13 +71,15 @@ const closedMixin = (theme: Theme): CSSObject => ({
 })
 
 const MiniDrawerButtonItem: FC<
-  BaseMiniDrawerItemProps & {
-    icon: ReactNode
-    text: string
-  }
-> = ({ isDrawerOpen, icon, text }) => (
+  BaseMiniDrawerItemProps &
+    Omit<ListItemButtonProps, "children"> & {
+      icon: ReactNode
+      text: string
+    }
+> = ({ isDrawerOpen, icon, text, ...listItemButtonProps }) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <ListItemButton
+      {...listItemButtonProps}
       sx={{
         minHeight: 48,
         px: 2.5,
@@ -92,25 +106,29 @@ const MiniDrawerButtonItem: FC<
   </ListItem>
 )
 
-const MiniDrawerSelectLayout: FC<
-  BaseMiniDrawerItemProps & {
-    layout: PanelLayout
-    layoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
-    onLayoutChange: (layout: PanelLayout) => void
-  }
-> = ({ isDrawerOpen, onLayoutChange, layoutOptions }) => {
+type MiniDrawerPanelLayoutSelectProps = BaseMiniDrawerItemProps & {
+  panelLayout?: PanelLayout
+  panelLayoutOptions: typeof TWO_PANEL_LAYOUTS | typeof THREE_PANEL_LAYOUTS
+  onPanelLayoutChange: (layout?: PanelLayout) => void
+}
+
+const MiniDrawerPanelLayoutSelect: FC<MiniDrawerPanelLayoutSelectProps> = ({
+  isDrawerOpen,
+  onPanelLayoutChange,
+  panelLayoutOptions,
+  panelLayout: selectedPanelLayout,
+}) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
   const open = Boolean(anchorEl)
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    if (!open) setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
+  const handleClose = () => setAnchorEl(null)
+
   return (
     <ListItem disablePadding>
       <ListItemButton
-        onClick={handleClick}
+        onClick={event => {
+          if (!open) setAnchorEl(event.currentTarget)
+        }}
         sx={{
           minHeight: 48,
           px: 2.5,
@@ -135,30 +153,94 @@ const MiniDrawerSelectLayout: FC<
           }}
         />
         <Menu
-          id="basic-menu"
+          id="layout-menu"
           anchorEl={anchorEl}
           open={open}
           onClose={handleClose}
-          slotProps={{
-            list: {
-              "aria-labelledby": "basic-button",
-            },
-          }}
+          slotProps={{ list: { "aria-labelledby": "basic-button" } }}
         >
-          {layoutOptions.map(layout => (
-            <MenuItem
-              onClick={() => {
-                onLayoutChange(layout)
-                handleClose()
-              }}
-              key={layout}
-              value={layout}
-            >
-              {layout}
-            </MenuItem>
-          ))}
+          {[undefined, ...panelLayoutOptions].map(panelLayout => {
+            const value = panelLayout ?? "auto"
+            return (
+              <MenuItem
+                onClick={() => {
+                  onPanelLayoutChange(panelLayout)
+                  handleClose()
+                }}
+                key={value}
+                value={value}
+                selected={panelLayout === selectedPanelLayout}
+              >
+                {value}
+              </MenuItem>
+            )
+          })}
         </Menu>
       </ListItemButton>
+    </ListItem>
+  )
+}
+
+const MiniDrawerSelectSpeed: FC<BaseMiniDrawerItemProps> = ({
+  isDrawerOpen,
+}) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const dispatch = useAppDispatch()
+  const { playSpeed: currentPlaySpeed } = useSettings()
+
+  const open = Boolean(anchorEl)
+  const handleClose = () => setAnchorEl(null)
+
+  return (
+    <ListItem>
+      <ListItemButton
+        onClick={event => {
+          if (!open) setAnchorEl(event.currentTarget)
+        }}
+        sx={{
+          minHeight: 48,
+          px: 0.75,
+          justifyContent: isDrawerOpen ? "initial" : "center",
+        }}
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: 0,
+            justifyContent: "center",
+            mr: isDrawerOpen ? 1 : "auto",
+          }}
+        >
+          <SpeedIcon />
+        </ListItemIcon>
+        <ListItemText
+          primary="Speed"
+          sx={{
+            opacity: isDrawerOpen ? 1 : 0,
+            "& span": { marginBottom: "auto" },
+          }}
+        />
+      </ListItemButton>
+      <Menu
+        id="speed-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        slotProps={{ list: { "aria-labelledby": "basic-button" } }}
+      >
+        {PLAY_SPEEDS.map(speed => (
+          <MenuItem
+            onClick={() => {
+              dispatch(setPlaySpeed(speed))
+              handleClose()
+            }}
+            key={speed}
+            value={speed}
+            selected={speed === currentPlaySpeed}
+          >
+            {speed}
+          </MenuItem>
+        ))}
+      </Menu>
     </ListItem>
   )
 }
@@ -210,16 +292,24 @@ const MiniDrawer: FC<{
       {open ? <ChevronLeftIcon /> : <MenuIcon />}
     </IconButton>
     <Divider />
-    {children}
+    <List>{children}</List>
   </Drawer>
 )
 
-const Controls: FC<ControlsProps> = ({
-  layoutOptions,
-  layout,
-  onLayoutChange,
-}) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
+export type ControlsProps = Pick<
+  MiniDrawerPanelLayoutSelectProps,
+  "onPanelLayoutChange" | "panelLayout" | "panelLayoutOptions"
+>
+
+const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const dispatch = useAppDispatch()
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const gameIsDefined = useGameIsDefined()
+  const gameHasStarted = useGameHasStarted()
+  const gameInPlay = useGameInPlay()
+  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
   return (
@@ -229,34 +319,51 @@ const Controls: FC<ControlsProps> = ({
         setIsDrawerOpen(!isDrawerOpen)
       }}
     >
-      <List>
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 1"
-          icon={<AgricultureIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 2"
-          icon={<BusIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 3"
-          icon={<CallIcon />}
-        />
-        <MiniDrawerButtonItem
-          {...baseItemProps}
-          text="Item 4"
-          icon={<CastIcon />}
-        />
-        <MiniDrawerSelectLayout
-          {...baseItemProps}
-          layout={layout}
-          layoutOptions={layoutOptions}
-          onLayoutChange={onLayoutChange}
-        />
-      </List>
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Clear"
+        icon={<DeleteIcon />}
+        onClick={() => {
+          clearPlayInterval()
+          if (blocklyWorkspaceContext?.ref.current) {
+            blocklyWorkspaceContext.ref.current.clear()
+          }
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text={gameInPlay && playInterval ? "Pause" : "Play"}
+        icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
+        disabled={!gameIsDefined}
+        onClick={() => {
+          if (!clearPlayInterval()) setPlayInterval()
+        }}
+      />
+      <MiniDrawerSelectSpeed {...baseItemProps} />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Stop"
+        icon={<StopIcon />}
+        disabled={!gameHasStarted}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(restartGame())
+        }}
+      />
+      <MiniDrawerButtonItem
+        {...baseItemProps}
+        text="Step"
+        icon={<RedoIcon />}
+        disabled={!gameIsDefined}
+        onClick={() => {
+          clearPlayInterval()
+          dispatch(nextGameCommand())
+        }}
+      />
+      <MiniDrawerPanelLayoutSelect
+        {...baseItemProps}
+        {...panelLayoutSelectProps}
+      />
     </MiniDrawer>
   )
 }
