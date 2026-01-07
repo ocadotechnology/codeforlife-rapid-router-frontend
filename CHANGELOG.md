@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.4.0...v1.5.0) (2026-01-07)
+
+
+### Features
+
+* **level/controls:** change layout selection ([02068cb](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/commit/02068cb5622822f5339a1fd51c397804a504a2f3))
+
 # [1.4.0](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.3.0...v1.4.0) (2026-01-07)
 
 
