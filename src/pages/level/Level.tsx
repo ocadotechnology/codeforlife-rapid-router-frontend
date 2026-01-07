@@ -12,15 +12,6 @@ import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
 } from "../../api/level"
-import {
-  THREE_PANEL_LAYOUTS,
-  TWO_PANEL_LAYOUTS,
-  type ThreePanelLayout,
-  type TwoPanelLayout,
-  setThreePanelLayout,
-  setTwoPanelLayout,
-} from "../../app/slices/settings"
-import { useAppDispatch, useSettings } from "../../app/hooks"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
@@ -28,8 +19,6 @@ import { paths } from "../../routes"
 export interface LevelProps {}
 
 const InnerLevel: FC<Pick<LevelModel, "id">> = ({ id }) => {
-  const dispatch = useAppDispatch()
-  const settings = useSettings()
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
   // TODO: swap these when pulling from the API
   // const result = useRetrieveLevelQuery(id)
@@ -48,23 +37,7 @@ const InnerLevel: FC<Pick<LevelModel, "id">> = ({ id }) => {
       }}
     >
       <Box sx={{ display: "flex" }}>
-        {level.panel_count === 2 ? (
-          <Controls
-            panelLayout={settings.twoPanelLayout}
-            panelLayoutOptions={TWO_PANEL_LAYOUTS}
-            onPanelLayoutChange={panelLayout => {
-              dispatch(setTwoPanelLayout(panelLayout as TwoPanelLayout))
-            }}
-          />
-        ) : (
-          <Controls
-            panelLayout={settings.threePanelLayout}
-            panelLayoutOptions={THREE_PANEL_LAYOUTS}
-            onPanelLayoutChange={panelLayout => {
-              dispatch(setThreePanelLayout(panelLayout as ThreePanelLayout))
-            }}
-          />
-        )}
+        <Controls panelCount={level.panel_count} />
         {/* TODO: fix style*/}
         <Box component="main" sx={{ height: "100vh" }}>
           <Panels count={level.panel_count} />

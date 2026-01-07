@@ -33,18 +33,20 @@ export const settingsSlice = createSlice({
   initialState: getSettingsCookie() ?? DEFAULT_SETTINGS,
   reducers: create => ({
     setTwoPanelLayout: create.reducer(
-      (state, action: PayloadAction<TwoPanelLayout>) => {
+      (state, action: PayloadAction<SettingsState["twoPanelLayout"]>) => {
         state.twoPanelLayout = action.payload
       },
     ),
     setThreePanelLayout: create.reducer(
-      (state, action: PayloadAction<ThreePanelLayout>) => {
+      (state, action: PayloadAction<SettingsState["threePanelLayout"]>) => {
         state.threePanelLayout = action.payload
       },
     ),
-    setPlaySpeed: create.reducer((state, action: PayloadAction<PlaySpeed>) => {
-      state.playSpeed = action.payload
-    }),
+    setPlaySpeed: create.reducer(
+      (state, action: PayloadAction<SettingsState["playSpeed"]>) => {
+        state.playSpeed = action.payload
+      },
+    ),
   }),
   selectors: { selectSettings: settings => settings },
 })
