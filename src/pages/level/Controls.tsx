@@ -24,14 +24,7 @@ import {
   Redo as RedoIcon,
   Stop as StopIcon,
 } from "@mui/icons-material"
-import {
-  type FC,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
+import { type FC, type ReactNode, useState } from "react"
 
 import {
   PLAY_SPEEDS,
@@ -40,13 +33,15 @@ import {
   type TWO_PANEL_LAYOUTS,
   nextGameCommand,
   restartGame,
-  setGameCommands,
   setPlaySpeed,
 } from "../../app/slices"
 import {
   useAppDispatch,
-  useGameHasFinished,
+  useBlocklyWorkspaceContext,
   useGameHasStarted,
+  useGameInPlay,
+  useGameIsDefined,
+  usePlayInterval,
   useSettings,
 } from "../../app/hooks"
 
@@ -227,36 +222,11 @@ export type ControlsProps = Pick<
 const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
-  const { playSpeed } = useSettings()
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
-  const gameHasFinished = useGameHasFinished()
-
-  // Play interval management to dispatch nextGameCommand at correct speed.
-  const playInterval = useRef<ReturnType<typeof setInterval> | null>(null)
-  const setPlayInterval = useCallback(() => {
-    playInterval.current = setInterval(() => {
-      dispatch(nextGameCommand())
-    }, 1000 / playSpeed)
-  }, [dispatch, playSpeed])
-  const clearPlayInterval = useCallback(() => {
-    if (!playInterval.current) return false
-    clearInterval(playInterval.current)
-    playInterval.current = null
-    return true
-  }, [])
-
-  useEffect(() => {
-    if (gameHasFinished) clearPlayInterval()
-
-    return () => {
-      clearPlayInterval()
-    }
-  }, [gameHasFinished, clearPlayInterval])
-
-  // Update interval if playSpeed changes.
-  useEffect(() => {
-    if (clearPlayInterval()) setPlayInterval()
-  }, [clearPlayInterval, setPlayInterval, playSpeed])
+  const gameInPlay = useGameInPlay()
+  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
 
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
@@ -273,13 +243,16 @@ const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
         icon={<DeleteIcon />}
         onClick={() => {
           clearPlayInterval()
-          dispatch(setGameCommands([]))
+          if (blocklyWorkspaceContext?.ref.current) {
+            blocklyWorkspaceContext.ref.current.clear()
+          }
         }}
       />
       <MiniDrawerButtonItem
         {...baseItemProps}
-        text={playInterval.current ? "Pause" : "Play"}
-        icon={playInterval.current ? <PauseIcon /> : <PlayArrowIcon />}
+        text={gameInPlay && playInterval ? "Pause" : "Play"}
+        icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
+        disabled={!gameIsDefined}
         onClick={() => {
           if (!clearPlayInterval()) setPlayInterval()
         }}
@@ -299,6 +272,7 @@ const Controls: FC<ControlsProps> = ({ ...panelLayoutSelectProps }) => {
         {...baseItemProps}
         text="Step"
         icon={<RedoIcon />}
+        disabled={!gameIsDefined}
         onClick={() => {
           clearPlayInterval()
           dispatch(nextGameCommand())

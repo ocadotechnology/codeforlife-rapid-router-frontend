@@ -11,9 +11,9 @@ import waitIcon from "../../images/blocks/wait.svg"
 function defineCommandBlock<T extends GameCommand>(type: T, icon: string) {
   return defineBlock({
     type,
-    tooltip: `%{BKY_${type.toLocaleUpperCase()}_TOOLTIP}`,
+    tooltip: `%{BKY_${type.toUpperCase()}_TOOLTIP}`,
     colour: 160,
-    message0: `%{BKY_${type.toLocaleUpperCase()}_TITLE} %1 %2`,
+    message0: `%{BKY_${type.toUpperCase()}_TITLE} %1 %2`,
     args0: [
       {
         type: "field_image",
@@ -34,18 +34,18 @@ function defineCommandBlock<T extends GameCommand>(type: T, icon: string) {
 }
 
 export const MOVE_FORWARDS_BLOCK = defineCommandBlock(
-  "moveForwards",
+  "move_forwards",
   moveForwardsIcon,
 )
-export const TURN_LEFT_BLOCK = defineCommandBlock("turnLeft", turnLeftIcon)
-export const TURN_RIGHT_BLOCK = defineCommandBlock("turnRight", turnRightIcon)
+export const TURN_LEFT_BLOCK = defineCommandBlock("turn_left", turnLeftIcon)
+export const TURN_RIGHT_BLOCK = defineCommandBlock("turn_right", turnRightIcon)
 export const TURN_AROUND_BLOCK = defineCommandBlock(
-  "turnAround",
+  "turn_around",
   turnAroundIcon,
 )
 export const WAIT_BLOCK = defineCommandBlock("wait", waitIcon)
 export const DELIVER_BLOCK = defineCommandBlock("deliver", deliverIcon)
-export const SOUND_HORN_BLOCK = defineCommandBlock("soundHorn", emptyIcon)
+export const SOUND_HORN_BLOCK = defineCommandBlock("sound_horn", emptyIcon)
 
 export const COMMAND_BLOCK_TYPES = [
   MOVE_FORWARDS_BLOCK.type,

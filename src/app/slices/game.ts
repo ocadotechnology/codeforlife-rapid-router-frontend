@@ -2,13 +2,13 @@ import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "codeforlife/slices"
 
 export const GAME_COMMANDS = [
-  "moveForwards",
-  "turnLeft",
-  "turnRight",
-  "turnAround",
+  "move_forwards",
+  "turn_left",
+  "turn_right",
+  "turn_around",
   "wait",
   "deliver",
-  "soundHorn",
+  "sound_horn",
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
@@ -65,6 +65,7 @@ export const gameSlice = createSlice({
       gameInPlay(state)
         ? state.gameCommands[state.gameCommandIndex]
         : undefined,
+    selectGameIsDefined: gameIsDefined,
     selectGameHasStarted: gameHasStarted,
     selectGameHasFinished: gameHasFinished,
     selectGameInPlay: gameInPlay,
@@ -77,6 +78,7 @@ export const {
   selectGameCommands,
   selectGameCommandIndex,
   selectCurrentGameCommand,
+  selectGameIsDefined,
   selectGameHasStarted,
   selectGameHasFinished,
   selectGameInPlay,

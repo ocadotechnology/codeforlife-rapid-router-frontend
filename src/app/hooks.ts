@@ -5,17 +5,19 @@
 // for importing and re-exporting the typed versions of hooks.
 /* eslint-disable @typescript-eslint/no-restricted-imports */
 import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
+import { useCallback, useContext, useEffect, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useContext } from "react"
 
 import type { AppDispatch, RootState } from "./store"
 import {
+  nextGameCommand,
   selectCurrentGameCommand,
   selectGameCommandIndex,
   selectGameCommands,
   selectGameHasFinished,
   selectGameHasStarted,
   selectGameInPlay,
+  selectGameIsDefined,
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
@@ -42,11 +44,49 @@ export function useBreakpoint() {
   return result as Breakpoint
 }
 
+// Game
+export function usePlayInterval() {
+  const dispatch = useAppDispatch()
+  const { playSpeed } = useSettings()
+  const gameHasFinished = useGameHasFinished()
+  const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
+
+  const clearPlayInterval = useCallback(() => {
+    if (!intervalRef.current) return false
+    clearInterval(intervalRef.current)
+    intervalRef.current = null
+    return true
+  }, [])
+
+  const setPlayInterval = useCallback(() => {
+    clearPlayInterval()
+    intervalRef.current = setInterval(() => {
+      dispatch(nextGameCommand())
+    }, 1000 / playSpeed)
+  }, [clearPlayInterval, dispatch, playSpeed])
+
+  // Clear interval on game finish or unmount.
+  useEffect(() => {
+    if (gameHasFinished) clearPlayInterval()
+    return () => {
+      clearPlayInterval()
+    }
+  }, [gameHasFinished, clearPlayInterval])
+
+  // Update interval if playSpeed changes.
+  useEffect(() => {
+    if (clearPlayInterval()) setPlayInterval()
+  }, [clearPlayInterval, setPlayInterval])
+
+  return [intervalRef.current, setPlayInterval, clearPlayInterval] as const
+}
+
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
+export const useGameIsDefined = () => useSelector(selectGameIsDefined)
 export const useGameHasStarted = () => useSelector(selectGameHasStarted)
 export const useGameInPlay = () => useSelector(selectGameInPlay)
 export const useGameHasFinished = () => useSelector(selectGameHasFinished)

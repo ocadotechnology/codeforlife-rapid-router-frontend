@@ -9,6 +9,7 @@ import {
 } from "react"
 
 import {
+  clearWorkspace,
   getGameCommandsFromStartBlock,
   getNextBlocks,
   initializeBlockly,
@@ -49,8 +50,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     ref,
     () =>
       blockly
-        ? { resize: resizeWorkspace(blockly.workspace) }
-        : { resize: () => {} },
+        ? {
+            resize: resizeWorkspace(blockly.workspace),
+            clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
+          }
+        : { resize: () => {}, clear: () => {} },
     [blockly],
   )
 

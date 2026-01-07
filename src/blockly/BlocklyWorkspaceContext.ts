@@ -3,6 +3,7 @@ import { type RefObject, createContext } from "react"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void
+  clear: () => void
 }
 
 export type BlocklyWorkspaceContextValue = {

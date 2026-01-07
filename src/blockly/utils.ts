@@ -173,3 +173,19 @@ export function getNextBlocks(block: Blockly.BlockSvg) {
 
   return blocks
 }
+
+export function clearWorkspace(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+) {
+  const disposeBlock = (block: Blockly.BlockSvg) => block.dispose(false, false)
+
+  // Dispose all blocks connected to the start block first.
+  let block = startBlock.getNextBlock()
+  if (block) disposeBlock(block)
+
+  // Dispose any remaining blocks (e.g., unconnected blocks).
+  for (block of workspace.getAllBlocks()) {
+    if (block.id !== startBlock.id) disposeBlock(block)
+  }
+}
