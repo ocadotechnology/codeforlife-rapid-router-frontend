@@ -237,13 +237,13 @@ const Controls: FC<ControlsProps> = ({ panelCount }) => {
   const baseItemProps: BaseMiniDrawerItemProps = { isDrawerOpen }
 
   // Helper to map panel layout options to menu items.
-  function mapPanelLayoutsToMenuItems<O extends readonly string[]>(
+  function mapPanelLayoutsToMenuItems<
+    O extends readonly (string | undefined)[],
+  >(
     panelLayoutOptions: O,
-    setPanelLayout: (
-      layout: O[number] | undefined,
-    ) => PayloadAction<O[number] | undefined>,
-  ): MiniDrawerButtonMenuItemProps<O[number] | undefined>["menuItems"] {
-    return [undefined, ...panelLayoutOptions].map(panelLayout => ({
+    setPanelLayout: (layout: O[number]) => PayloadAction<O[number]>,
+  ): MiniDrawerButtonMenuItemProps<O[number]>["menuItems"] {
+    return panelLayoutOptions.map(panelLayout => ({
       value: panelLayout,
       key: panelLayout ?? "auto",
       onClick: () => dispatch(setPanelLayout(panelLayout)),
