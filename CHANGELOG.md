@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.5.0...v1.5.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* Install latest package ([e449ef9](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/commit/e449ef976bb502faed86196f0a7eb3423b9d3c71))
+
 # [1.5.0](https://github.com/ocadotechnology/codeforlife-rapid-router-frontend/compare/v1.4.0...v1.5.0) (2026-01-07)
 
 
