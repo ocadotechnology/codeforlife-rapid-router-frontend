@@ -1,8 +1,13 @@
-import { vite } from "codeforlife/settings"
+import { getSetting, setup } from "codeforlife/utils/settings"
 
-export * from "codeforlife/settings"
-
+// Set up the settings using environment variables and get the common settings.
 export const {
-  // Example of how to get an environment variable.
-  EXAMPLE = "DEFAULT_VALUE",
-} = vite
+  SERVICE_NAME,
+  SERVICE_TITLE,
+  SERVICE_API_URL,
+  SESSION_COOKIE_NAME,
+  SESSION_METADATA_COOKIE_NAME,
+} = setup(import.meta.env)
+
+// Example of how to get a custom setting.
+export const EXAMPLE = getSetting("EXAMPLE", { defaultValue: "DEFAULT_VALUE" })

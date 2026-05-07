@@ -4,12 +4,13 @@ import { Image } from "codeforlife/components"
 import { Typography } from "@mui/material"
 
 import CflLogoImage from "../../images/cfl_logo.png"
+import { selectIsLoggedIn } from "../../app/slices"
 
 export interface HomeProps {}
 
 const Home: FC<HomeProps> = () => {
   return (
-    <pages.Page>
+    <pages.Page selectIsLoggedIn={selectIsLoggedIn}>
       <pages.Section>
         <Image src={CflLogoImage} alt="code for life logo" maxWidth="200px" />
         <Typography variant="h1">Example web page</Typography>

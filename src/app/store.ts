@@ -2,9 +2,8 @@ import type { Action, ThunkAction } from "@reduxjs/toolkit"
 import { combineSlices } from "@reduxjs/toolkit"
 import { logoutMiddleware } from "codeforlife/middlewares"
 import { makeStore } from "codeforlife/utils/store"
-import { sessionSlice } from "codeforlife/slices"
 
-import { gameSlice, settingsSlice } from "./slices"
+import { gameSlice, sessionSlice, settingsSlice } from "./slices"
 import api from "../api"
 import { settingsMiddleware } from "./middlewares"
 
