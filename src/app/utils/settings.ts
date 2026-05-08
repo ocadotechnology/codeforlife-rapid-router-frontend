@@ -1,19 +1,12 @@
-import Cookies from "js-cookie"
+import cookies from "codeforlife/utils/cookies"
 
 import { SERVICE_NAME } from "../settings"
 import { type SettingsState } from "../slices/settings"
 
 export function getSettingsCookie() {
-  const settingsCookie = Cookies.get(SERVICE_NAME)
-  if (settingsCookie === undefined) return settingsCookie
-
-  try {
-    return JSON.parse(settingsCookie) as SettingsState
-  } catch (e: any) {
-    console.error(`Error occurred while parsing settings from cookies: ${e}`)
-  }
+  return cookies.get(SERVICE_NAME) as SettingsState | undefined
 }
 
 export function setSettingsCookie(settings: SettingsState) {
-  Cookies.set(SERVICE_NAME, JSON.stringify(settings))
+  cookies.set(SERVICE_NAME, settings)
 }

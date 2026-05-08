@@ -1,6 +1,6 @@
-import { client } from "codeforlife/server/entry"
+import client from "codeforlife/server/entry/client"
 
 import App from "./App"
 import routes from "./routes"
 
-await client({ App, routes })
+client({ App, routes })
