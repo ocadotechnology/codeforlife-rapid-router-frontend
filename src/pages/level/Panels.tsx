@@ -1,4 +1,11 @@
-import { type FC, useCallback } from "react"
+import {
+  type FC,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useState,
+} from "react"
 import {
   Panel,
   PanelResizeHandle,
@@ -21,8 +28,10 @@ import {
   useSettings,
 } from "../../app/hooks"
 import { BlocklyWorkspace } from "../../blockly"
-import PhaserGame from "./PhaserGame"
 import PythonEditor from "./PythonEditor"
+
+// Dynamically import PhaserGame so the SSR server ignores it completely
+const PhaserGameLazy = lazy(() => import("./PhaserGame"))
 
 interface PanelProps {
   order?: number
@@ -109,16 +118,39 @@ const PythonEditorPanel: FC<PanelProps> = ({ order, defaultSize }) => (
   </Panel>
 )
 
-const PhaserGamePanel: FC<PanelProps> = ({ order, defaultSize }) => (
-  <Panel
-    id="phaser-game-panel"
-    defaultSize={defaultSize}
-    order={order}
-    minSize={20}
-  >
-    <PhaserGame />
-  </Panel>
-)
+const PhaserGamePanel: FC<PanelProps> = ({ order, defaultSize }) => {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    // Tells the component it is safe to load Phaser now that we are in the browser
+    setIsClient(true)
+  }, [])
+
+  return (
+    <Panel
+      id="phaser-game-panel"
+      defaultSize={defaultSize}
+      order={order}
+      minSize={20}
+    >
+      {isClient ? (
+        <Suspense
+          fallback={
+            <div style={{ padding: "1rem", color: "gray" }}>
+              Loading Game Canvas...
+            </div>
+          }
+        >
+          <PhaserGameLazy />
+        </Suspense>
+      ) : (
+        <div style={{ padding: "1rem", color: "gray" }}>
+          Preparing Game Environment...
+        </div>
+      )}
+    </Panel>
+  )
+}
 
 type PanelGroupProps = Omit<_PanelGroupProps, "onLayout">
 

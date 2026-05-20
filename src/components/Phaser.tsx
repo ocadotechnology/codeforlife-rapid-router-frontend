@@ -1,6 +1,6 @@
-import { forwardRef, useEffect, useRef } from "react"
+import { forwardRef, useEffect, useLayoutEffect, useRef } from "react"
 import { EventBus } from "./game/EventBus"
-// import StartGame from "./game/main"
+import StartGame from "./game/main"
 
 export interface IRefPhaser {
   game: Phaser.Game | null
@@ -17,24 +17,15 @@ export const Phaser = forwardRef<IRefPhaser, IProps>(function Phaser(
 ) {
   const game = useRef<Phaser.Game | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (game.current === null) {
-      import("./game/main")
-        .then(module => {
-          // Handles both default or named exports safely
-          const StartGame = module.StartGame || module.default
+      game.current = StartGame("game-container")
 
-          game.current = StartGame("game-container")
-
-          if (typeof ref === "function") {
-            ref({ game: game.current, scene: null })
-          } else if (ref) {
-            ref.current = { game: game.current, scene: null }
-          }
-        })
-        .catch(error => {
-          console.error("Failed to load the Phaser game module:", error)
-        })
+      if (typeof ref === "function") {
+        ref({ game: game.current, scene: null })
+      } else if (ref) {
+        ref.current = { game: game.current, scene: null }
+      }
     }
 
     return () => {
