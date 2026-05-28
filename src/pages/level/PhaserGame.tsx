@@ -1,6 +1,6 @@
-import { type IRefPhaser, Phaser } from "../../components/Phaser"
+import { type IRefPhaser, Phaser } from "../../phaser/Phaser"
 import { useRef, useState } from "react"
-import { type MainMenu } from "../../components/game/scenes/MainMenu"
+import { type MainMenu } from "../../phaser/game/scenes/MainMenu"
 
 function PhaserGame() {
   // The sprite can only be moved in the MainMenu Scene
