@@ -9,9 +9,11 @@ import type { Game } from "phaser"
 
 import { useGameCommands } from "../app/hooks"
 
-export interface PhaserGameProps {}
+export interface PhaserGameProps {
+  mode: "play" | "create"
+}
 
-const PhaserGame: FC<PhaserGameProps> = () => {
+const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
   const gameCommands = useGameCommands()
   const [isMounted, setIsMounted] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -49,14 +51,7 @@ const PhaserGame: FC<PhaserGameProps> = () => {
         },
         parent: containerRef.current,
         backgroundColor,
-        scene: [
-          scenes.MainScene,
-          // scenes.Boot,
-          // scenes.Preloader,
-          // scenes.MainMenu,
-          // scenes.Game,
-          // scenes.GameOver,
-        ],
+        scene: scenes[mode],
       })
     }
 
@@ -69,7 +64,7 @@ const PhaserGame: FC<PhaserGameProps> = () => {
         gameRef.current = null
       }
     }
-  }, [])
+  }, [mode])
 
   return (
     <>
