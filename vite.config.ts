@@ -5,12 +5,12 @@ import {
 import {
   mergeConfig as mergeViteConfig,
   defineConfig as defineViteConfig,
+  ConfigEnv as ViteConfigEnv,
 } from "vite"
 import { mergeConfig as mergeVitestConfig } from "vitest/config"
 
-const viteConfig = mergeViteConfig(
-  workspaceViteConfig,
-  defineViteConfig({
+export default ({ isSsrBuild }: ViteConfigEnv) => {
+  let viteConfig = defineViteConfig({
     ssr: {
       // Phaser is a browser-only game engine that relies on Web APIs like
       // Canvas and WebGL, which don't exist in a Node environment. By marking
@@ -40,11 +40,13 @@ const viteConfig = mergeViteConfig(
           //  the massive engine block, the browser can parse and render the UI
           //  almost instantly, before it has even finished evaluating the heavy
           //  game engine logic.
-          manualChunks: { phaser: ["phaser"] },
+          manualChunks: isSsrBuild ? undefined : { phaser: ["phaser"] },
         },
       },
     },
-  }),
-)
+  })
 
-export default mergeVitestConfig(viteConfig, workspaceVitestConfig)
+  viteConfig = mergeViteConfig(workspaceViteConfig, viteConfig)
+
+  return mergeVitestConfig(viteConfig, workspaceVitestConfig)
+}
