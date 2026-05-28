@@ -1,11 +1,17 @@
-import CreatePreload from "./create/Preload"
+import CreatePreloader from "./create/Preloader"
 
-export const create = [CreatePreload]
+export const create = [CreatePreloader]
 
 import PlayBoot from "./play/Boot"
-import PlayPreload from "./play/Preload"
+import PlayPreloader from "./play/Preloader"
 import PlayGameplay from "./play/Gameplay"
 import PlayGameOver from "./play/GameOver"
 import PlayHUD from "./play/HUD"
 
-export const play = [PlayBoot, PlayPreload, PlayHUD, PlayGameplay, PlayGameOver]
+export const play = [
+  PlayBoot,
+  PlayPreloader,
+  PlayHUD,
+  PlayGameplay,
+  PlayGameOver,
+]
