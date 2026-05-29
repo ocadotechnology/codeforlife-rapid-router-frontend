@@ -16,7 +16,7 @@ export interface PhaserGameProps {
 
 const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
   const gameCommands = useGameCommands()
-  const [isMounted, setIsMounted] = useState(false)
+  const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Game>(null)
 
@@ -24,7 +24,6 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
-    setIsMounted(true) // Used to asynchronously trigger a rerender.
     let active = true // Used to synchronously guard initialization logic.
 
     const initPhaser = async () => {
@@ -61,6 +60,8 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
         backgroundColor,
         scene: scenes[mode],
       })
+
+      setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
     }
 
     void initPhaser()
@@ -104,10 +105,28 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
   }, [mode, gameCommands])
 
   return (
-    <>
-      {!isMounted && <CircularProgress />}
-      <div id="phaser-game" ref={containerRef} style={{ backgroundColor }} />
-    </>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {!gameIsInitialized && (
+        <CircularProgress
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      )}
+      <div
+        id="phaser-game"
+        ref={containerRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          // Match the background color of the game and the game's container.
+          backgroundColor: gameIsInitialized ? backgroundColor : "transparent",
+        }}
+      />
+    </div>
   )
 }
 
