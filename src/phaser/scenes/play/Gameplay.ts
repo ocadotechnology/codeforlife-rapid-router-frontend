@@ -30,7 +30,7 @@ export default class extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", this.gameOver, this)
+      .on("pointerdown", () => this.gameOver())
     this.gameText = this.add
       .text(512, 500, "", {
         fontFamily: "Arial",
@@ -40,9 +40,10 @@ export default class extends Phaser.Scene {
       .setOrigin(0.5)
 
     // Listen for updates to the game commands.
-    this.game.events.on(Events.SET_COMMANDS, this.handleNewCommands, this)
+    const handleNewCommands = () => this.handleNewCommands()
+    this.game.events.on(Events.SET_COMMANDS, handleNewCommands)
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.game.events.off(Events.SET_COMMANDS, this.handleNewCommands, this)
+      this.game.events.off(Events.SET_COMMANDS, handleNewCommands)
     })
 
     // WARN: This must come after the objects have been added!

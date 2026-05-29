@@ -10,15 +10,13 @@ import { Scenes } from "../../enums"
  * essential information at a glance.
  */
 export default class extends Phaser.Scene {
-  private scoreText!: Phaser.GameObjects.Text
-
   constructor() {
     super(Scenes.Play.HUD)
   }
 
   create() {
     // This text will stay glued to the top-left of the screen.
-    this.scoreText = this.add.text(20, 20, "Score: 0", {
+    this.add.text(20, 20, "Score: 0", {
       font: "24px Arial",
       color: "#ffffff",
     })

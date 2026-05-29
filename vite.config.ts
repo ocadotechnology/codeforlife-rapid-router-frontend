@@ -1,12 +1,12 @@
 import {
+  type ConfigEnv as ViteConfigEnv,
+  defineConfig as defineViteConfig,
+  mergeConfig as mergeViteConfig,
+} from "vite"
+import {
   viteConfig as workspaceViteConfig,
   vitestConfig as workspaceVitestConfig,
 } from "@codeforlife/workspace/vite.config.ts"
-import {
-  mergeConfig as mergeViteConfig,
-  defineConfig as defineViteConfig,
-  ConfigEnv as ViteConfigEnv,
-} from "vite"
 import { mergeConfig as mergeVitestConfig } from "vitest/config"
 
 export default ({ isSsrBuild }: ViteConfigEnv) => {
