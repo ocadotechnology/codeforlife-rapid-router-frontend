@@ -8,7 +8,17 @@ import { Scene } from "phaser"
  * essential information at a glance.
  */
 export default class extends Scene {
+  private scoreText!: Phaser.GameObjects.Text
+
   constructor() {
     super("HUD")
+  }
+
+  create() {
+    // This text will stay glued to the top-left of the screen.
+    this.scoreText = this.add.text(20, 20, "Score: 0", {
+      font: "24px Arial",
+      color: "#ffffff",
+    })
   }
 }
