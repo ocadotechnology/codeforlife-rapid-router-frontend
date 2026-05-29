@@ -1,5 +1,7 @@
 import { Scene } from "phaser"
 
+import logo from "../../../images/rr_logo.svg?url"
+
 /**
  * The Boot Scene is the first scene that runs when the game starts. It is
  * responsible for loading any assets that are required for the Preloader Scene,
@@ -14,7 +16,7 @@ export default class extends Scene {
 
   preload() {
     // Load any assets required for the Preloader Scene here.
-    // this.load.image("background", "assets/bg.png")
+    this.load.svg("logo", logo)
   }
 
   create() {

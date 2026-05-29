@@ -20,25 +20,10 @@ export default class extends Scene {
   create() {
     this.camera = this.cameras.main
 
-    this.gameText = this.add
-      .text(
-        512,
-        384,
-        "Make something fun!\nand share it with us:\nsupport@phaser.io",
-        {
-          fontFamily: "Arial Black",
-          fontSize: 38,
-          color: "#ffffff",
-          stroke: "#000000",
-          strokeThickness: 8,
-          align: "center",
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(100)
+    this.add.image(512, 384, "logo")
 
     this.add
-      .text(512, 600, "Click to trigger game over", {
+      .text(512, 500, "Click to trigger game over", {
         fontFamily: "Arial",
         fontSize: 32,
         color: "#000000",
