@@ -1,4 +1,6 @@
-import { Scene } from "phaser"
+import Phaser from "phaser"
+
+import { Scenes } from "../../enums"
 
 /**
  * The GameOver Scene is responsible for displaying a game over message and
@@ -7,9 +9,9 @@ import { Scene } from "phaser"
  * end of one game session and the start of a new one, allowing players to see
  * where they went wrong before resetting the game objects.
  */
-export default class extends Scene {
+export default class extends Phaser.Scene {
   constructor() {
-    super("GameOver")
+    super(Scenes.Play.GAME_OVER)
   }
 
   create() {
@@ -33,9 +35,9 @@ export default class extends Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         // Manually stop the paused HUD to completely wipe its state from memory.
-        this.scene.stop("HUD")
+        this.scene.stop(Scenes.Play.HUD)
         // Start a new Gameplay scene - this destroys the paused Gameplay scene.
-        this.scene.start("Gameplay")
+        this.scene.start(Scenes.Play.GAMEPLAY)
       })
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FC } from "react"
+import { type FC, useEffect, useRef, useState } from "react"
 import { CircularProgress } from "@mui/material"
 // NOTE: `import type` is a TypeScript feature that only imports type
 //  information for compile-time type checking. When our TypeScript code is
@@ -7,6 +7,7 @@ import { CircularProgress } from "@mui/material"
 //  to be loaded at runtime.
 import type { Game } from "phaser"
 
+import { Events, Variables } from "./enums"
 import { useGameCommands } from "../app/hooks"
 
 export interface PhaserGameProps {
@@ -21,18 +22,25 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
 
   const backgroundColor = "#a0c53a"
 
+  // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
-    // Tells the component it is safe to load Phaser now that we are in the browser
-    setIsMounted(true)
-    let active = true
+    setIsMounted(true) // Used to asynchronously trigger a rerender.
+    let active = true // Used to synchronously guard initialization logic.
 
     const initPhaser = async () => {
+      // Check if the container ref is set and the component is still active.
       if (!containerRef.current || !active) return
 
       // Dynamically import Phaser and our scenes.
       // NOTE: This makes Phaser a browser-only dependency.
       const Phaser = await import("phaser")
       const scenes = await import("./scenes")
+
+      // Run the checks again to ensure that the component was not unmounted
+      // and remounted while the imports were being asynchronously fetched.
+      // Otherwise, we might try to create multiple Phaser games on top of each
+      // other in the latest component's container.
+      if (!containerRef.current || !active) return
 
       // Find out more information about the Game Config at:
       // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -65,6 +73,35 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
       }
     }
   }, [mode])
+
+  // Pass the current game commands to Phaser.
+  useEffect(() => {
+    // Only set the commands if we're in play mode and the game has been
+    // initialized.
+    if (mode !== "play" || !gameRef.current) return
+
+    // Save the current commands into the registry.
+    gameRef.current.registry.set(Variables.COMMANDS, gameCommands)
+
+    // Tells any currently active scenes to fetch the new data.
+    const emitSetCommandsEvent = () => {
+      if (gameRef.current) gameRef.current.events.emit(Events.SET_COMMANDS)
+    }
+
+    // Immediately emit an event for any active scenes to get the new commands.
+    emitSetCommandsEvent()
+
+    // Re-emit the event when the gameplay scene is ready.
+    gameRef.current.events.on(Events.GAMEPLAY_SCENE_READY, emitSetCommandsEvent)
+
+    return () => {
+      if (!gameRef.current) return
+      gameRef.current.events.off(
+        Events.GAMEPLAY_SCENE_READY,
+        emitSetCommandsEvent,
+      )
+    }
+  }, [mode, gameCommands])
 
   return (
     <>

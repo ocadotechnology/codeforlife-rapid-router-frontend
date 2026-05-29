@@ -1,4 +1,6 @@
-import { Scene } from "phaser"
+import Phaser from "phaser"
+
+import { SVGs, Scenes } from "../../enums"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -6,14 +8,14 @@ import { Scene } from "phaser"
  * the player about the loading progress. Once all assets are loaded, the
  * Preloader Scene transitions to the Gameplay Scene.
  */
-export default class extends Scene {
+export default class extends Phaser.Scene {
   constructor() {
-    super("Preloader")
+    super(Scenes.Play.PRELOADER)
   }
 
   init() {
-    // We loaded this image in our Boot Scene, so we can display it here
-    this.add.image(512, 384, "logo")
+    // We loaded this image in our Boot Scene, so we can display it here.
+    this.add.image(512, 384, SVGs.LOGO)
 
     // A simple progress bar. This is the outline of the bar.
     this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff)
@@ -43,6 +45,6 @@ export default class extends Scene {
     // global animations here, so we can use them in other scenes.
 
     // Start the game.
-    this.scene.start("Gameplay")
+    this.scene.start(Scenes.Play.GAMEPLAY)
   }
 }

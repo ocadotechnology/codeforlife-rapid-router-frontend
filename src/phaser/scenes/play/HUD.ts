@@ -1,4 +1,6 @@
-import { Scene } from "phaser"
+import Phaser from "phaser"
+
+import { Scenes } from "../../enums"
 
 /**
  * The HUD (Heads-Up Display) Scene is responsible for displaying game
@@ -7,11 +9,11 @@ import { Scene } from "phaser"
  * be non-intrusive, allowing players to focus on the game while still providing
  * essential information at a glance.
  */
-export default class extends Scene {
+export default class extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text
 
   constructor() {
-    super("HUD")
+    super(Scenes.Play.HUD)
   }
 
   create() {

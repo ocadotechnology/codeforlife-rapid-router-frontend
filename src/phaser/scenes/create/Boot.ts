@@ -12,7 +12,7 @@ import logo from "../../../images/rr_logo.svg?url"
  */
 export default class extends Phaser.Scene {
   constructor() {
-    super(Scenes.Play.BOOT)
+    super(Scenes.Create.BOOT)
   }
 
   preload() {
@@ -22,6 +22,6 @@ export default class extends Phaser.Scene {
 
   create() {
     // Start preloading the assets.
-    this.scene.start(Scenes.Play.PRELOADER)
+    this.scene.start(Scenes.Create.PRELOADER)
   }
 }
