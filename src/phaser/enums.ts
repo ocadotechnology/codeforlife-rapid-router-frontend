@@ -51,6 +51,7 @@ export const Tilemaps = {
 export type Tilemaps = (typeof Tilemaps)[keyof typeof Tilemaps]
 
 export const Tilesets = {
+  EMPTY: 0,
   GRASS: 1,
   SNOW: 2,
   PIGEON: 3,
