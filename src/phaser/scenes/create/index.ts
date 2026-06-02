@@ -1,5 +1,5 @@
 import Boot from "./Boot"
-import LevelCreator from "./LevelCreator"
+import Level from "./Level"
 import Preloader from "./Preloader"
 
-export default [Boot, Preloader, LevelCreator]
+export default [Boot, Preloader, Level]

@@ -4,7 +4,7 @@ import { SVGs, Scenes, Tilemaps } from "../../enums"
 import BasePreloader from "../BasePreloader"
 
 // Tilemaps
-import level1 from "./level1.jsonc"
+import level1 from "../../tilemaps/level1.jsonc"
 
 // Background SVGs.
 import GrassTileset from "../../../images/background/grass.svg?raw"
@@ -23,7 +23,7 @@ import Tree2Scenery from "../../../images/scenery/tree2.svg?raw"
  * The Preloader Scene is responsible for loading all the assets required for
  * the game. It typically displays a loading bar or progress indicator to inform
  * the player about the loading progress. Once all assets are loaded, the
- * Preloader Scene transitions to the LevelCreator Scene.
+ * Preloader Scene transitions to the Level Scene.
  */
 export default class extends BasePreloader {
   constructor() {
@@ -82,6 +82,6 @@ export default class extends BasePreloader {
     super.create()
 
     // Start the level creator.
-    this.scene.start(Scenes.Create.LEVEL_CREATOR)
+    this.scene.start(Scenes.Create.LEVEL)
   }
 }

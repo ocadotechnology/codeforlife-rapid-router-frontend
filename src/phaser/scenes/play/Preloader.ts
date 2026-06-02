@@ -28,6 +28,6 @@ export default class extends BasePreloader {
     super.create()
 
     // Start the game.
-    this.scene.start(Scenes.Play.GAMEPLAY)
+    this.scene.start(Scenes.Play.LEVEL)
   }
 }

@@ -13,12 +13,12 @@ export const Scenes = {
   Create: {
     BOOT: "Boot",
     PRELOADER: "Preloader",
-    LEVEL_CREATOR: "LevelCreator",
+    LEVEL: "Level",
   },
   Play: {
     BOOT: "Boot",
     PRELOADER: "Preloader",
-    GAMEPLAY: "Gameplay",
+    LEVEL: "Level",
     HUD: "HUD",
     GAME_OVER: "GameOver",
   },

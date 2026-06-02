@@ -16,7 +16,7 @@ export default class extends Phaser.Scene {
   private gameText!: Phaser.GameObjects.Text
 
   constructor() {
-    super(Scenes.Play.GAMEPLAY)
+    super(Scenes.Play.LEVEL)
   }
 
   create() {
