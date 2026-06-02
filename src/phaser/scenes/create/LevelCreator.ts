@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import { Scenes } from "../../enums"
+import { SVGs, Scenes, Tilemaps } from "../../enums"
 
 /**
  * The Level Creator Scene is responsible for providing a user interface and
@@ -13,70 +13,107 @@ import { Scenes } from "../../enums"
  */
 export default class extends Phaser.Scene {
   tilemap!: Phaser.Tilemaps.Tilemap
-  tileset!: Phaser.Tilemaps.Tileset
-  roadLayer!: Phaser.Tilemaps.TilemapLayer
-  obstacleLayer!: Phaser.Tilemaps.TilemapLayer
+  backgroundTilesets!: Phaser.Tilemaps.Tileset[]
+  backgroundLayer!:
+    | Phaser.Tilemaps.TilemapLayer
+    | Phaser.Tilemaps.TilemapGPULayer
+  obstacleTilesets!: Phaser.Tilemaps.Tileset[]
+  obstacleLayer!: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
   sceneryObjects!: Phaser.GameObjects.GameObject[]
+  lineGraphics!: Phaser.GameObjects.Graphics
 
   constructor() {
     super(Scenes.Create.LEVEL_CREATOR)
   }
 
   create() {
+    const COLS = 10
+    const ROWS = 8
+    const CELL_SIZE = 64
+    const gridWidth = COLS * CELL_SIZE
+    const gridHeight = ROWS * CELL_SIZE
+
     this.cameras.main.setZoom(1)
 
-    // Create a grid for snapping objects to. This grid is not rendered in the
-    // game, but it allows us to use Phaser's built-in tilemap features for grid
-    // management.
-    this.tilemap = this.add.tilemap()
+    this.tilemap = this.make.tilemap({ key: Tilemaps.LEVEL1 })
 
-    // The "grid" tileset is a single transparent tile that we use to create a
-    // grid for snapping objects to. It is not rendered in the game, but it
-    // allows us to use Phaser's built-in tilemap features for grid management.
-    this.tileset = this.tilemap.addTilesetImage("grid", undefined, 1, 1)
+    // NOTE: The order of these method calls matters.
+    // 1. The background layer is created.
+    // 2. The obstacle layer is created, on top of the background layer.
+    // 3. The scenery objects are created, on top of both layers.
+    this.createBackgroundLayer()
+    this.createObstacleLayer()
+    this.createSceneryObjects()
 
-    // These are our grid-restricted layers. They will automatically resize to
-    // fit the grid and will be used to snap objects to the grid when they are
-    // placed on top of them.
-    this.roadLayer = this.tilemap.createLayer("Roads", this.tileset)
-    this.obstacleLayer = this.tilemap.createLayer("Obstacles", this.tileset)
+    this.addLineGraphics(COLS, ROWS, gridWidth, gridHeight, CELL_SIZE)
 
-    // This is our layer for scenery objects. It will not automatically resize
-    // to fit the grid and will be used for decorative elements that do not
-    // interact with the grid.
-    this.sceneryObjects = this.tilemap.createFromObjects("Scenery", [])
-
-    // .setFillStyle(0xffffff, 0) // transparent cell fill
-    // .setStrokeStyle(0x000000, 1) // black cell outlines
-
-    // Update the grid's dimensions whenever the canvas is resized.
-    // this.resizeGrid()
-    // const resizeGrid = () => this.resizeGrid()
-    // this.scale.on(Phaser.Scale.Events.RESIZE, resizeGrid)
-    // this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    //   this.scale.off(Phaser.Scale.Events.RESIZE, resizeGrid)
-    // })
+    // ── Camera ───────────────────────────────────────────────────────────────
+    this.cameras.main.centerOn(gridWidth / 2, gridHeight / 2)
   }
 
-  // private resizeGrid() {
-  //   const COLS = 10
-  //   const ROWS = 8
-  //   const MIN_CELL_SIZE = 64
-  //   const { width, height } = this.scale
+  private createBackgroundLayer() {
+    this.backgroundTilesets = [
+      this.tilemap.addTilesetImage(SVGs.Background.GRASS)!,
+      this.tilemap.addTilesetImage(SVGs.Background.SNOW)!,
+    ]
 
-  //   const cellSize = Math.max(
-  //     Math.min(width / COLS, height / ROWS),
-  //     MIN_CELL_SIZE,
-  //   )
+    this.backgroundLayer = this.tilemap.createLayer(
+      "Background",
+      this.backgroundTilesets,
+    )!
+  }
 
-  //   const gridWidth = COLS * cellSize
-  //   const gridHeight = ROWS * cellSize
+  private createObstacleLayer() {
+    this.obstacleTilesets = [
+      this.tilemap.addTilesetImage(SVGs.Obstacles.PIGEON)!,
+      this.tilemap.addTilesetImage(SVGs.Obstacles.TrafficLight.RED)!,
+      this.tilemap.addTilesetImage(SVGs.Obstacles.TrafficLight.GREEN)!,
+    ]
 
-  //   this.grid.setPosition(gridWidth / 2, gridHeight / 2)
-  //   this.grid.setDisplaySize(gridWidth, gridHeight)
-  //   this.grid.cellWidth = cellSize
-  //   this.grid.cellHeight = cellSize
+    this.obstacleLayer = this.tilemap.createLayer(
+      "Obstacles",
+      this.obstacleTilesets,
+    )!
+  }
 
-  //   this.cameras.main.centerOn(gridWidth / 2, gridHeight / 2)
-  // }
+  private createSceneryObjects() {
+    this.sceneryObjects = this.tilemap.createFromObjects("Scenery", [
+      {
+        type: SVGs.Scenery.TREE1,
+        classType: Phaser.GameObjects.Image,
+        key: SVGs.Scenery.TREE1,
+      },
+      {
+        type: SVGs.Scenery.TREE2,
+        classType: Phaser.GameObjects.Image,
+        key: SVGs.Scenery.TREE2,
+      },
+    ])
+  }
+
+  private addLineGraphics(
+    cols: number,
+    rows: number,
+    gridWidth: number,
+    gridHeight: number,
+    cellSize: number,
+  ) {
+    // The tilemap has no built-in renderer, so draw grid lines explicitly.
+    this.lineGraphics = this.add.graphics().lineStyle(1, 0x000000, 1)
+
+    // Draw vertical lines.
+    for (let col = 0; col <= cols; col++) {
+      this.lineGraphics.moveTo(col * cellSize, 0)
+      this.lineGraphics.lineTo(col * cellSize, gridHeight)
+    }
+
+    // Draw horizontal lines.
+    for (let row = 0; row <= rows; row++) {
+      this.lineGraphics.moveTo(0, row * cellSize)
+      this.lineGraphics.lineTo(gridWidth, row * cellSize)
+    }
+
+    // Stroke the grid lines to render them on the scene.
+    this.lineGraphics.strokePath()
+  }
 }

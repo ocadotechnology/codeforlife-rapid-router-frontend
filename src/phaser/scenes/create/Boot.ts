@@ -1,7 +1,5 @@
-import Phaser from "phaser"
-
-import { SVGs, Scenes } from "../../enums"
-import logo from "../../../images/rr_logo.svg?url"
+import BaseBoot from "../BaseBoot"
+import { Scenes } from "../../enums"
 
 /**
  * The Boot Scene is the first scene that runs when the game starts. It is
@@ -10,14 +8,9 @@ import logo from "../../../images/rr_logo.svg?url"
  * preloader, so it is important to keep the assets loaded in this scene as
  * small as possible to ensure a fast startup time.
  */
-export default class extends Phaser.Scene {
+export default class extends BaseBoot {
   constructor() {
     super(Scenes.Create.BOOT)
-  }
-
-  preload() {
-    // Load any assets required for the Preloader Scene here.
-    this.load.svg(SVGs.LOGO, logo)
   }
 
   create() {
