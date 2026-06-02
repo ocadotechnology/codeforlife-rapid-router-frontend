@@ -1,6 +1,7 @@
-import Phaser from "phaser"
+import type Phaser from "phaser"
 
 import { SVGs, Scenes, Tilemaps } from "../../enums"
+import BaseLevel from "../BaseLevel"
 
 /**
  * The Level Scene is responsible for providing a user interface and tools for
@@ -11,15 +12,7 @@ import { SVGs, Scenes, Tilemaps } from "../../enums"
  * an essential part of the game development process, enabling the creation of
  * engaging and diverse gameplay experiences.
  */
-export default class extends Phaser.Scene {
-  tilemap!: Phaser.Tilemaps.Tilemap
-  backgroundTilesets!: Phaser.Tilemaps.Tileset[]
-  backgroundLayer!:
-    | Phaser.Tilemaps.TilemapLayer
-    | Phaser.Tilemaps.TilemapGPULayer
-  obstacleTilesets!: Phaser.Tilemaps.Tileset[]
-  obstacleLayer!: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
-  sceneryObjects!: Phaser.GameObjects.GameObject[]
+export default class extends BaseLevel {
   lineGraphics!: Phaser.GameObjects.Graphics
 
   constructor() {
@@ -35,60 +28,21 @@ export default class extends Phaser.Scene {
 
     this.cameras.main.setZoom(1)
 
-    this.tilemap = this.make.tilemap({ key: Tilemaps.LEVEL1 })
-
-    // NOTE: The order of these method calls matters.
-    // 1. The background layer is created.
-    // 2. The obstacle layer is created, on top of the background layer.
-    // 3. The scenery objects are created, on top of both layers.
-    this.createBackgroundLayer()
-    this.createObstacleLayer()
-    this.createSceneryObjects()
+    this.createTilemap({
+      key: Tilemaps.LEVEL1,
+      backgroundTilesetNames: [SVGs.Background.GRASS, SVGs.Background.SNOW],
+      obstacleTilesetNames: [
+        SVGs.Obstacles.PIGEON,
+        SVGs.Obstacles.TrafficLight.RED,
+        SVGs.Obstacles.TrafficLight.GREEN,
+      ],
+      sceneryObjectTypes: [SVGs.Scenery.TREE1, SVGs.Scenery.TREE2],
+    })
 
     this.addLineGraphics(COLS, ROWS, gridWidth, gridHeight, CELL_SIZE)
 
     // ── Camera ───────────────────────────────────────────────────────────────
     this.cameras.main.centerOn(gridWidth / 2, gridHeight / 2)
-  }
-
-  private createBackgroundLayer() {
-    this.backgroundTilesets = [
-      this.tilemap.addTilesetImage(SVGs.Background.GRASS)!,
-      this.tilemap.addTilesetImage(SVGs.Background.SNOW)!,
-    ]
-
-    this.backgroundLayer = this.tilemap.createLayer(
-      "Background",
-      this.backgroundTilesets,
-    )!
-  }
-
-  private createObstacleLayer() {
-    this.obstacleTilesets = [
-      this.tilemap.addTilesetImage(SVGs.Obstacles.PIGEON)!,
-      this.tilemap.addTilesetImage(SVGs.Obstacles.TrafficLight.RED)!,
-      this.tilemap.addTilesetImage(SVGs.Obstacles.TrafficLight.GREEN)!,
-    ]
-
-    this.obstacleLayer = this.tilemap.createLayer(
-      "Obstacles",
-      this.obstacleTilesets,
-    )!
-  }
-
-  private createSceneryObjects() {
-    this.sceneryObjects = this.tilemap.createFromObjects("Scenery", [
-      {
-        type: SVGs.Scenery.TREE1,
-        classType: Phaser.GameObjects.Image,
-        key: SVGs.Scenery.TREE1,
-      },
-      {
-        type: SVGs.Scenery.TREE2,
-        classType: Phaser.GameObjects.Image,
-        key: SVGs.Scenery.TREE2,
-      },
-    ])
   }
 
   private addLineGraphics(

@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import { Events, SVGs, Scenes, Variables } from "../../enums"
+import BaseLevel from "../BaseLevel"
 import type { GameCommand } from "../../../app/slices"
 
 /**
@@ -11,7 +12,7 @@ import type { GameCommand } from "../../../app/slices"
  * displays essential information to the player without interfering with the
  * gameplay experience.
  */
-export default class extends Phaser.Scene {
+export default class extends BaseLevel {
   private commands: GameCommand[] = []
   private gameText!: Phaser.GameObjects.Text
 
