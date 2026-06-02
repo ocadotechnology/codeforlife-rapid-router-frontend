@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "blockly": "12.3.1",
-    "codeforlife": "https://github.com/ocadotechnology/codeforlife-package-javascript.git#phaser",
+    "codeforlife": "2.14.10",
     "phaser": "4.1.0",
     "react-resizable-panels": "3.0.6"
   },
