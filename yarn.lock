@@ -1775,10 +1775,10 @@ blockly@12.3.1:
   dependencies:
     jsdom "26.1.0"
 
-body-parser@~1.20.3:
-  version "1.20.4"
-  resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.20.4.tgz#f8e20f4d06ca8a50a71ed329c15dccad1cdc547f"
-  integrity sha512-ZTgYYLMOXY9qKU/57FAo8F+HA2dGX7bqGc71txDRC1rS4frdFI5R7NhluHxH6M0YItAP0sHB4uqAOcYKxO6uGA==
+body-parser@~1.20.5:
+  version "1.20.5"
+  resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.20.5.tgz#303c8c34423d1d6fa799bc764e93c1e4dc6ebf64"
+  integrity sha512-3grm+/2tUOvu2cjJkvsIxrv/wVpfXQW4PsQHYm7yk4vfpu7Ekl6nEsYBoJUL6qDwZUx8wUhQ8tR2qz+ad9c9OA==
   dependencies:
     bytes "~3.1.2"
     content-type "~1.0.5"
@@ -1788,7 +1788,7 @@ body-parser@~1.20.3:
     http-errors "~2.0.1"
     iconv-lite "~0.4.24"
     on-finished "~2.4.1"
-    qs "~6.14.0"
+    qs "~6.15.1"
     raw-body "~2.5.3"
     type-is "~1.6.18"
     unpipe "~1.0.0"
@@ -1911,10 +1911,10 @@ clsx@^2.1.1:
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
 
-codeforlife@2.14.9:
-  version "2.14.9"
-  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.14.9.tgz#658cd35aa8c9a6fdc8b031107675338f9a896ee8"
-  integrity sha512-LGxiPHWKr5kTXxn83EE8JhEiIn4oiYDI74Li9YyXswNSmeTAvQZUMvxsr+NW2v3mwqiyXosx9HhzswmM2yvFuA==
+codeforlife@2.14.10:
+  version "2.14.10"
+  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.14.10.tgz#7e9f20e69d5332386daeeea1fb330529f229e1eb"
+  integrity sha512-Gu1SmxcNir57Dl939UHBhKAte8rypzzuZkWyk/G/aHh2QcUpuxnXsLizZ2CjfY2ByDfZejyYTHIeVZ49idN0dQ==
   dependencies:
     "@emotion/cache" "11.14.0"
     "@emotion/react" "11.14.0"
@@ -1926,11 +1926,11 @@ codeforlife@2.14.9:
     "@reduxjs/toolkit" "2.9.0"
     compression "1.8.1"
     dayjs "1.11.19"
-    express "4.22.1"
+    express "4.22.2"
     formik "2.4.9"
     js-cookie "3.0.5"
     memory-cache "0.2.0"
-    qs "6.14.2"
+    qs "6.15.2"
     react "19.1.1"
     react-dom "19.1.1"
     react-redux "9.2.0"
@@ -2602,6 +2602,11 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==
 
+eventemitter3@^5.0.4:
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.4.tgz#a86d66170433712dde814707ac52b5271ceb1feb"
+  integrity sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==
+
 expect-type@^1.2.1:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/expect-type/-/expect-type-1.3.0.tgz#0d58ed361877a31bbc4dd6cf71bbfef7faf6bd68"
@@ -2619,14 +2624,14 @@ expect@^30.0.0:
     jest-mock "30.2.0"
     jest-util "30.2.0"
 
-express@4.22.1:
-  version "4.22.1"
-  resolved "https://registry.yarnpkg.com/express/-/express-4.22.1.tgz#1de23a09745a4fffdb39247b344bb5eaff382069"
-  integrity sha512-F2X8g9P1X7uCPZMA3MVf9wcTqlyNp7IhH5qPCI0izhaOIYXaW9L535tGA3qmjRzpH+bZczqq7hVKxTR4NWnu+g==
+express@4.22.2:
+  version "4.22.2"
+  resolved "https://registry.yarnpkg.com/express/-/express-4.22.2.tgz#c17ae0981e5efc24b22272f0e041c4662503b700"
+  integrity sha512-IuL+Elrou2ZvCFHs18/CIzy2Nzvo25nZ1/D2eIZlz7c+QUayAcYoiM2BthCjs+EBHVpjYjcuLDAiCWgeIX3X1Q==
   dependencies:
     accepts "~1.3.8"
     array-flatten "1.1.1"
-    body-parser "~1.20.3"
+    body-parser "~1.20.5"
     content-disposition "~0.5.4"
     content-type "~1.0.4"
     cookie "~0.7.1"
@@ -2645,7 +2650,7 @@ express@4.22.1:
     parseurl "~1.3.3"
     path-to-regexp "~0.1.12"
     proxy-addr "~2.0.7"
-    qs "~6.14.0"
+    qs "~6.15.1"
     range-parser "~1.2.1"
     safe-buffer "5.2.1"
     send "~0.19.0"
@@ -3938,6 +3943,13 @@ pathval@^2.0.0:
   resolved "https://registry.yarnpkg.com/pathval/-/pathval-2.0.1.tgz#8855c5a2899af072d6ac05d11e46045ad0dc605d"
   integrity sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==
 
+phaser@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/phaser/-/phaser-4.1.0.tgz#16a1b5d6f39f9f20d493d0c5fdab39d1a67f0e4c"
+  integrity sha512-ZXv5Bhyg2BqJGAAxNI2xvmzGXW9q+TwUG1RLri5ZDBYGGtcma6aWUO/eJ7EbozeqRd5fKdpo4ycNMQt+Bi5iYg==
+  dependencies:
+    eventemitter3 "^5.0.4"
+
 picocolors@1.1.1, picocolors@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.1.1.tgz#3d321af3eab939b083c8f929a1d12cda81c26b6b"
@@ -4027,17 +4039,10 @@ punycode@^2.1.0, punycode@^2.3.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-qs@6.14.2:
-  version "6.14.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.14.2.tgz#b5634cf9d9ad9898e31fba3504e866e8efb6798c"
-  integrity sha512-V/yCWTTF7VJ9hIh18Ugr2zhJMP01MY7c5kh4J870L7imm6/DIzBsNLTXzMwUA3yZ5b/KBqLx8Kp3uRvd7xSe3Q==
-  dependencies:
-    side-channel "^1.1.0"
-
-qs@~6.14.0:
-  version "6.14.1"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.14.1.tgz#a41d85b9d3902f31d27861790506294881871159"
-  integrity sha512-4EK3+xJl8Ts67nLYNwqw/dsFVnCf+qR7RgXSK9jEEm9unao3njwMDdmsdvoKBKHzxd7tCYz5e5M+SnMjdtXGQQ==
+qs@6.15.2, qs@~6.15.1:
+  version "6.15.2"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.15.2.tgz#fd55426d710403ddccc45e0f9eab16db7727ece9"
+  integrity sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==
   dependencies:
     side-channel "^1.1.0"
 

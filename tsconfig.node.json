@@ -1,4 +1,4 @@
 {
   "extends": "./.workspace/frontend/tsconfig.node.json",
-  "include": ["./.workspace/frontend/vite.config.ts"]
+  "include": ["./.workspace/frontend/vite.config.ts", "./vite.config.ts"]
 }

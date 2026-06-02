@@ -21,7 +21,7 @@ import {
   useSettings,
 } from "../../app/hooks"
 import { BlocklyWorkspace } from "../../blockly"
-import PhaserGame from "./PhaserGame"
+import { PhaserGame } from "../../phaser"
 import PythonEditor from "./PythonEditor"
 
 interface PanelProps {
@@ -116,7 +116,7 @@ const PhaserGamePanel: FC<PanelProps> = ({ order, defaultSize }) => (
     order={order}
     minSize={20}
   >
-    <PhaserGame />
+    <PhaserGame mode="play" />
   </Panel>
 )
 
