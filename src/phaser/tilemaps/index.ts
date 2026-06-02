@@ -34,6 +34,10 @@ function makeLayer<T extends string>({
   }
 }
 
+export function fillTileLayerRow(gid: number): number[] {
+  return Array<number>(width).fill(gid)
+}
+
 export function makeTileLayer({
   name,
   data,

@@ -2,6 +2,7 @@ import type { TiledTileset } from "tiled-types"
 
 import { SVGs, Tilesets } from "../enums"
 import {
+  fillTileLayerRow,
   makeBackgroundTileLayer,
   makeObstaclesTileLayer,
   makeSceneryObjectGroupLayer,
@@ -89,125 +90,26 @@ const backgroundTileLayer = makeBackgroundTileLayer([
     Tilesets.GRASS,
   ],
   // Row 2
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 3
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 4
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 5
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 6
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 7
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
   // Row 8
-  [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-  ],
+  fillTileLayerRow(Tilesets.GRASS),
 ])
 
 const obstaclesTileLayer = makeObstaclesTileLayer([
   // Row 1
-  [
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-  ],
+  fillTileLayerRow(Tilesets.EMPTY),
   // Row 2
-  [
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-  ],
+  fillTileLayerRow(Tilesets.EMPTY),
   // Row 3
   [
     Tilesets.EMPTY,
@@ -222,18 +124,7 @@ const obstaclesTileLayer = makeObstaclesTileLayer([
     Tilesets.EMPTY,
   ],
   // Row 4
-  [
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-  ],
+  fillTileLayerRow(Tilesets.EMPTY),
   // Row 5
   [
     Tilesets.EMPTY,
@@ -261,31 +152,9 @@ const obstaclesTileLayer = makeObstaclesTileLayer([
     Tilesets.TRAFFIC_LIGHT_RED,
   ],
   // Row 7
-  [
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-  ],
+  fillTileLayerRow(Tilesets.EMPTY),
   // Row 8
-  [
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-    Tilesets.EMPTY,
-  ],
+  fillTileLayerRow(Tilesets.EMPTY),
 ])
 
 const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
