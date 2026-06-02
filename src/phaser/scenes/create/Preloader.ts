@@ -4,7 +4,7 @@ import { SVGs, Scenes, Tilemaps } from "../../enums"
 import BasePreloader from "../BasePreloader"
 
 // Tilemaps
-import level1 from "../../tilemaps/level1.jsonc"
+import level1 from "../../tilemaps/level1"
 
 // Background SVGs.
 import GrassTileset from "../../../images/background/grass.svg?raw"

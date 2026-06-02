@@ -49,3 +49,14 @@ export const Tilemaps = {
   LEVEL1: "level1",
 } as const
 export type Tilemaps = (typeof Tilemaps)[keyof typeof Tilemaps]
+
+export const Tilesets = {
+  GRASS: 1,
+  SNOW: 2,
+  PIGEON: 3,
+  TRAFFIC_LIGHT_RED: 4,
+  TRAFFIC_LIGHT_GREEN: 5,
+  TREE1: 6,
+  TREE2: 7,
+} as const
+export type Tilesets = (typeof Tilesets)[keyof typeof Tilesets]
