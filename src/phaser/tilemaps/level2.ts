@@ -100,9 +100,9 @@ const backgroundTileLayer = makeBackgroundTileLayer([
   [
     Tilesets.GRASS,
     Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
     Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90],
-    Tilesets.GRASS,
-    Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
@@ -143,8 +143,17 @@ const obstaclesTileLayer = makeObstaclesTileLayer([
 const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   {
     type: SVGs.Scenery.TREE1,
+    x: 352,
+    y: 96,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE2,
     x: 48,
-    y: 208,
+    y: 64,
     width: 64,
     height: 64,
     rotation: 0,
