@@ -5,6 +5,11 @@ import BasePreloader from "../BasePreloader"
 
 // Background SVGs.
 import GrassTileset from "../../../images/background/grass.svg?raw"
+import Road_Crossroads from "../../../images/background/road/crossroads.svg?raw"
+import Road_DeadEnd from "../../../images/background/road/dead_end.svg?raw"
+import Road_Straight from "../../../images/background/road/straight.svg?raw"
+import Road_TJunction from "../../../images/background/road/t_junction.svg?raw"
+import Road_Turn from "../../../images/background/road/turn.svg?raw"
 import SnowTileset from "../../../images/background/snow.svg?raw"
 
 // Obstacle SVGs.
@@ -38,6 +43,30 @@ export default class extends BasePreloader {
       height: 64,
     })
     this.load.svg(SVGs.Background.SNOW, this.makeSvgBlobUrl(SnowTileset), {
+      width: 64,
+      height: 64,
+    })
+    this.load.svg(
+      SVGs.Background.Road.CROSSROADS,
+      this.makeSvgBlobUrl(Road_Crossroads),
+      { width: 64, height: 64 },
+    )
+    this.load.svg(
+      SVGs.Background.Road.DEAD_END,
+      this.makeSvgBlobUrl(Road_DeadEnd),
+      { width: 64, height: 64 },
+    )
+    this.load.svg(
+      SVGs.Background.Road.STRAIGHT,
+      this.makeSvgBlobUrl(Road_Straight),
+      { width: 64, height: 64 },
+    )
+    this.load.svg(
+      SVGs.Background.Road.T_JUNCTION,
+      this.makeSvgBlobUrl(Road_TJunction),
+      { width: 64, height: 64 },
+    )
+    this.load.svg(SVGs.Background.Road.TURN, this.makeSvgBlobUrl(Road_Turn), {
       width: 64,
       height: 64,
     })

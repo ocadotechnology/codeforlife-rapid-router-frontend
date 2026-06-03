@@ -27,6 +27,14 @@ const backgroundTilesets: TiledTileset[] = [
     imagewidth: 64,
     imageheight: 64,
   }),
+  makeTileset({
+    image: SVGs.Background.Road.STRAIGHT,
+    firstgid: Tilesets.ROAD_STRAIGHT,
+    tilewidth: 64,
+    tileheight: 64,
+    imagewidth: 64,
+    imageheight: 64,
+  }),
 ]
 
 const obstacleTilesets: TiledTileset[] = [
@@ -79,7 +87,7 @@ const backgroundTileLayer = makeBackgroundTileLayer([
   // Row 1
   [
     Tilesets.SNOW,
-    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,

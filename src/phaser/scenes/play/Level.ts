@@ -29,7 +29,15 @@ export default class extends BaseLevel {
   create() {
     this.createTilemap({
       key: "level",
-      backgroundTilesetNames: [SVGs.Background.GRASS, SVGs.Background.SNOW],
+      backgroundTilesetNames: [
+        SVGs.Background.GRASS,
+        SVGs.Background.SNOW,
+        SVGs.Background.Road.CROSSROADS,
+        SVGs.Background.Road.DEAD_END,
+        SVGs.Background.Road.STRAIGHT,
+        SVGs.Background.Road.T_JUNCTION,
+        SVGs.Background.Road.TURN,
+      ],
       obstacleTilesetNames: [
         SVGs.Obstacles.PIGEON,
         SVGs.Obstacles.TrafficLight.RED,

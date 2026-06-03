@@ -11,7 +11,8 @@ import type { Tilesets } from "../enums"
 export const width = 10
 export const height = 8
 
-type TileLayerRow = Tilesets[] & { length: typeof width }
+// type TileLayerRow = Tilesets[] & { length: typeof width }
+type TileLayerRow = number[] & { length: typeof width }
 type TileLayerData = TileLayerRow[] & { length: typeof height }
 type TiledLayerObjectGroupObjects = Pick<
   TiledObject,

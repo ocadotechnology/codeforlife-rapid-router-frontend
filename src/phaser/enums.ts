@@ -32,6 +32,13 @@ export const SVGs = {
   Background: {
     GRASS: "grass",
     SNOW: "snow",
+    Road: {
+      CROSSROADS: "road.crossroads",
+      DEAD_END: "road.dead_end",
+      STRAIGHT: "road.straight",
+      T_JUNCTION: "road.t_junction",
+      TURN: "road.turn",
+    },
   },
   Obstacles: {
     PIGEON: "pigeon",
@@ -53,6 +60,11 @@ export const Tilemaps = {
 export type Tilemaps = (typeof Tilemaps)[keyof typeof Tilemaps]
 
 export const Tilesets = {
+  Rotate: {
+    90: 0x80000000 | 0x20000000,
+    180: 0x80000000 | 0x40000000,
+    270: 0x40000000 | 0x20000000,
+  },
   EMPTY: 0,
   GRASS: 1,
   SNOW: 2,
@@ -61,5 +73,10 @@ export const Tilesets = {
   TRAFFIC_LIGHT_GREEN: 5,
   TREE1: 6,
   TREE2: 7,
+  ROAD_STRAIGHT: 8,
+  ROAD_TURN: 9,
+  ROAD_T_JUNCTION: 10,
+  ROAD_CROSSROADS: 11,
+  ROAD_DEAD_END: 12,
 } as const
 export type Tilesets = (typeof Tilesets)[keyof typeof Tilesets]
