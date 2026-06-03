@@ -6,10 +6,13 @@ import type {
   TiledTileset,
 } from "tiled-types"
 
+import type { Tilesets } from "../enums"
+
 export const width = 10
 export const height = 8
 
-type TileLayerData = number[][]
+type TileLayerRow = Tilesets[] & { length: typeof width }
+type TileLayerData = TileLayerRow[] & { length: typeof height }
 type TiledLayerObjectGroupObjects = Pick<
   TiledObject,
   "type" | "x" | "y" | "width" | "height" | "rotation" | "properties"
@@ -34,8 +37,8 @@ function makeLayer<T extends string>({
   }
 }
 
-export function fillTileLayerRow(gid: number): number[] {
-  return Array<number>(width).fill(gid)
+export function fillTileLayerRow(gid: Tilesets): TileLayerRow {
+  return Array<Tilesets>(width).fill(gid) as TileLayerRow
 }
 
 export function makeTileLayer({

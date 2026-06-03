@@ -1,4 +1,5 @@
 import Phaser from "phaser"
+// import type { default as TiledMap } from "tiled-types"
 
 import { Events, SVGs, Scenes, Variables } from "../../enums"
 import BaseLevel from "../BaseLevel"
@@ -13,6 +14,7 @@ import type { GameCommand } from "../../../app/slices"
  * gameplay experience.
  */
 export default class extends BaseLevel {
+  // private mapData: TiledMap
   private commands: GameCommand[] = []
   private gameText!: Phaser.GameObjects.Text
 
@@ -20,25 +22,21 @@ export default class extends BaseLevel {
     super(Scenes.Play.LEVEL)
   }
 
+  // init({ mapData }: { mapData: TiledMap }) {
+  //   this.mapData = mapData
+  // }
+
   create() {
-    // Add objects to the scene.
-    this.add.image(512, 150, SVGs.LOGO)
-    this.add
-      .text(512, 250, "Click to trigger game over", {
-        fontFamily: "Arial",
-        fontSize: 32,
-        color: "#000000",
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.gameOver())
-    this.gameText = this.add
-      .text(512, 500, "", {
-        fontFamily: "Arial",
-        fontSize: 32,
-        color: "#000000",
-      })
-      .setOrigin(0.5)
+    this.createTilemap({
+      key: "level",
+      backgroundTilesetNames: [SVGs.Background.GRASS, SVGs.Background.SNOW],
+      obstacleTilesetNames: [
+        SVGs.Obstacles.PIGEON,
+        SVGs.Obstacles.TrafficLight.RED,
+        SVGs.Obstacles.TrafficLight.GREEN,
+      ],
+      sceneryObjectTypes: [SVGs.Scenery.TREE1, SVGs.Scenery.TREE2],
+    })
 
     // Listen for updates to the game commands.
     const handleNewCommands = () => this.handleNewCommands()
@@ -76,6 +74,5 @@ export default class extends BaseLevel {
   private runCommands() {
     // TODO: Implement the logic to process the character commands and update
     // the game state accordingly.
-    this.gameText.setText(JSON.stringify(this.commands, null, 2))
   }
 }

@@ -8,13 +8,14 @@ import { CircularProgress } from "@mui/material"
 import type { Game } from "phaser"
 
 import { Events, Variables } from "./enums"
+import type { Level } from "../api/level"
 import { useGameCommands } from "../app/hooks"
 
-export interface PhaserGameProps {
-  mode: "play" | "create"
-}
+export type PhaserGameProps =
+  | { mode: "play"; levelId: Level["id"] }
+  | { mode: "create"; levelId?: never }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
+const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -60,6 +61,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
         backgroundColor,
         scene: scenes[mode],
       })
+      gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
       setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
     }
@@ -103,6 +105,22 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
       )
     }
   }, [mode, gameCommands])
+
+  // // Pass the current level ID to Phaser.
+  // useEffect(() => {
+  //   if (mode !== "play" || !gameRef.current) return
+
+  //   gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
+
+  //   // // Tells any currently active scenes to fetch the new data.
+  //   // const emitSetLevelIdEvent = () => {
+  //   //   if (gameRef.current) gameRef.current.events.emit(Events.SET_LEVEL_ID)
+  //   // }
+
+  //   // // Immediately emit an event for any active scenes to get the new level ID.
+  //   // emitSetLevelIdEvent()
+  //   // return () => {}
+  // }, [mode, levelId])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
