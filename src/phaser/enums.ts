@@ -187,7 +187,15 @@ export const Tilesets = TilesetUtils.setIDs({
   52: { Scenery: { Snow: "TREE2" } },
 } as const)
 export type Tileset = DeepNumbersOf<typeof Tilesets>
-export type BackgroundTileset = DeepNumbersOf<typeof Tilesets.Background>
-export type RoadTileset = DeepNumbersOf<typeof Tilesets.Road>
-export type ObstacleTileset = DeepNumbersOf<typeof Tilesets.Obstacles>
-export type SceneryTileset = DeepNumbersOf<typeof Tilesets.Scenery>
+export type BackgroundTileset =
+  | typeof Tilesets.EMPTY
+  | DeepNumbersOf<typeof Tilesets.Background>
+export type RoadTileset =
+  | typeof Tilesets.EMPTY
+  | DeepNumbersOf<typeof Tilesets.Road>
+export type ObstacleTileset =
+  | typeof Tilesets.EMPTY
+  | DeepNumbersOf<typeof Tilesets.Obstacles>
+export type SceneryTileset =
+  | typeof Tilesets.EMPTY
+  | DeepNumbersOf<typeof Tilesets.Scenery>

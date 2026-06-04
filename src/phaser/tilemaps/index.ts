@@ -132,7 +132,7 @@ export type MakeTileLayerOptions<
   ROWS extends number = typeof ROWS,
 > = Omit<MakeLayerOptions<N, "tilelayer">, "type"> &
   Omit<TiledLayerTilelayer, keyof MakeLayerOptions<N, "tilelayer"> | "data"> & {
-    data: TileLayerManyRows<ID, COLS, ROWS>
+    data: (ID[] & { length: COLS })[] & { length: ROWS }
   }
 
 export const makeTileLayer = <
@@ -145,7 +145,7 @@ export const makeTileLayer = <
   data,
 }: MakeTileLayerOptions<N, ID, COLS, ROWS>): TiledLayerTilelayer => ({
   ...makeLayer({ name, type: "tilelayer" }),
-  data: (data as ID[][]).flat(),
+  data: data.flat(),
 })
 
 type MakeObjectPartials =
@@ -205,15 +205,23 @@ type MakeTilemapPartials =
   | "renderorder"
   | "version"
   | "nextobjectid"
-  | "width"
-  | "height"
   | "tilewidth"
   | "tileheight"
-export type MakeTilemapOptions = Omit<
+export type MakeTilemapOptions<
+  COLS extends number = typeof COLS,
+  ROWS extends number = typeof ROWS,
+> = Omit<
   TiledMapOrthogonal,
-  MakeTilemapPartials | "orientation" | "tilesets" | "layers"
+  | MakeTilemapPartials
+  | "orientation"
+  | "tilesets"
+  | "layers"
+  | "width"
+  | "height"
 > &
   Partial<Pick<TiledMapOrthogonal, MakeTilemapPartials>> & {
+    width?: COLS
+    height?: ROWS
     tilesets: {
       background: MakeTilesetOptions<BackgroundTileset>[]
       road: MakeTilesetOptions<RoadTileset>[]
@@ -221,25 +229,34 @@ export type MakeTilemapOptions = Omit<
       scenery: MakeTilesetOptions<SceneryTileset>[]
     }
     layers: {
-      background: Omit<MakeTileLayerOptions<"Background">, "name">
-      road: Omit<MakeTileLayerOptions<"Road">, "name">
-      obstacles: Omit<MakeTileLayerOptions<"Obstacles">, "name">
+      background: Omit<
+        MakeTileLayerOptions<"Background", BackgroundTileset, COLS, ROWS>,
+        "name"
+      >
+      road: Omit<MakeTileLayerOptions<"Road", RoadTileset, COLS, ROWS>, "name">
+      obstacles: Omit<
+        MakeTileLayerOptions<"Obstacles", ObstacleTileset, COLS, ROWS>,
+        "name"
+      >
       scenery: Omit<MakeObjectGroupLayerOptions<"Scenery">, "name">
     }
   }
 
-export const makeOrthogonalTilemap = ({
+export const makeOrthogonalTilemap = <
+  COLS extends number = typeof COLS,
+  ROWS extends number = typeof ROWS,
+>({
   renderorder = "right-down",
   version = 1,
   nextobjectid = 0,
-  width = COLS,
-  height = ROWS,
+  width = COLS as COLS,
+  height = ROWS as ROWS,
   tilewidth = TILE_WIDTH,
   tileheight = TILE_HEIGHT,
   tilesets,
   layers,
   ...tilemap
-}: MakeTilemapOptions): TiledMapOrthogonal => ({
+}: MakeTilemapOptions<COLS, ROWS>): TiledMapOrthogonal => ({
   orientation: "orthogonal",
   renderorder,
   version,
