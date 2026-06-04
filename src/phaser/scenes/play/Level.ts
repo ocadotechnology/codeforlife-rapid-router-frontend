@@ -1,5 +1,4 @@
 import Phaser from "phaser"
-// import type { default as TiledMap } from "tiled-types"
 
 import { Events, SVGs, Scenes, Variables } from "../../enums"
 import BaseLevel from "../BaseLevel"
@@ -14,43 +13,43 @@ import type { GameCommand } from "../../../app/slices"
  * gameplay experience.
  */
 export default class extends BaseLevel {
-  // private mapData: TiledMap
   private commands: GameCommand[] = []
-  private gameText!: Phaser.GameObjects.Text
 
   constructor() {
     super(Scenes.Play.LEVEL)
   }
 
-  // init({ mapData }: { mapData: TiledMap }) {
-  //   this.mapData = mapData
-  // }
-
   create() {
     this.createTilemap({
       key: "level",
-      backgroundTilesetNames: [
-        SVGs.Background.GRASS,
-        SVGs.Background.SNOW,
-        SVGs.Background.Road.CROSSROADS,
-        SVGs.Background.Road.DEAD_END,
-        SVGs.Background.Road.STRAIGHT,
-        SVGs.Background.Road.T_JUNCTION,
-        SVGs.Background.Road.TURN,
+      backgroundTilesetNames: [SVGs.Background.GRASS],
+      roadTilesetNames: [
+        SVGs.Road.Asphalt.CROSSROADS,
+        SVGs.Road.Asphalt.DEAD_END,
+        SVGs.Road.Asphalt.STRAIGHT,
+        SVGs.Road.Asphalt.T_JUNCTION,
+        SVGs.Road.Asphalt.TURN,
       ],
       obstacleTilesetNames: [
-        SVGs.Obstacles.PIGEON,
         SVGs.Obstacles.TrafficLight.RED,
         SVGs.Obstacles.TrafficLight.GREEN,
       ],
-      sceneryObjectTypes: [SVGs.Scenery.TREE1, SVGs.Scenery.TREE2],
+      sceneryObjectTypes: [
+        SVGs.Scenery.Grass.BUSH,
+        SVGs.Scenery.Grass.CFC,
+        SVGs.Scenery.Grass.HOUSE,
+        SVGs.Scenery.Grass.POND,
+        SVGs.Scenery.Grass.SOLAR_PANEL,
+        SVGs.Scenery.Grass.TREE1,
+        SVGs.Scenery.Grass.TREE2,
+      ],
     })
 
     // Listen for updates to the game commands.
-    const handleNewCommands = () => this.handleNewCommands()
-    this.game.events.on(Events.SET_COMMANDS, handleNewCommands)
+    const getCommands = () => this.getCommands()
+    this.game.events.on(Events.SET_COMMANDS, getCommands)
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.game.events.off(Events.SET_COMMANDS, handleNewCommands)
+      this.game.events.off(Events.SET_COMMANDS, getCommands)
     })
 
     // WARN: This must come after the objects have been added!
@@ -74,13 +73,9 @@ export default class extends BaseLevel {
     this.commands = this.game.registry.get(Variables.COMMANDS) as GameCommand[]
   }
 
-  private handleNewCommands() {
-    this.getCommands()
-    this.runCommands()
-  }
-
   private runCommands() {
     // TODO: Implement the logic to process the character commands and update
     // the game state accordingly.
+    console.log(this.commands)
   }
 }

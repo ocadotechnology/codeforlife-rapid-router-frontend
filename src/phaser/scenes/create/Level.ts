@@ -1,6 +1,6 @@
 import type Phaser from "phaser"
 
-import { SVGs, Scenes, Tilemaps } from "../../enums"
+import { SVGs, Scenes } from "../../enums"
 import BaseLevel from "../BaseLevel"
 
 /**
@@ -29,14 +29,28 @@ export default class extends BaseLevel {
     this.cameras.main.setZoom(1)
 
     this.createTilemap({
-      key: Tilemaps.LEVEL1,
-      backgroundTilesetNames: [SVGs.Background.GRASS, SVGs.Background.SNOW],
+      key: "level",
+      backgroundTilesetNames: [SVGs.Background.GRASS],
+      roadTilesetNames: [
+        SVGs.Road.Asphalt.CROSSROADS,
+        SVGs.Road.Asphalt.DEAD_END,
+        SVGs.Road.Asphalt.STRAIGHT,
+        SVGs.Road.Asphalt.T_JUNCTION,
+        SVGs.Road.Asphalt.TURN,
+      ],
       obstacleTilesetNames: [
-        SVGs.Obstacles.PIGEON,
         SVGs.Obstacles.TrafficLight.RED,
         SVGs.Obstacles.TrafficLight.GREEN,
       ],
-      sceneryObjectTypes: [SVGs.Scenery.TREE1, SVGs.Scenery.TREE2],
+      sceneryObjectTypes: [
+        SVGs.Scenery.Grass.BUSH,
+        SVGs.Scenery.Grass.CFC,
+        SVGs.Scenery.Grass.HOUSE,
+        SVGs.Scenery.Grass.POND,
+        SVGs.Scenery.Grass.SOLAR_PANEL,
+        SVGs.Scenery.Grass.TREE1,
+        SVGs.Scenery.Grass.TREE2,
+      ],
     })
 
     this.addLineGraphics(COLS, ROWS, gridWidth, gridHeight, CELL_SIZE)

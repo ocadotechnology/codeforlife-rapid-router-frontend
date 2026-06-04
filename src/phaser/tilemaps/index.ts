@@ -20,6 +20,8 @@ import type { Tuple } from "../utils/general"
 // proper rendering and interaction in the game.
 export const COLS = 10
 export const ROWS = 8
+export const TILE_WIDTH = 64
+export const TILE_HEIGHT = 64
 
 // Restrict the names of tile layers to ensure type safety when creating layers
 // and accessing them later.
@@ -104,10 +106,10 @@ export const makeTileset = <ID extends Tileset>({
   columns = 1,
   spacing = 0,
   margin = 0,
-  imageheight = 64,
-  imagewidth = 64,
-  tileheight = 64,
-  tilewidth = 64,
+  imageheight = TILE_HEIGHT,
+  imagewidth = TILE_WIDTH,
+  tileheight = TILE_HEIGHT,
+  tilewidth = TILE_WIDTH,
   ...tileset
 }: MakeTilesetOptions<ID>): TiledTileset<ID> => ({
   image,
@@ -160,8 +162,8 @@ export const makeObject = ({
   name,
   type,
   visible = true,
-  width = 64,
-  height = 64,
+  width = TILE_WIDTH,
+  height = TILE_HEIGHT,
   rotation = 0,
   properties = [],
   ...obj
@@ -232,8 +234,8 @@ export const makeOrthogonalTilemap = ({
   nextobjectid = 0,
   width = COLS,
   height = ROWS,
-  tilewidth = 64,
-  tileheight = 64,
+  tilewidth = TILE_WIDTH,
+  tileheight = TILE_HEIGHT,
   tilesets,
   layers,
   ...tilemap
