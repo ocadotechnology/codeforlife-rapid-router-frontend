@@ -133,7 +133,7 @@ const backgroundTileLayer = makeBackgroundTileLayer([
   // Row 5
   [
     Tilesets.GRASS,
-    Tilesets.ROAD_DEAD_END,
+    Tilesets.ROAD_DEAD_END, //house here
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,

@@ -164,7 +164,7 @@ const backgroundTileLayer = makeBackgroundTileLayer([
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.ROAD_TURN | Tilesets.Rotate[180],
-    Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90],
+    Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90], //house here
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,

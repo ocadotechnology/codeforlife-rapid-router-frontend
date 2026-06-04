@@ -43,6 +43,22 @@ const backgroundTilesets: TiledTileset[] = [
     imagewidth: 64,
     imageheight: 64,
   }),
+  makeTileset({
+    image: SVGs.Background.Road.TURN,
+    firstgid: Tilesets.ROAD_TURN,
+    tilewidth: 64,
+    tileheight: 64,
+    imagewidth: 64,
+    imageheight: 64,
+  }),
+  makeTileset({
+    image: SVGs.Background.Road.T_JUNCTION,
+    firstgid: Tilesets.ROAD_T_JUNCTION,
+    tilewidth: 64,
+    tileheight: 64,
+    imagewidth: 64,
+    imageheight: 64,
+  }),
 ]
 
 const obstacleTilesets: TiledTileset[] = [
@@ -93,14 +109,10 @@ const sceneryTilesets: TiledTileset[] = [
 
 const backgroundTileLayer = makeBackgroundTileLayer([
   // Row 1
-  fillTileLayerRow(Tilesets.GRASS),
-  // Row 2
-  fillTileLayerRow(Tilesets.GRASS),
-  // Row 3
   [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
     Tilesets.GRASS, //CFC here
-    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
-    Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90], //house here
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
@@ -109,14 +121,84 @@ const backgroundTileLayer = makeBackgroundTileLayer([
     Tilesets.GRASS,
     Tilesets.GRASS,
   ],
+  // Row 2
+  [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_TURN | Tilesets.Rotate[180],
+    Tilesets.ROAD_T_JUNCTION | Tilesets.Rotate[270],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_TURN,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
+  // Row 3
+  [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
   // Row 4
-  fillTileLayerRow(Tilesets.GRASS),
+  [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_TURN | Tilesets.Rotate[180],
+    Tilesets.ROAD_T_JUNCTION | Tilesets.Rotate[270],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_T_JUNCTION,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
   // Row 5
-  fillTileLayerRow(Tilesets.GRASS),
+  [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
   // Row 6
-  fillTileLayerRow(Tilesets.GRASS),
+  [
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.ROAD_STRAIGHT,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
   // Row 7
-  fillTileLayerRow(Tilesets.GRASS),
+  [
+    Tilesets.ROAD_DEAD_END | Tilesets.Rotate[270], //house here
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_T_JUNCTION | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_TURN | Tilesets.Rotate[90],
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+    Tilesets.GRASS,
+  ],
   // Row 8
   fillTileLayerRow(Tilesets.GRASS),
 ])
@@ -142,16 +224,69 @@ const obstaclesTileLayer = makeObstaclesTileLayer([
 
 const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   {
+    type: SVGs.Scenery.TREE2,
+    x: 256,
+    y: 124,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE2,
+    x: 315,
+    y: 135,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
     type: SVGs.Scenery.TREE1,
-    x: 48,
-    y: 208,
+    x: 32,
+    y: 32,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE1,
+    x: 32,
+    y: 96,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE1,
+    x: 32,
+    y: 160,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE1,
+    x: 32,
+    y: 224,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
+  {
+    type: SVGs.Scenery.TREE1,
+    x: 32,
+    y: 288,
     width: 64,
     height: 64,
     rotation: 0,
     properties: [],
   },
 ])
-
 export default makeTilemap({
   tilesets: [...backgroundTilesets, ...obstacleTilesets, ...sceneryTilesets],
   layers: [backgroundTileLayer, obstaclesTileLayer, sceneryObjectGroupLayer],
