@@ -43,7 +43,7 @@ export default makeOrthogonalTilemap({
         // Row 1
         [
           Tilesets.EMPTY,
-          TilesetUtils.rotateRight(Tilesets.Road.Asphalt.STRAIGHT),
+          TilesetUtils.rotate(Tilesets.Road.Asphalt.STRAIGHT, 90),
           ...TilesetUtils.fillRow({ cols: 8 }),
         ],
         // Row 2 to 8 - 10 columns of empty tiles

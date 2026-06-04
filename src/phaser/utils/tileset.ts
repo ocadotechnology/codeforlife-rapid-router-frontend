@@ -113,17 +113,32 @@ export function fillManyRows<
   >
 }
 
-/** Rotate a tile by 90° clockwise. */
-export function rotateRight<T extends Tileset>(id: T): T {
-  return (id | 0x80000000 | 0x20000000) as T
+const H = 0x80000000
+const V = 0x40000000
+const D = 0x20000000
+const MASK = H | V | D
+
+function extract(id: number): [number, number, number] {
+  return [(id >>> 31) & 1, (id >>> 30) & 1, (id >>> 29) & 1]
 }
 
-/** Rotate a tile by 180°. */
-export function rotateDown<T extends Tileset>(id: T): T {
-  return (id | 0x80000000 | 0x40000000) as T
+function encode<T extends number>(id: T, h: number, v: number, d: number): T {
+  return ((id & ~MASK) | (h * H) | (v * V) | (d * D)) as T
 }
 
-/** Rotate a tile by 90° counterclockwise. */
-export function rotateLeft<T extends Tileset>(id: T): T {
-  return (id | 0x40000000 | 0x20000000) as T
+export function flipH<T extends Tileset>(id: T): T {
+  const [h, v, d] = extract(id)
+  return encode(id, h ^ 1, v, d)
+}
+
+export function flipV<T extends Tileset>(id: T): T {
+  const [h, v, d] = extract(id)
+  return encode(id, h, v ^ 1, d)
+}
+
+export function rotate<T extends Tileset>(id: T, degrees: 90 | 180 | 270): T {
+  const [h, v, d] = extract(id)
+  if (degrees === 90) return encode(id, v ^ 1, h, d ^ 1)
+  if (degrees === 180) return encode(id, h ^ 1, v ^ 1, d)
+  return encode(id, v, h ^ 1, d ^ 1) // 270
 }
