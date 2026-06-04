@@ -1,8 +1,8 @@
 import * as TilesetUtils from "../utils/tileset"
 import { SVGs, Tilesets } from "../enums"
-import { makeTilemap } from "."
+import { makeOrthogonalTilemap } from "."
 
-export default makeTilemap({
+export default makeOrthogonalTilemap({
   tilesets: {
     background: [
       {

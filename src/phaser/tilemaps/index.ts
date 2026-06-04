@@ -1,5 +1,5 @@
 import type {
-  default as TiledMap,
+  TiledMapOrthogonal,
   TiledObject,
   TiledLayerObjectgroup as _TiledLayerObjectgroup,
   TiledLayerTilelayer as _TiledLayerTilelayer,
@@ -199,34 +199,53 @@ export const makeObjectGroupLayer = <N extends TiledLayerObjectgroupName>({
   objects: objects.map((obj, index) => makeObject({ ...obj, id: index + 1 })),
 })
 
-export type MakeTilemapOptions = {
-  tilesets: {
-    background: MakeTilesetOptions<BackgroundTileset>[]
-    road: MakeTilesetOptions<RoadTileset>[]
-    obstacles: MakeTilesetOptions<ObstacleTileset>[]
-    scenery: MakeTilesetOptions<SceneryTileset>[]
+type MakeTilemapPartials =
+  | "renderorder"
+  | "version"
+  | "nextobjectid"
+  | "width"
+  | "height"
+  | "tilewidth"
+  | "tileheight"
+export type MakeTilemapOptions = Omit<
+  TiledMapOrthogonal,
+  MakeTilemapPartials | "orientation" | "tilesets" | "layers"
+> &
+  Partial<Pick<TiledMapOrthogonal, MakeTilemapPartials>> & {
+    tilesets: {
+      background: MakeTilesetOptions<BackgroundTileset>[]
+      road: MakeTilesetOptions<RoadTileset>[]
+      obstacles: MakeTilesetOptions<ObstacleTileset>[]
+      scenery: MakeTilesetOptions<SceneryTileset>[]
+    }
+    layers: {
+      background: Omit<MakeTileLayerOptions<"Background">, "name">
+      road: Omit<MakeTileLayerOptions<"Road">, "name">
+      obstacles: Omit<MakeTileLayerOptions<"Obstacles">, "name">
+      scenery: Omit<MakeObjectGroupLayerOptions<"Scenery">, "name">
+    }
   }
-  layers: {
-    background: Omit<MakeTileLayerOptions<"Background">, "name">
-    road: Omit<MakeTileLayerOptions<"Road">, "name">
-    obstacles: Omit<MakeTileLayerOptions<"Obstacles">, "name">
-    scenery: Omit<MakeObjectGroupLayerOptions<"Scenery">, "name">
-  }
-}
 
-export const makeTilemap = ({
+export const makeOrthogonalTilemap = ({
+  renderorder = "right-down",
+  version = 1,
+  nextobjectid = 0,
+  width = COLS,
+  height = ROWS,
+  tilewidth = 64,
+  tileheight = 64,
   tilesets,
   layers,
-}: MakeTilemapOptions): TiledMap => ({
+  ...tilemap
+}: MakeTilemapOptions): TiledMapOrthogonal => ({
   orientation: "orthogonal",
-  renderorder: "right-down",
-  version: 1,
-  nextobjectid: 0,
-  infinite: false,
-  width: COLS,
-  height: ROWS,
-  tilewidth: 64,
-  tileheight: 64,
+  renderorder,
+  version,
+  nextobjectid,
+  width,
+  height,
+  tilewidth,
+  tileheight,
   tilesets: Object.values(tilesets).flat().map(makeTileset),
   layers: [
     makeTileLayer({ name: "Background", ...layers.background }),
@@ -234,4 +253,5 @@ export const makeTilemap = ({
     makeTileLayer({ name: "Obstacles", ...layers.obstacles }),
     makeObjectGroupLayer({ name: "Scenery", ...layers.scenery }),
   ],
+  ...tilemap,
 })
