@@ -107,7 +107,7 @@ const backgroundTileLayer = makeBackgroundTileLayer([
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
-    Tilesets.GRASS, //factory/start place here
+    Tilesets.GRASS, //CFC place here
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,

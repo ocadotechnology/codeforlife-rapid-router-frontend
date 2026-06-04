@@ -105,23 +105,22 @@ const backgroundTileLayer = makeBackgroundTileLayer([
   // Row 2
   fillTileLayerRow(Tilesets.GRASS),
   // Row 3
+  fillTileLayerRow(Tilesets.GRASS),
+  // Row 4
   [
     Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.ROAD_DEAD_END,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
+    Tilesets.ROAD_TURN | Tilesets.Rotate[270],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.GRASS, //CFC here
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
   ],
-  // Row 4
+  // Row 5
   [
-    Tilesets.GRASS,
-    Tilesets.GRASS,
-    Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.ROAD_STRAIGHT,
     Tilesets.GRASS,
@@ -129,22 +128,23 @@ const backgroundTileLayer = makeBackgroundTileLayer([
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
-  ],
-  // Row 5
-  [
-    Tilesets.GRASS, //CFC here
-    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
-    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
-    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
-    Tilesets.ROAD_TURN | Tilesets.Rotate[90],
-    Tilesets.GRASS,
-    Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
     Tilesets.GRASS,
   ],
   // Row 6
-  fillTileLayerRow(Tilesets.GRASS),
+  [
+    Tilesets.GRASS,
+    Tilesets.ROAD_TURN | Tilesets.Rotate[180],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
+    Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90],
+    Tilesets.GRASS,
+  ],
   // Row 7
   fillTileLayerRow(Tilesets.GRASS),
   // Row 8
@@ -171,101 +171,10 @@ const obstaclesTileLayer = makeObstaclesTileLayer([
 ])
 
 const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
-  // I'm cutting down on the number of trees from 23 to 16
   {
     type: SVGs.Scenery.TREE1,
-    x: 352,
-    y: 96,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 300,
-    y: 104,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 208,
-    y: 84,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 300,
-    y: 30,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 208,
-    y: 0,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 353,
-    y: 32,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 500,
-    y: 50,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 450,
-    y: 83,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 150,
-    y: 16,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 200,
-    y: 40,
-    width: 64,
-    height: 64,
-    rotation: 0,
-    properties: [],
-  },
-  {
-    type: SVGs.Scenery.TREE1,
-    x: 250,
-    y: 0,
+    x: 24,
+    y: 125,
     width: 64,
     height: 64,
     rotation: 0,
@@ -273,8 +182,8 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   },
   {
     type: SVGs.Scenery.TREE2,
-    x: 264,
-    y: 60,
+    x: 128,
+    y: 256,
     width: 64,
     height: 64,
     rotation: 0,
@@ -282,8 +191,8 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   },
   {
     type: SVGs.Scenery.TREE2,
-    x: 408,
-    y: 40,
+    x: 192,
+    y: 249,
     width: 64,
     height: 64,
     rotation: 0,
@@ -291,8 +200,8 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   },
   {
     type: SVGs.Scenery.TREE2,
-    x: 367,
-    y: 156,
+    x: 256,
+    y: 258,
     width: 64,
     height: 64,
     rotation: 0,
@@ -300,8 +209,8 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   },
   {
     type: SVGs.Scenery.TREE2,
-    x: 408,
-    y: 100,
+    x: 320,
+    y: 256,
     width: 64,
     height: 64,
     rotation: 0,
@@ -309,15 +218,14 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
   },
   {
     type: SVGs.Scenery.TREE2,
-    x: 160,
-    y: 70,
+    x: 384,
+    y: 254,
     width: 64,
     height: 64,
     rotation: 0,
     properties: [],
   },
 ])
-
 export default makeTilemap({
   tilesets: [...backgroundTilesets, ...obstacleTilesets, ...sceneryTilesets],
   layers: [backgroundTileLayer, obstaclesTileLayer, sceneryObjectGroupLayer],

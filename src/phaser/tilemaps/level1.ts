@@ -98,7 +98,7 @@ const backgroundTileLayer = makeBackgroundTileLayer([
   fillTileLayerRow(Tilesets.GRASS),
   // Row 3
   [
-    Tilesets.GRASS,
+    Tilesets.GRASS, //CFC here
     Tilesets.ROAD_STRAIGHT | Tilesets.Rotate[90],
     Tilesets.ROAD_DEAD_END | Tilesets.Rotate[90],
     Tilesets.GRASS,
