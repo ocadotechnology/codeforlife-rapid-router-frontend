@@ -274,6 +274,15 @@ const sceneryObjectGroupLayer = makeSceneryObjectGroupLayer([
     rotation: 0,
     properties: [],
   },
+  {
+    type: SVGs.Scenery.TREE1,
+    x: 520,
+    y: 100,
+    width: 64,
+    height: 64,
+    rotation: 0,
+    properties: [],
+  },
 ])
 export default makeTilemap({
   tilesets: [...backgroundTilesets, ...obstacleTilesets, ...sceneryTilesets],
