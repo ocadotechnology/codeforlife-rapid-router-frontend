@@ -42,13 +42,6 @@ export const SVGs = {
     PAVEMENT: "pavement",
     SNOW: "snow",
   },
-  Obstacles: {
-    PIGEON: "pigeon",
-    TrafficLight: {
-      RED: "trafficLight.red",
-      GREEN: "trafficLight.green",
-    },
-  },
   Road: {
     Asphalt: {
       CROSSROADS: "asphalt.crossroads",
@@ -65,9 +58,8 @@ export const SVGs = {
       TURN: "dirt.turn",
     },
   },
-  Scenery: {
+  Environment: {
     City: {
-      BUSH: "city.bush",
       HOSPITAL: "city.hospital",
       HOUSE: "city.house",
       SCHOOL: "city.school",
@@ -75,47 +67,54 @@ export const SVGs = {
       SOLAR_PANEL: "city.solarPanel",
     },
     Farm: {
-      BUSH: "farm.bush",
       CFC_BLACK: "farm.cfcBlack",
       CFC: "farm.cfc",
       CROPS: "farm.crops",
       HOUSE1: "farm.house1",
       HOUSE2: "farm.house2",
       SOLAR_PANEL: "farm.solarPanel",
-      TREE1: "farm.tree1",
-      TREE2: "farm.tree2",
     },
     Grass: {
-      BUSH: "grass.bush",
       CFC: "grass.cfc",
       HOUSE: "grass.house",
-      POND: "grass.pond",
       SOLAR_PANEL: "grass.solarPanel",
-      TREE1: "grass.tree1",
-      TREE2: "grass.tree2",
     },
     Snow: {
       BARN: "snow.barn",
-      BUSH: "snow.bush",
       CFC: "snow.cfc",
       CROPS: "snow.crops",
       HOSPITAL: "snow.hospital",
       HOUSE1: "snow.house1",
       HOUSE2: "snow.house2",
       HOUSE3: "snow.house3",
-      POND: "snow.pond",
       SCHOOL: "snow.school",
       SHOP: "snow.shop",
       SOLAR_PANEL: "snow.solarPanel",
+    },
+    TrafficLight: {
+      GREEN: "trafficLight.green",
+      RED: "trafficLight.red",
+    },
+    PIGEON: "pigeon",
+  },
+  Scenery: {
+    Snow: {
+      BUSH: "snow.bush",
+      POND: "snow.pond",
       TREE1: "snow.tree1",
       TREE2: "snow.tree2",
     },
+    BUSH: "bush",
+    HAY: "hay",
+    POND: "pond",
+    TREE1: "tree1",
+    TREE2: "tree2",
   },
 } as const
 export type SVG = DeepStringsOf<typeof SVGs>
 export type BackgroundSVG = DeepStringsOf<typeof SVGs.Background>
 export type RoadSVG = DeepStringsOf<typeof SVGs.Road>
-export type ObstacleSVG = DeepStringsOf<typeof SVGs.Obstacles>
+export type EnvironmentSVG = DeepStringsOf<typeof SVGs.Environment>
 export type ScenerySVG = DeepStringsOf<typeof SVGs.Scenery>
 
 /**
@@ -136,66 +135,60 @@ export const Tilesets = TilesetUtils.setIDs({
   1: { Background: "GRASS" },
   2: { Background: "SNOW" },
   3: { Background: "PAVEMENT" },
-  4: { Obstacles: "PIGEON" },
-  5: { Obstacles: { TrafficLight: "RED" } },
-  6: { Obstacles: { TrafficLight: "GREEN" } },
-  7: { Road: { Asphalt: "STRAIGHT" } },
-  8: { Road: { Asphalt: "TURN" } },
-  9: { Road: { Asphalt: "T_JUNCTION" } },
-  10: { Road: { Asphalt: "CROSSROADS" } },
-  11: { Road: { Asphalt: "DEAD_END" } },
-  12: { Road: { Dirt: "STRAIGHT" } },
-  13: { Road: { Dirt: "TURN" } },
-  14: { Road: { Dirt: "T_JUNCTION" } },
-  15: { Road: { Dirt: "CROSSROADS" } },
-  16: { Road: { Dirt: "DEAD_END" } },
-  17: { Scenery: { City: "BUSH" } },
-  18: { Scenery: { City: "HOSPITAL" } },
-  19: { Scenery: { City: "HOUSE" } },
-  20: { Scenery: { City: "SCHOOL" } },
-  21: { Scenery: { City: "SHOP" } },
-  22: { Scenery: { City: "SOLAR_PANEL" } },
-  23: { Scenery: { Farm: "BUSH" } },
-  24: { Scenery: { Farm: "CFC_BLACK" } },
-  25: { Scenery: { Farm: "CFC" } },
-  26: { Scenery: { Farm: "CROPS" } },
-  27: { Scenery: { Farm: "HOUSE1" } },
-  28: { Scenery: { Farm: "HOUSE2" } },
-  29: { Scenery: { Farm: "SOLAR_PANEL" } },
-  30: { Scenery: { Farm: "TREE1" } },
-  31: { Scenery: { Farm: "TREE2" } },
-  32: { Scenery: { Grass: "BUSH" } },
-  33: { Scenery: { Grass: "CFC" } },
-  34: { Scenery: { Grass: "HOUSE" } },
-  35: { Scenery: { Grass: "POND" } },
-  36: { Scenery: { Grass: "SOLAR_PANEL" } },
-  37: { Scenery: { Grass: "TREE1" } },
-  38: { Scenery: { Grass: "TREE2" } },
-  39: { Scenery: { Snow: "BARN" } },
-  40: { Scenery: { Snow: "BUSH" } },
-  41: { Scenery: { Snow: "CFC" } },
-  42: { Scenery: { Snow: "CROPS" } },
-  43: { Scenery: { Snow: "HOSPITAL" } },
-  44: { Scenery: { Snow: "HOUSE1" } },
-  45: { Scenery: { Snow: "HOUSE2" } },
-  46: { Scenery: { Snow: "HOUSE3" } },
-  47: { Scenery: { Snow: "POND" } },
-  48: { Scenery: { Snow: "SCHOOL" } },
-  49: { Scenery: { Snow: "SHOP" } },
-  50: { Scenery: { Snow: "SOLAR_PANEL" } },
-  51: { Scenery: { Snow: "TREE1" } },
-  52: { Scenery: { Snow: "TREE2" } },
+  4: { Road: { Asphalt: "STRAIGHT" } },
+  5: { Road: { Asphalt: "TURN" } },
+  6: { Road: { Asphalt: "T_JUNCTION" } },
+  7: { Road: { Asphalt: "CROSSROADS" } },
+  8: { Road: { Asphalt: "DEAD_END" } },
+  9: { Road: { Dirt: "STRAIGHT" } },
+  10: { Road: { Dirt: "TURN" } },
+  11: { Road: { Dirt: "T_JUNCTION" } },
+  12: { Road: { Dirt: "CROSSROADS" } },
+  13: { Road: { Dirt: "DEAD_END" } },
+  14: { Environment: { City: "HOSPITAL" } },
+  15: { Environment: { City: "HOUSE" } },
+  16: { Environment: { City: "SCHOOL" } },
+  17: { Environment: { City: "SHOP" } },
+  18: { Environment: { City: "SOLAR_PANEL" } },
+  19: { Environment: { Farm: "CFC_BLACK" } },
+  20: { Environment: { Farm: "CFC" } },
+  21: { Environment: { Farm: "CROPS" } },
+  22: { Environment: { Farm: "HOUSE1" } },
+  23: { Environment: { Farm: "HOUSE2" } },
+  24: { Environment: { Farm: "SOLAR_PANEL" } },
+  25: { Environment: { Grass: "CFC" } },
+  26: { Environment: { Grass: "HOUSE" } },
+  27: { Environment: { Grass: "SOLAR_PANEL" } },
+  28: { Environment: { Snow: "BARN" } },
+  29: { Environment: { Snow: "CFC" } },
+  30: { Environment: { Snow: "CROPS" } },
+  31: { Environment: { Snow: "HOSPITAL" } },
+  32: { Environment: { Snow: "HOUSE1" } },
+  33: { Environment: { Snow: "HOUSE2" } },
+  34: { Environment: { Snow: "HOUSE3" } },
+  35: { Environment: { Snow: "SCHOOL" } },
+  36: { Environment: { Snow: "SHOP" } },
+  37: { Environment: { Snow: "SOLAR_PANEL" } },
+  38: { Environment: { TrafficLight: "GREEN" } },
+  39: { Environment: { TrafficLight: "RED" } },
+  40: { Environment: "PIGEON" },
+  41: { Scenery: { Snow: "BUSH" } },
+  42: { Scenery: { Snow: "POND" } },
+  43: { Scenery: { Snow: "TREE1" } },
+  44: { Scenery: { Snow: "TREE2" } },
+  45: { Scenery: "BUSH" },
+  46: { Scenery: "HAY" },
+  47: { Scenery: "POND" },
+  48: { Scenery: "TREE1" },
+  49: { Scenery: "TREE2" },
 } as const)
 export type Tileset = DeepNumbersOf<typeof Tilesets>
-export type BackgroundTileset =
-  | typeof Tilesets.EMPTY
-  | DeepNumbersOf<typeof Tilesets.Background>
+// NOTE: Background tiles cannot be empty.
+export type BackgroundTileset = DeepNumbersOf<typeof Tilesets.Background>
 export type RoadTileset =
   | typeof Tilesets.EMPTY
   | DeepNumbersOf<typeof Tilesets.Road>
-export type ObstacleTileset =
+export type EnvironmentTileset =
   | typeof Tilesets.EMPTY
-  | DeepNumbersOf<typeof Tilesets.Obstacles>
-export type SceneryTileset =
-  | typeof Tilesets.EMPTY
-  | DeepNumbersOf<typeof Tilesets.Scenery>
+  | DeepNumbersOf<typeof Tilesets.Environment>
+export type SceneryTileset = DeepNumbersOf<typeof Tilesets.Scenery>

@@ -1,6 +1,11 @@
 import Phaser from "phaser"
 
-import type { BackgroundSVG, ObstacleSVG, RoadSVG, ScenerySVG } from "../enums"
+import type {
+  BackgroundSVG,
+  EnvironmentSVG,
+  RoadSVG,
+  ScenerySVG,
+} from "../enums"
 
 export default class extends Phaser.Scene {
   tilemap!: Phaser.Tilemaps.Tilemap
@@ -10,8 +15,10 @@ export default class extends Phaser.Scene {
     | Phaser.Tilemaps.TilemapGPULayer
   roadTilesets!: Phaser.Tilemaps.Tileset[]
   roadLayer!: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
-  obstacleTilesets!: Phaser.Tilemaps.Tileset[]
-  obstacleLayer!: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
+  environmentTilesets!: Phaser.Tilemaps.Tileset[]
+  environmentLayer!:
+    | Phaser.Tilemaps.TilemapLayer
+    | Phaser.Tilemaps.TilemapGPULayer
   sceneryObjects!: Phaser.GameObjects.GameObject[]
 
   /**
@@ -55,21 +62,22 @@ export default class extends Phaser.Scene {
   }
 
   /**
-   * Creates the obstacle layer of the tilemap using the specified tileset
-   * names. The obstacle layer is typically rendered on top of the background
-   * and road layers and serves as the interactive or impassable elements in the
-   * level.
+   * Creates the environment layer of the tilemap using the specified tileset
+   * names. The environment layer is typically rendered on top of the background
+   * and road layers and serves as the world objects that the player can see and
+   * potentially interact with in the level, such as traffic lights, buildings,
+   * and other interactive elements.
    *
-   * @param tilesetNames The names of the tilesets to use for the obstacle
+   * @param tilesetNames The names of the tilesets to use for the environment.
    * layer.
    */
-  createObstacleLayer(tilesetNames: ObstacleSVG[]) {
-    this.obstacleTilesets = tilesetNames.map(
+  createEnvironmentLayer(tilesetNames: EnvironmentSVG[]) {
+    this.environmentTilesets = tilesetNames.map(
       name => this.tilemap.addTilesetImage(name)!,
     )
-    this.obstacleLayer = this.tilemap.createLayer(
-      "Obstacles", // This is hardcoded for consistency.
-      this.obstacleTilesets,
+    this.environmentLayer = this.tilemap.createLayer(
+      "Environment", // This is hardcoded for consistency.
+      this.environmentTilesets,
     )!
   }
 
@@ -102,21 +110,21 @@ export default class extends Phaser.Scene {
    * background layer.
    * @param roadTilesetNames The names of the tilesets to use for the road
    * layer.
-   * @param obstacleTilesetNames The names of the tilesets to use for the
-   * obstacle layer.
+   * @param environmentTilesetNames The names of the tilesets to use for the
+   * environment layer.
    * @param sceneryObjectTypes The types of the scenery objects to create.
    */
   createTilemap({
     key,
     backgroundTilesetNames,
     roadTilesetNames,
-    obstacleTilesetNames,
+    environmentTilesetNames,
     sceneryObjectTypes,
   }: {
     key: string
     backgroundTilesetNames: BackgroundSVG[]
     roadTilesetNames: RoadSVG[]
-    obstacleTilesetNames: ObstacleSVG[]
+    environmentTilesetNames: EnvironmentSVG[]
     sceneryObjectTypes: ScenerySVG[]
   }) {
     this.tilemap = this.make.tilemap({ key })
@@ -124,11 +132,11 @@ export default class extends Phaser.Scene {
     // NOTE: The order of these method calls matters.
     // 1. The background layer is created.
     // 2. The road layer is created, on top of the background layer.
-    // 3. The obstacle layer is created, on top of the road layer.
+    // 3. The environment layer is created, on top of the road layer.
     // 4. The scenery objects are created, on top of all layers.
     this.createBackgroundLayer(backgroundTilesetNames)
     this.createRoadLayer(roadTilesetNames)
-    this.createObstacleLayer(obstacleTilesetNames)
+    this.createEnvironmentLayer(environmentTilesetNames)
     this.createSceneryObjects(sceneryObjectTypes)
   }
 }

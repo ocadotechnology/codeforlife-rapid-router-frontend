@@ -38,18 +38,17 @@ export default class extends BaseLevel {
         SVGs.Road.Asphalt.T_JUNCTION,
         SVGs.Road.Asphalt.TURN,
       ],
-      obstacleTilesetNames: [
-        SVGs.Obstacles.TrafficLight.RED,
-        SVGs.Obstacles.TrafficLight.GREEN,
+      environmentTilesetNames: [
+        SVGs.Environment.Grass.CFC,
+        SVGs.Environment.Grass.HOUSE,
+        SVGs.Environment.Grass.SOLAR_PANEL,
+        SVGs.Environment.TrafficLight.RED,
       ],
       sceneryObjectTypes: [
-        SVGs.Scenery.Grass.BUSH,
-        SVGs.Scenery.Grass.CFC,
-        SVGs.Scenery.Grass.HOUSE,
-        SVGs.Scenery.Grass.POND,
-        SVGs.Scenery.Grass.SOLAR_PANEL,
-        SVGs.Scenery.Grass.TREE1,
-        SVGs.Scenery.Grass.TREE2,
+        SVGs.Scenery.BUSH,
+        SVGs.Scenery.POND,
+        SVGs.Scenery.TREE1,
+        SVGs.Scenery.TREE2,
       ],
     })
 

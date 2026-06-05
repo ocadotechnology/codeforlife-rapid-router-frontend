@@ -15,18 +15,18 @@ import StraightRoad from "../../../images/road/asphalt/straight.svg?raw"
 import TJunctionRoad from "../../../images/road/asphalt/t_junction.svg?raw"
 import TurnRoad from "../../../images/road/asphalt/turn.svg?raw"
 
-// Obstacle SVGs.
-import GreenTrafficLightObstacle from "../../../images/obstacles/trafficLight/green.svg?raw"
-import RedTrafficLightObstacle from "../../../images/obstacles/trafficLight/red.svg?raw"
+// Environment SVGs.
+import CFCEnvironment from "../../../images/environment/grass/cfc.svg?raw"
+import GreenTrafficLightEnvironment from "../../../images/environment/trafficLight/green.svg?raw"
+import HouseEnvironment from "../../../images/environment/grass/house.svg?raw"
+import RedTrafficLightEnvironment from "../../../images/environment/trafficLight/red.svg?raw"
+import SolarPanelEnvironment from "../../../images/environment/grass/solar_panel.svg??raw"
 
 // Scenery SVGs.
-import BushScenery from "../../../images/scenery/grass/bush.svg?raw"
-import CFCScenery from "../../../images/scenery/grass/cfc.svg?raw"
-import HouseScenery from "../../../images/scenery/grass/house.svg?raw"
-import PondScenery from "../../../images/scenery/grass/pond.svg?raw"
-import SolarPanelScenery from "../../../images/scenery/grass/solar_panel.svg??raw"
-import Tree1Scenery from "../../../images/scenery/grass/tree1.svg?raw"
-import Tree2Scenery from "../../../images/scenery/grass/tree2.svg?raw"
+import BushScenery from "../../../images/scenery/bush.svg?raw"
+import PondScenery from "../../../images/scenery/pond.svg?raw"
+import Tree1Scenery from "../../../images/scenery/tree1.svg?raw"
+import Tree2Scenery from "../../../images/scenery/tree2.svg?raw"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -76,45 +76,54 @@ export default class extends BasePreloader {
       height: TILE_HEIGHT,
     })
 
-    // Obstacles
+    // Environment
     this.load.svg(
-      SVGs.Obstacles.TrafficLight.RED,
-      this.makeSvgBlobUrl(RedTrafficLightObstacle),
+      SVGs.Environment.TrafficLight.RED,
+      this.makeSvgBlobUrl(RedTrafficLightEnvironment),
       { width: TILE_WIDTH, height: TILE_HEIGHT },
     )
     this.load.svg(
-      SVGs.Obstacles.TrafficLight.GREEN,
-      this.makeSvgBlobUrl(GreenTrafficLightObstacle),
+      SVGs.Environment.TrafficLight.GREEN,
+      this.makeSvgBlobUrl(GreenTrafficLightEnvironment),
+      { width: TILE_WIDTH, height: TILE_HEIGHT },
+    )
+    this.load.svg(
+      SVGs.Environment.Grass.CFC,
+      this.makeSvgBlobUrl(CFCEnvironment),
+      {
+        width: TILE_WIDTH,
+        height: TILE_HEIGHT,
+      },
+    )
+    this.load.svg(
+      SVGs.Environment.Grass.HOUSE,
+      this.makeSvgBlobUrl(HouseEnvironment),
+      {
+        width: TILE_WIDTH,
+        height: TILE_HEIGHT,
+      },
+    )
+    this.load.svg(
+      SVGs.Environment.Grass.SOLAR_PANEL,
+      this.makeSvgBlobUrl(SolarPanelEnvironment),
       { width: TILE_WIDTH, height: TILE_HEIGHT },
     )
 
     // Scenery
-    this.load.svg(SVGs.Scenery.Grass.BUSH, this.makeSvgBlobUrl(BushScenery), {
+    this.load.svg(SVGs.Scenery.BUSH, this.makeSvgBlobUrl(BushScenery), {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })
-    this.load.svg(SVGs.Scenery.Grass.CFC, this.makeSvgBlobUrl(CFCScenery), {
+
+    this.load.svg(SVGs.Scenery.POND, this.makeSvgBlobUrl(PondScenery), {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })
-    this.load.svg(SVGs.Scenery.Grass.HOUSE, this.makeSvgBlobUrl(HouseScenery), {
+    this.load.svg(SVGs.Scenery.TREE1, this.makeSvgBlobUrl(Tree1Scenery), {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })
-    this.load.svg(SVGs.Scenery.Grass.POND, this.makeSvgBlobUrl(PondScenery), {
-      width: TILE_WIDTH,
-      height: TILE_HEIGHT,
-    })
-    this.load.svg(
-      SVGs.Scenery.Grass.SOLAR_PANEL,
-      this.makeSvgBlobUrl(SolarPanelScenery),
-      { width: TILE_WIDTH, height: TILE_HEIGHT },
-    )
-    this.load.svg(SVGs.Scenery.Grass.TREE1, this.makeSvgBlobUrl(Tree1Scenery), {
-      width: TILE_WIDTH,
-      height: TILE_HEIGHT,
-    })
-    this.load.svg(SVGs.Scenery.Grass.TREE2, this.makeSvgBlobUrl(Tree2Scenery), {
+    this.load.svg(SVGs.Scenery.TREE2, this.makeSvgBlobUrl(Tree2Scenery), {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })

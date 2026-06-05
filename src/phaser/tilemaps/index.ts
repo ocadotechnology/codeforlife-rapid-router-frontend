@@ -8,7 +8,7 @@ import type {
 
 import type {
   BackgroundTileset,
-  ObstacleTileset,
+  EnvironmentTileset,
   RoadTileset,
   SceneryTileset,
   Tileset,
@@ -25,7 +25,7 @@ export const TILE_HEIGHT = 64
 
 // Restrict the names of tile layers to ensure type safety when creating layers
 // and accessing them later.
-export type TiledLayerTilelayerName = "Background" | "Road" | "Obstacles"
+export type TiledLayerTilelayerName = "Background" | "Road" | "Environment"
 export type TiledLayerObjectgroupName = "Scenery"
 export type TileLayerName = TiledLayerTilelayerName | TiledLayerObjectgroupName
 export type TiledLayerTilelayer = Omit<_TiledLayerTilelayer, "name"> & {
@@ -225,7 +225,7 @@ export type MakeOrthogonalTilemapOptions<
     tilesets: {
       background: MakeTilesetOptions<BackgroundTileset>[]
       road: MakeTilesetOptions<RoadTileset>[]
-      obstacles: MakeTilesetOptions<ObstacleTileset>[]
+      environment: MakeTilesetOptions<EnvironmentTileset>[]
       scenery: MakeTilesetOptions<SceneryTileset>[]
     }
     layers: {
@@ -234,8 +234,8 @@ export type MakeOrthogonalTilemapOptions<
         "name"
       >
       road: Omit<MakeTileLayerOptions<"Road", RoadTileset, COLS, ROWS>, "name">
-      obstacles: Omit<
-        MakeTileLayerOptions<"Obstacles", ObstacleTileset, COLS, ROWS>,
+      environment: Omit<
+        MakeTileLayerOptions<"Environment", EnvironmentTileset, COLS, ROWS>,
         "name"
       >
       scenery: Omit<MakeObjectGroupLayerOptions<"Scenery">, "name">
@@ -272,10 +272,10 @@ export const makeOrthogonalTilemap = <
     ...roadLayer
   } = layers.road
   const {
-    width: obstaclesWidth = mapWidth,
-    height: obstaclesHeight = mapHeight,
-    ...obstaclesLayer
-  } = layers.obstacles
+    width: environmentWidth = mapWidth,
+    height: environmentHeight = mapHeight,
+    ...environmentLayer
+  } = layers.environment
   const {
     width: sceneryWidth = mapWidth,
     height: sceneryHeight = mapHeight,
@@ -326,10 +326,10 @@ export const makeOrthogonalTilemap = <
         ...roadLayer,
       }),
       makeTileLayer({
-        name: "Obstacles",
-        width: obstaclesWidth,
-        height: obstaclesHeight,
-        ...obstaclesLayer,
+        name: "Environment",
+        width: environmentWidth,
+        height: environmentHeight,
+        ...environmentLayer,
       }),
       makeObjectGroupLayer({
         name: "Scenery",
