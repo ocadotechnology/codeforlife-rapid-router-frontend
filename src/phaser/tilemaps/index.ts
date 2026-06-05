@@ -201,25 +201,25 @@ export const makeObjectGroupLayer = <N extends TiledLayerObjectgroupName>({
   objects: objects.map((obj, index) => makeObject({ ...obj, id: index + 1 })),
 })
 
-type MakeTilemapPartials =
+type MakeOrthogonalTilemapPartials =
   | "renderorder"
   | "version"
   | "nextobjectid"
   | "tilewidth"
   | "tileheight"
-export type MakeTilemapOptions<
+export type MakeOrthogonalTilemapOptions<
   COLS extends number = typeof COLS,
   ROWS extends number = typeof ROWS,
 > = Omit<
   TiledMapOrthogonal,
-  | MakeTilemapPartials
+  | MakeOrthogonalTilemapPartials
   | "orientation"
   | "tilesets"
   | "layers"
   | "width"
   | "height"
 > &
-  Partial<Pick<TiledMapOrthogonal, MakeTilemapPartials>> & {
+  Partial<Pick<TiledMapOrthogonal, MakeOrthogonalTilemapPartials>> & {
     width?: COLS
     height?: ROWS
     tilesets: {
@@ -256,7 +256,7 @@ export const makeOrthogonalTilemap = <
   tilesets,
   layers,
   ...tilemap
-}: MakeTilemapOptions<COLS, ROWS>): TiledMapOrthogonal => ({
+}: MakeOrthogonalTilemapOptions<COLS, ROWS>): TiledMapOrthogonal => ({
   orientation: "orthogonal",
   renderorder,
   version,
