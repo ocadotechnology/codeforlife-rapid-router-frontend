@@ -249,28 +249,104 @@ export const makeOrthogonalTilemap = <
   renderorder = "right-down",
   version = 1,
   nextobjectid = 0,
-  width = COLS as COLS,
-  height = ROWS as ROWS,
-  tilewidth = TILE_WIDTH,
-  tileheight = TILE_HEIGHT,
+  width: mapWidth = COLS as COLS,
+  height: mapHeight = ROWS as ROWS,
+  tilewidth: mapTileWidth = TILE_WIDTH,
+  tileheight: mapTileHeight = TILE_HEIGHT,
   tilesets,
   layers,
   ...tilemap
-}: MakeOrthogonalTilemapOptions<COLS, ROWS>): TiledMapOrthogonal => ({
-  orientation: "orthogonal",
-  renderorder,
-  version,
-  nextobjectid,
-  width,
-  height,
-  tilewidth,
-  tileheight,
-  tilesets: Object.values(tilesets).flat().map(makeTileset),
-  layers: [
-    makeTileLayer({ name: "Background", ...layers.background }),
-    makeTileLayer({ name: "Road", ...layers.road }),
-    makeTileLayer({ name: "Obstacles", ...layers.obstacles }),
-    makeObjectGroupLayer({ name: "Scenery", ...layers.scenery }),
-  ],
-  ...tilemap,
-})
+}: MakeOrthogonalTilemapOptions<COLS, ROWS>): TiledMapOrthogonal => {
+  // Provide default values for layer dimensions based on the tilemap
+  // dimensions. This ensures that if any layer is missing width or height, it
+  // will default to the tilemap's width and height, maintaining consistency
+  // across the map.
+  const {
+    width: backgroundWidth = mapWidth,
+    height: backgroundHeight = mapHeight,
+    ...backgroundLayer
+  } = layers.background
+  const {
+    width: roadWidth = mapWidth,
+    height: roadHeight = mapHeight,
+    ...roadLayer
+  } = layers.road
+  const {
+    width: obstaclesWidth = mapWidth,
+    height: obstaclesHeight = mapHeight,
+    ...obstaclesLayer
+  } = layers.obstacles
+  const {
+    width: sceneryWidth = mapWidth,
+    height: sceneryHeight = mapHeight,
+    objects: sceneryObjects,
+    ...sceneryLayer
+  } = layers.scenery
+
+  return {
+    orientation: "orthogonal",
+    renderorder,
+    version,
+    nextobjectid,
+    width: mapWidth,
+    height: mapHeight,
+    tilewidth: mapTileWidth,
+    tileheight: mapTileHeight,
+    tilesets: Object.values(tilesets)
+      .flat()
+      .map(
+        ({
+          // Provide default values for width and height based on the tilewidth
+          // and tileheight of the tilemap.
+          imagewidth = mapTileWidth,
+          imageheight = mapTileHeight,
+          tilewidth = mapTileWidth,
+          tileheight = mapTileHeight,
+          ...tileset
+        }) =>
+          makeTileset({
+            imagewidth,
+            imageheight,
+            tilewidth,
+            tileheight,
+            ...tileset,
+          }),
+      ),
+    layers: [
+      makeTileLayer({
+        name: "Background",
+        width: backgroundWidth,
+        height: backgroundHeight,
+        ...backgroundLayer,
+      }),
+      makeTileLayer({
+        name: "Road",
+        width: roadWidth,
+        height: roadHeight,
+        ...roadLayer,
+      }),
+      makeTileLayer({
+        name: "Obstacles",
+        width: obstaclesWidth,
+        height: obstaclesHeight,
+        ...obstaclesLayer,
+      }),
+      makeObjectGroupLayer({
+        name: "Scenery",
+        width: sceneryWidth,
+        height: sceneryHeight,
+        objects: sceneryObjects.map(
+          // Provide default values for width and height based on the tilewidth
+          // and tileheight of the tilemap.
+          ({ width = mapTileWidth, height = mapTileHeight, ...obj }) => ({
+            width,
+            height,
+            ...obj,
+          }),
+        ),
+        ...sceneryLayer,
+      }),
+    ],
+    ...tilemap,
+  }
+}
