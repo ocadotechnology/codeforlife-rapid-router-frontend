@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import { Scenes } from "../../enums"
+import { Scenes } from "."
 
 /**
  * The HUD (Heads-Up Display) Scene is responsible for displaying game
@@ -11,7 +11,7 @@ import { Scenes } from "../../enums"
  */
 export default class extends Phaser.Scene {
   constructor() {
-    super(Scenes.Play.HUD)
+    super(Scenes.HUD)
   }
 
   create() {

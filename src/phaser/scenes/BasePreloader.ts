@@ -9,7 +9,7 @@ export default class extends Phaser.Scene {
 
   init() {
     // We loaded this image in our Boot Scene, so we can display it here
-    this.add.image(512, 384, SVGs.LOGO)
+    this.add.image(512, 384, SVGs.Logos.RR._)
 
     // A simple progress bar. This is the outline of the bar.
     this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff)

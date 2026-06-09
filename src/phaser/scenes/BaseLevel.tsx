@@ -1,12 +1,5 @@
 import Phaser from "phaser"
 
-import type {
-  BackgroundSVG,
-  EnvironmentSVG,
-  RoadSVG,
-  ScenerySVG,
-} from "../enums"
-
 export default class extends Phaser.Scene {
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTilesets!: Phaser.Tilemaps.Tileset[]
@@ -31,7 +24,7 @@ export default class extends Phaser.Scene {
    * @param tilesetNames The names of the tilesets to use for the background
    * layer.
    */
-  createBackgroundLayer(tilesetNames: BackgroundSVG[]) {
+  createBackgroundLayer(tilesetNames: string[]) {
     this.backgroundTilesets = tilesetNames.map(
       name => this.tilemap.addTilesetImage(name)!,
     )
@@ -51,7 +44,7 @@ export default class extends Phaser.Scene {
    *
    * @param tilesetNames The names of the tilesets to use for the road layer.
    */
-  createRoadLayer(tilesetNames: RoadSVG[]) {
+  createRoadLayer(tilesetNames: string[]) {
     this.roadTilesets = tilesetNames.map(
       name => this.tilemap.addTilesetImage(name)!,
     )
@@ -71,7 +64,7 @@ export default class extends Phaser.Scene {
    * @param tilesetNames The names of the tilesets to use for the environment.
    * layer.
    */
-  createEnvironmentLayer(tilesetNames: EnvironmentSVG[]) {
+  createEnvironmentLayer(tilesetNames: string[]) {
     this.environmentTilesets = tilesetNames.map(
       name => this.tilemap.addTilesetImage(name)!,
     )
@@ -88,7 +81,7 @@ export default class extends Phaser.Scene {
    *
    * @param types The types of the scenery objects to create.
    */
-  createSceneryObjects(types: ScenerySVG[]) {
+  createSceneryObjects(types: string[]) {
     this.sceneryObjects = this.tilemap.createFromObjects(
       "Scenery", // This is hardcoded for consistency.
       types.map(type => ({
@@ -122,10 +115,10 @@ export default class extends Phaser.Scene {
     sceneryObjectTypes,
   }: {
     key: string
-    backgroundTilesetNames: BackgroundSVG[]
-    roadTilesetNames: RoadSVG[]
-    environmentTilesetNames: EnvironmentSVG[]
-    sceneryObjectTypes: ScenerySVG[]
+    backgroundTilesetNames: string[]
+    roadTilesetNames: string[]
+    environmentTilesetNames: string[]
+    sceneryObjectTypes: string[]
   }) {
     this.tilemap = this.make.tilemap({ key })
 

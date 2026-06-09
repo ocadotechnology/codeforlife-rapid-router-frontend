@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import { Scenes } from "../../enums"
+import { Scenes } from "."
 
 /**
  * The GameOver Scene is responsible for displaying a game over message and
@@ -11,7 +11,7 @@ import { Scenes } from "../../enums"
  */
 export default class extends Phaser.Scene {
   constructor() {
-    super(Scenes.Play.GAME_OVER)
+    super(Scenes.GAME_OVER)
   }
 
   create() {
@@ -35,9 +35,9 @@ export default class extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         // Manually stop the paused HUD to completely wipe its state from memory.
-        this.scene.stop(Scenes.Play.HUD)
-        // Start a new Gameplay scene - this destroys the paused Gameplay scene.
-        this.scene.start(Scenes.Play.GAMEPLAY)
+        this.scene.stop(Scenes.HUD)
+        // Start a new Level scene - this destroys the paused Level scene.
+        this.scene.start(Scenes.LEVEL)
       })
   }
 }

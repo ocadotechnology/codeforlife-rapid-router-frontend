@@ -1,5 +1,5 @@
 import BaseBoot from "../BaseBoot"
-import { Scenes } from "../../enums"
+import { Scenes } from "."
 
 /**
  * The Boot Scene is the first scene that runs when the game starts. It is
@@ -10,11 +10,11 @@ import { Scenes } from "../../enums"
  */
 export default class extends BaseBoot {
   constructor() {
-    super(Scenes.Create.BOOT)
+    super(Scenes.BOOT)
   }
 
   create() {
     // Start preloading the assets.
-    this.scene.start(Scenes.Create.PRELOADER)
+    this.scene.start(Scenes.PRELOADER)
   }
 }

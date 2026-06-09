@@ -1,8 +1,9 @@
 import Phaser from "phaser"
 
-import { Events, SVGs, Scenes, Variables } from "../../enums"
+import { Events, SVGs, Variables } from "../../enums"
 import BaseLevel from "../BaseLevel"
 import type { GameCommand } from "../../../app/slices"
+import { Scenes } from "."
 
 /**
  * The Gameplay Scene is the main scene where the core game mechanics and
@@ -16,31 +17,31 @@ export default class extends BaseLevel {
   private commands: GameCommand[] = []
 
   constructor() {
-    super(Scenes.Play.LEVEL)
+    super(Scenes.LEVEL)
   }
 
   create() {
     this.createTilemap({
       key: "level",
-      backgroundTilesetNames: [SVGs.Background.GRASS],
+      backgroundTilesetNames: [SVGs.Background.GRASS._],
       roadTilesetNames: [
-        SVGs.Road.Asphalt.CROSSROADS,
-        SVGs.Road.Asphalt.DEAD_END,
-        SVGs.Road.Asphalt.STRAIGHT,
-        SVGs.Road.Asphalt.T_JUNCTION,
-        SVGs.Road.Asphalt.TURN,
+        SVGs.Road.Asphalt.CROSSROADS._,
+        SVGs.Road.Asphalt.DEAD_END._,
+        SVGs.Road.Asphalt.STRAIGHT._,
+        SVGs.Road.Asphalt.T_JUNCTION._,
+        SVGs.Road.Asphalt.TURN._,
       ],
       environmentTilesetNames: [
-        SVGs.Environment.Grass.CFC,
-        SVGs.Environment.Grass.HOUSE,
-        SVGs.Environment.Grass.SOLAR_PANEL,
-        SVGs.Environment.TrafficLight.RED,
+        SVGs.Environment.Grass.CFC._,
+        SVGs.Environment.Grass.HOUSE._,
+        SVGs.Environment.Grass.SOLAR_PANEL._,
+        SVGs.Environment.TrafficLight.RED._,
       ],
       sceneryObjectTypes: [
-        SVGs.Scenery.BUSH,
-        SVGs.Scenery.POND,
-        SVGs.Scenery.TREE1,
-        SVGs.Scenery.TREE2,
+        SVGs.Scenery.BUSH._,
+        SVGs.Scenery.POND._,
+        SVGs.Scenery.TREE1._,
+        SVGs.Scenery.TREE2._,
       ],
     })
 
@@ -56,16 +57,16 @@ export default class extends BaseLevel {
     // the visual stacking order (z-index) based on the order scenes are
     // initialized. By having this scene launch the HUD scene after the level is
     // built, the HUD is naturally drawn on top.
-    this.scene.launch(Scenes.Play.HUD)
+    this.scene.launch(Scenes.HUD)
 
     // WARN: This must come last!
     this.game.events.emit(Events.GAMEPLAY_SCENE_READY)
   }
 
   private gameOver() {
-    this.scene.pause(Scenes.Play.HUD)
+    this.scene.pause(Scenes.HUD)
     this.scene.pause()
-    this.scene.launch(Scenes.Play.GAME_OVER)
+    this.scene.launch(Scenes.GAME_OVER)
   }
 
   private getCommands() {

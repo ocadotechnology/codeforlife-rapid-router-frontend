@@ -5,7 +5,7 @@ import { CircularProgress } from "@mui/material"
 //  compiled into JavaScript, these type-only imports are completely erased.
 //  They do not generate any JavaScript code that would cause the phaser module
 //  to be loaded at runtime.
-import type { Game } from "phaser"
+import type { Game, Scene } from "phaser"
 
 import { Events, Variables } from "./enums"
 import type { Level } from "../api/level"
@@ -34,7 +34,9 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       // Dynamically import Phaser and our scenes.
       // NOTE: This makes Phaser a browser-only dependency.
       const Phaser = await import("phaser")
-      const scenes = await import("./scenes")
+      const { default: scene } = (await import(`./scenes/${mode}`)) as {
+        default: Scene[]
+      }
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.
@@ -59,7 +61,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
         },
         parent: containerRef.current,
         backgroundColor,
-        scene: scenes[mode],
+        scene,
       })
       gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 

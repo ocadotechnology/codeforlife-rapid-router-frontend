@@ -1,7 +1,8 @@
 import type Phaser from "phaser"
 
-import { SVGs, Scenes } from "../../enums"
 import BaseLevel from "../BaseLevel"
+import { SVGs } from "../../enums"
+import { Scenes } from "."
 
 /**
  * The Level Scene is responsible for providing a user interface and tools for
@@ -16,7 +17,7 @@ export default class extends BaseLevel {
   lineGraphics!: Phaser.GameObjects.Graphics
 
   constructor() {
-    super(Scenes.Create.LEVEL)
+    super(Scenes.LEVEL)
   }
 
   create() {
@@ -30,25 +31,25 @@ export default class extends BaseLevel {
 
     this.createTilemap({
       key: "level",
-      backgroundTilesetNames: [SVGs.Background.GRASS],
+      backgroundTilesetNames: [SVGs.Background.GRASS._],
       roadTilesetNames: [
-        SVGs.Road.Asphalt.CROSSROADS,
-        SVGs.Road.Asphalt.DEAD_END,
-        SVGs.Road.Asphalt.STRAIGHT,
-        SVGs.Road.Asphalt.T_JUNCTION,
-        SVGs.Road.Asphalt.TURN,
+        SVGs.Road.Asphalt.CROSSROADS._,
+        SVGs.Road.Asphalt.DEAD_END._,
+        SVGs.Road.Asphalt.STRAIGHT._,
+        SVGs.Road.Asphalt.T_JUNCTION._,
+        SVGs.Road.Asphalt.TURN._,
       ],
       environmentTilesetNames: [
-        SVGs.Environment.Grass.CFC,
-        SVGs.Environment.Grass.HOUSE,
-        SVGs.Environment.Grass.SOLAR_PANEL,
-        SVGs.Environment.TrafficLight.RED,
+        SVGs.Environment.Grass.CFC._,
+        SVGs.Environment.Grass.HOUSE._,
+        SVGs.Environment.Grass.SOLAR_PANEL._,
+        SVGs.Environment.TrafficLight.RED._,
       ],
       sceneryObjectTypes: [
-        SVGs.Scenery.BUSH,
-        SVGs.Scenery.POND,
-        SVGs.Scenery.TREE1,
-        SVGs.Scenery.TREE2,
+        SVGs.Scenery.BUSH._,
+        SVGs.Scenery.POND._,
+        SVGs.Scenery.TREE1._,
+        SVGs.Scenery.TREE2._,
       ],
     })
 
