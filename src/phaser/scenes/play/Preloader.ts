@@ -1,3 +1,5 @@
+import Phaser from "phaser"
+
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 import type { OrthogonalTilemap } from "../../tilemaps"
@@ -29,6 +31,11 @@ export default class extends BasePreloader {
 
     this.loadTilemap(tilemap)
 
-    this.startLevel(Level)
+    // Handle loading manually as we aren't leveraging Phaser's `preload`
+    // lifecycle callback.
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      this.startLevel(Level)
+    })
+    this.load.start()
   }
 }
