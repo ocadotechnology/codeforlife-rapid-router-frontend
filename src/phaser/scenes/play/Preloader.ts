@@ -1,8 +1,6 @@
-import Phaser from "phaser"
-import type { TiledMap as Tilemap } from "tiled-types"
-
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
+import type { OrthogonalTilemap } from "../../tilemaps"
 import { Variables } from "../../enums"
 
 /**
@@ -17,25 +15,20 @@ export default class extends BasePreloader {
     // here that the rest of the game can use. For example, you can define
     // global animations here, so we can use them in other scenes.
 
-    // Call the base class's create() method to perform any necessary cleanup.
-    super.create()
+    void this.lazyLoadTilemap()
+  }
 
-    void (async () => {
-      const levelId = this.game.registry.get(Variables.LEVEL_ID) as number
-      console.log("Preloader: Loading assets for level", levelId)
-      const { default: data } = (await import(
-        `../../tilemaps/level${levelId}`
-      )) as { default: Tilemap }
+  async lazyLoadTilemap() {
+    // Get the level ID from the registry.
+    const levelId = this.game.registry.get(Variables.LEVEL_ID) as number
 
-      this.cache.tilemap.add("level", {
-        format: Phaser.Tilemaps.Formats.TILED_JSON,
-        data,
-      })
+    // Dynamically import the tilemap JSON file based on the level ID.
+    const { default: tilemap } = (await import(
+      `../../tilemaps/level${levelId}`
+    )) as { default: OrthogonalTilemap }
 
-      // TODO: Load tileset images.
+    this.loadTilemap(tilemap)
 
-      // Start the game.
-      this.scene.start(Level.KEY)
-    })()
+    this.startLevel(Level)
   }
 }

@@ -47,8 +47,8 @@ export default class BaseLevel<
    * environment layer.
    * @param sceneryObjectTypes The types of the scenery objects to create.
    */
-  createTilemap({ key }: { key: string }) {
-    this.tilemap = this.make.tilemap({ key })
+  createTilemap() {
+    this.tilemap = this.make.tilemap({ key: "level" })
 
     // 1. The background layer is created.
     this.tilesets.background = this.initData.tilesets.background.map(

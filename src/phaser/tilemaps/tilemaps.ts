@@ -1,8 +1,13 @@
-import type { TiledMapOrthogonal as OrthogonalTilemap } from "tiled-types"
+import type { TiledMapOrthogonal as _OrthogonalTilemap } from "tiled-types"
 
 import * as layers from "../layers"
 import type * as tilesets from "../tilesets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../constants"
+
+export type OrthogonalTilemap = Omit<
+  _OrthogonalTilemap,
+  "layers" | "tilesets"
+> & { layers: layers.Layer[]; tilesets: tilesets.Tileset<tilesets.ID, any>[] }
 
 type MakeOrthogonalTilemapPartials =
   | "renderorder"

@@ -1,13 +1,18 @@
+import Phaser from "phaser"
+
+import * as tilesets from "../tilesets"
+import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
+import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
 import BaseScene from "./BaseScene"
+import type { OrthogonalTilemap } from "../tilemaps"
 
 export default class BasePreloader<
   Data extends object | undefined = undefined,
 > extends BaseScene<Data> {
   static KEY = "Preloader"
-
-  // Blob URLs created during preload; revoked in create() once textures are
-  // cached by Phaser.
-  private blobUrls: string[] = []
+  levelData: BaseLevelData = {
+    tilesets: { background: [], road: [], environment: [], scenery: [] },
+  }
 
   init() {
     // We loaded this image in our Boot Scene, so we can display it here
@@ -28,33 +33,51 @@ export default class BasePreloader<
     })
   }
 
-  /**
-   * This helper function creates a Blob URL from the given SVG content.
-   * Phaser's XHRLoader can load SVGs from URLs, but it doesn't handle data URLs
-   * that are URI-encoded (which is what Vite produces for small assets by
-   * default). By creating a Blob URL, we can ensure that Phaser can load the
-   * SVGs correctly.
-   *
-   * This requires us to keep track of the generated Blob URLs so that we can
-   * revoke them after Phaser has cached the textures, which we do in the
-   * create() method.
-   *
-   * All SVGs should imported as raw strings (using ?raw) and passed through
-   * this function to create Blob URLs.
-   *
-   * @param svgContent The raw SVG content as a string (?raw).
-   * @returns The Blob URL representing the SVG content.
-   */
-  makeSvgBlobUrl(svgContent: string): string {
-    const blob = new Blob([svgContent], { type: "image/svg+xml" })
-    const url = URL.createObjectURL(blob)
-    this.blobUrls.push(url)
-    return url
+  loadTilemap(tilemap: OrthogonalTilemap) {
+    // Cache the tilemap data so that it can be accessed in the Level Scene.
+    this.cache.tilemap.add("level", {
+      format: Phaser.Tilemaps.Formats.TILED_JSON,
+      data: tilemap,
+    })
+
+    // Load the tileset images and store relevant data in levelData for later
+    // use in the Level Scene. This is necessary because Phaser needs the
+    // tileset images to create the tilemap, but we also need to know which
+    // tilesets belong to which layers in order to render the correct layers in
+    // the correct order in the Level Scene.
+    for (const {
+      image,
+      name,
+      firstgid: id,
+      imagewidth = TILE_WIDTH,
+      imageheight = TILE_HEIGHT,
+    } of tilemap.tilesets) {
+      // Track each layer's tilesets.
+      if (tilesets.background.IDs.includes(id as tilesets.background.ID)) {
+        this.levelData.tilesets.background.push({ name })
+      } else if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
+        this.levelData.tilesets.road.push({ name })
+      } else if (
+        tilesets.environment.IDs.includes(id as tilesets.environment.ID)
+      ) {
+        this.levelData.tilesets.environment.push({ name })
+      } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
+        this.levelData.tilesets.scenery.push({ name, gid: id })
+      } else {
+        throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)
+      }
+
+      // Load the image.
+      if (image.endsWith(".svg")) {
+        this.load.svg(name, image, { width: imagewidth, height: imageheight })
+      } else throw new Error(`Unsupported tileset image format: ${image}`)
+    }
   }
 
-  create() {
-    // Revoke blob URLs now that Phaser has cached all textures.
-    this.blobUrls.forEach(url => URL.revokeObjectURL(url))
-    this.blobUrls = []
+  startLevel<LevelData extends BaseLevelData>(
+    level: (new () => BaseLevel<LevelData>) & { KEY: string },
+    data: LevelData = this.levelData as LevelData,
+  ) {
+    this.scene.start(level.KEY, data)
   }
 }

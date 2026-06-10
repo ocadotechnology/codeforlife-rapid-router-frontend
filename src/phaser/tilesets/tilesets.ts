@@ -77,6 +77,7 @@ export type Tileset<
   GID extends ID = ID,
   Props extends Property[] | undefined = undefined,
 > = Omit<_Tileset, "firstgid" | "properties"> & {
+  image: string
   firstgid: GID
   properties: Props
 }

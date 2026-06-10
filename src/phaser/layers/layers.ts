@@ -7,7 +7,9 @@ export const Names = {
   Tile: { BACKGROUND: "background", ROAD: "road", ENVIRONMENT: "environment" },
   ObjectGroup: { SCENERY: "scenery" },
 } as const
+
 export type Name = tile.Name | objectGroup.Name
+export type Layer = tile.Layer | objectGroup.Layer
 
 export type MakeKwArgs<N extends Name, T extends string> = {
   name: N

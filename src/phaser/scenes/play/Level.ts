@@ -19,7 +19,7 @@ export default class extends BaseLevel<LevelData> {
   private commands: GameCommand[] = []
 
   create() {
-    this.createTilemap({ key: "level" })
+    this.createTilemap()
 
     // Listen for updates to the game commands.
     const getCommands = () => this.getCommands()

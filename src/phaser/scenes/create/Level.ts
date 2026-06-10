@@ -27,7 +27,7 @@ export default class extends BaseLevel<LevelData> {
   create() {
     this.cameras.main.setZoom(1)
 
-    this.createTilemap({ key: "level" })
+    this.createTilemap()
 
     this.addLineGraphics()
 
