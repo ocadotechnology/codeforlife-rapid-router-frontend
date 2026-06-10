@@ -53,8 +53,8 @@ export type FillRowOptions<
  * Creates a single row of tile data filled with the specified tile ID. This is
  * useful for quickly generating uniform layers in the tilemap.
  *
- * @param id The tile ID to fill the row with. Defaults to `TileSetIDs.EMPTY` if
- *  not provided.
+ * @param id The tile ID to fill the row with. Defaults to `IDs.EMPTY` if not
+ *  provided.
  * @param cols The number of columns in the row. Defaults to the width of the
  *  tilemap if not provided.
  * @returns A row of tile data with the specified tile ID.
@@ -77,8 +77,8 @@ export type FillManyRowsOptions<
  * Creates a tilemap filled with the specified tile ID. This is useful for
  * quickly generating uniform layers in the tilemap.
  *
- * @param id The tile ID to fill the row with. Defaults to `TileSetIDs.EMPTY` if
- *  not provided.
+ * @param id The tile ID to fill the row with. Defaults to `IDs.EMPTY` if not
+ *  provided.
  * @param cols The number of columns in the row. Defaults to the width of the
  *  tilemap if not provided.
  * @param rows The number of rows in the tilemap. Defaults to the height of the

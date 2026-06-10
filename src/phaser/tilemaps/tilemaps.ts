@@ -25,8 +25,8 @@ export type MakeOrthogonalTilemapKwArgs<
         layers.tile.MakeKwArgs<
           "background",
           tilesets.background.ID,
-          COLS,
-          ROWS
+          NoInfer<COLS>,
+          NoInfer<ROWS>
         >,
         "name"
       >
@@ -35,8 +35,8 @@ export type MakeOrthogonalTilemapKwArgs<
           "road",
           // Road tiles can be empty.
           typeof tilesets.IDs.EMPTY | tilesets.road.ID,
-          COLS,
-          ROWS
+          NoInfer<COLS>,
+          NoInfer<ROWS>
         >,
         "name"
       >
@@ -45,8 +45,8 @@ export type MakeOrthogonalTilemapKwArgs<
           "environment",
           // Environment tiles can be empty.
           typeof tilesets.IDs.EMPTY | tilesets.environment.ID,
-          COLS,
-          ROWS
+          NoInfer<COLS>,
+          NoInfer<ROWS>
         >,
         "name"
       >

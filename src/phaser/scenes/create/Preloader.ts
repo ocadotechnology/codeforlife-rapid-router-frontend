@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 import type { TiledTileset as Tileset } from "tiled-types"
 
-import type * as tilesets from "../../tilesets"
+import * as tilesets from "../../tilesets"
 import Level, { type LevelData } from "./Level"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../constants"
 import BasePreloader from "../BasePreloader"
