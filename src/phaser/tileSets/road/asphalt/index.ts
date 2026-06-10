@@ -1,9 +1,15 @@
-import { SVGs } from "../../enums"
-import { TileSetIDs } from ".."
-import { makeRoadTileSet } from "."
+import { type MakeRoadTileSetOptions, makeRoadTileSet } from ".."
+import { TileSetIDs, flattenIDs } from "../.."
 
-export const crossroads = makeRoadTileSet({
-  image: SVGs.Road.Asphalt.CROSSROADS._,
+export const AsphaltRoadTileSetIDs = flattenIDs(TileSetIDs.Road.Asphalt)
+export type AsphaltRoadTileSetID = (typeof AsphaltRoadTileSetIDs)[number]
+
+const makeAsphaltRoadTileSet = <GID extends AsphaltRoadTileSetID>(
+  options: MakeRoadTileSetOptions<GID, boolean, boolean, boolean, boolean>,
+) => makeRoadTileSet(import.meta.url, options)
+
+export const crossroads = makeAsphaltRoadTileSet({
+  image: "./crossroads.svg",
   firstgid: TileSetIDs.Road.Asphalt.CROSSROADS,
   properties: {
     canDriveForwards: true,
@@ -13,8 +19,8 @@ export const crossroads = makeRoadTileSet({
   },
 })
 
-export const deadEnd = makeRoadTileSet({
-  image: SVGs.Road.Asphalt.DEAD_END._,
+export const deadEnd = makeAsphaltRoadTileSet({
+  image: "./dead_end.svg",
   firstgid: TileSetIDs.Road.Asphalt.DEAD_END,
   properties: {
     canDriveForwards: false,
@@ -24,8 +30,8 @@ export const deadEnd = makeRoadTileSet({
   },
 })
 
-export const straight = makeRoadTileSet({
-  image: SVGs.Road.Asphalt.STRAIGHT._,
+export const straight = makeAsphaltRoadTileSet({
+  image: "./straight.svg",
   firstgid: TileSetIDs.Road.Asphalt.STRAIGHT,
   properties: {
     canDriveForwards: true,
@@ -35,8 +41,8 @@ export const straight = makeRoadTileSet({
   },
 })
 
-export const tJunction = makeRoadTileSet({
-  image: SVGs.Road.Asphalt.T_JUNCTION._,
+export const tJunction = makeAsphaltRoadTileSet({
+  image: "./t_junction.svg",
   firstgid: TileSetIDs.Road.Asphalt.T_JUNCTION,
   properties: {
     canDriveForwards: false,
@@ -46,8 +52,8 @@ export const tJunction = makeRoadTileSet({
   },
 })
 
-export const turn = makeRoadTileSet({
-  image: SVGs.Road.Asphalt.TURN._,
+export const turn = makeAsphaltRoadTileSet({
+  image: "./turn.svg",
   firstgid: TileSetIDs.Road.Asphalt.TURN,
   properties: {
     canDriveForwards: false,

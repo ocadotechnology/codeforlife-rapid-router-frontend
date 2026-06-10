@@ -1,5 +1,5 @@
 import BaseBoot from "../BaseBoot"
-import { Scenes } from "."
+import Preloader from "./Preloader"
 
 /**
  * The Boot Scene is the first scene that runs when the game starts. It is
@@ -9,12 +9,8 @@ import { Scenes } from "."
  * small as possible to ensure a fast startup time.
  */
 export default class extends BaseBoot {
-  constructor() {
-    super(Scenes.BOOT)
-  }
-
   create() {
     // Start preloading the assets.
-    this.scene.start(Scenes.PRELOADER)
+    this.scene.start(Preloader.KEY)
   }
 }

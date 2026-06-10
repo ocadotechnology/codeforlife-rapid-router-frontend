@@ -4,9 +4,11 @@ import type {
   BackgroundTileSetID,
   EnvironmentTileSetID,
   RoadTileSetID,
+  SceneryTileSetID,
 } from "../tileSets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../constants"
 import {
+  LayerNames,
   type MakeObjectGroupLayerOptions,
   type MakeTileLayerOptions,
   makeObjectGroupLayer,
@@ -42,7 +44,10 @@ export type MakeOrthogonalTileMapOptions<
         MakeTileLayerOptions<"Environment", EnvironmentTileSetID, COLS, ROWS>,
         "name"
       >
-      scenery: Omit<MakeObjectGroupLayerOptions<"Scenery">, "name">
+      scenery: Omit<
+        MakeObjectGroupLayerOptions<"Scenery", SceneryTileSetID>,
+        "name"
+      >
     }
   }
 
@@ -115,25 +120,25 @@ export const makeOrthogonalTileMap = <
     ),
     layers: [
       makeTileLayer({
-        name: "Background",
+        name: LayerNames.Tile.BACKGROUND,
         width: backgroundWidth,
         height: backgroundHeight,
         ...backgroundLayer,
       }),
       makeTileLayer({
-        name: "Road",
+        name: LayerNames.Tile.ROAD,
         width: roadWidth,
         height: roadHeight,
         ...roadLayer,
       }),
       makeTileLayer({
-        name: "Environment",
+        name: LayerNames.Tile.ENVIRONMENT,
         width: environmentWidth,
         height: environmentHeight,
         ...environmentLayer,
       }),
       makeObjectGroupLayer({
-        name: "Scenery",
+        name: LayerNames.ObjectGroup.SCENERY,
         width: sceneryWidth,
         height: sceneryHeight,
         objects: sceneryObjects.map(

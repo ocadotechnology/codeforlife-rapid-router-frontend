@@ -1,9 +1,15 @@
-import { SVGs } from "../../enums"
-import { TileSetIDs } from ".."
-import { makeRoadTileSet } from "."
+import { type MakeRoadTileSetOptions, makeRoadTileSet } from ".."
+import { TileSetIDs, flattenIDs } from "../.."
 
-export const crossroads = makeRoadTileSet({
-  image: SVGs.Road.Dirt.CROSSROADS._,
+export const DirtRoadTileSetIDs = flattenIDs(TileSetIDs.Road.Dirt)
+export type DirtRoadTileSetID = (typeof DirtRoadTileSetIDs)[number]
+
+const makeDirtRoadTileSet = <GID extends DirtRoadTileSetID>(
+  options: MakeRoadTileSetOptions<GID, boolean, boolean, boolean, boolean>,
+) => makeRoadTileSet(import.meta.url, options)
+
+export const crossroads = makeDirtRoadTileSet({
+  image: "./crossroads.svg",
   firstgid: TileSetIDs.Road.Dirt.CROSSROADS,
   properties: {
     canDriveForwards: true,
@@ -13,8 +19,8 @@ export const crossroads = makeRoadTileSet({
   },
 })
 
-export const deadEnd = makeRoadTileSet({
-  image: SVGs.Road.Dirt.DEAD_END._,
+export const deadEnd = makeDirtRoadTileSet({
+  image: "./dead_end.svg",
   firstgid: TileSetIDs.Road.Dirt.DEAD_END,
   properties: {
     canDriveForwards: false,
@@ -24,8 +30,8 @@ export const deadEnd = makeRoadTileSet({
   },
 })
 
-export const straight = makeRoadTileSet({
-  image: SVGs.Road.Dirt.STRAIGHT._,
+export const straight = makeDirtRoadTileSet({
+  image: "./straight.svg",
   firstgid: TileSetIDs.Road.Dirt.STRAIGHT,
   properties: {
     canDriveForwards: true,
@@ -35,8 +41,8 @@ export const straight = makeRoadTileSet({
   },
 })
 
-export const tJunction = makeRoadTileSet({
-  image: SVGs.Road.Dirt.T_JUNCTION._,
+export const tJunction = makeDirtRoadTileSet({
+  image: "./t_junction.svg",
   firstgid: TileSetIDs.Road.Dirt.T_JUNCTION,
   properties: {
     canDriveForwards: false,
@@ -46,8 +52,8 @@ export const tJunction = makeRoadTileSet({
   },
 })
 
-export const turn = makeRoadTileSet({
-  image: SVGs.Road.Dirt.TURN._,
+export const turn = makeDirtRoadTileSet({
+  image: "./turn.svg",
   firstgid: TileSetIDs.Road.Dirt.TURN,
   properties: {
     canDriveForwards: false,

@@ -10,14 +10,19 @@ import { type TileSetID } from "./tileSets"
 // TODO: remove
 import type { Tuple } from "./utils"
 
-export const tileLayerNames = ["Background", "Road", "Environment"] as const
-export type TileLayerName = (typeof tileLayerNames)[number]
+export const LayerNames = {
+  Tile: { BACKGROUND: "Background", ROAD: "Road", ENVIRONMENT: "Environment" },
+  ObjectGroup: { SCENERY: "Scenery" },
+} as const
+
+export type TileLayerName =
+  (typeof LayerNames.Tile)[keyof typeof LayerNames.Tile]
 export type TileLayer = Omit<_TileLayer, "name"> & {
   name: TileLayerName
 }
 
-export const objectGroupLayerNames = ["Scenery"] as const
-export type ObjectGroupLayerName = (typeof objectGroupLayerNames)[number]
+export type ObjectGroupLayerName =
+  (typeof LayerNames.ObjectGroup)[keyof typeof LayerNames.ObjectGroup]
 export type ObjectGroupLayer = Omit<_ObjectGroupLayer, "name"> & {
   name: ObjectGroupLayerName
 }
@@ -77,10 +82,10 @@ export const makeTileLayer = <
 })
 
 type MakeObjectGroupLayerPartials = "draworder"
-export type MakeObjectGroupLayerOptions<N extends ObjectGroupLayerName> = Omit<
-  MakeLayerOptions<N, "objectgroup">,
-  "type"
-> &
+export type MakeObjectGroupLayerOptions<
+  N extends ObjectGroupLayerName,
+  ID extends TileSetID | undefined = undefined,
+> = Omit<MakeLayerOptions<N, "objectgroup">, "type"> &
   Omit<
     ObjectGroupLayer,
     | keyof MakeLayerOptions<N, "objectgroup">
@@ -88,14 +93,17 @@ export type MakeObjectGroupLayerOptions<N extends ObjectGroupLayerName> = Omit<
     | "objects"
   > &
   Partial<Pick<ObjectGroupLayer, MakeObjectGroupLayerPartials>> & {
-    objects: Omit<MakeObjectOptions, "id">[]
+    objects: Omit<MakeObjectOptions<string, string, any, ID>, "id">[]
   }
 
-export const makeObjectGroupLayer = <N extends ObjectGroupLayerName>({
+export const makeObjectGroupLayer = <
+  N extends ObjectGroupLayerName,
+  ID extends TileSetID | undefined = undefined,
+>({
   name,
   draworder = "topdown",
   objects,
-}: MakeObjectGroupLayerOptions<N>): ObjectGroupLayer => ({
+}: MakeObjectGroupLayerOptions<N, ID>): ObjectGroupLayer => ({
   ...makeLayer({ name, type: "objectgroup" }),
   draworder,
   objects: objects.map((obj, index) => makeObject({ ...obj, id: index + 1 })),

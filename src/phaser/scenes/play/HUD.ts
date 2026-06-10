@@ -1,6 +1,4 @@
-import Phaser from "phaser"
-
-import { Scenes } from "."
+import BaseScene from "../BaseScene"
 
 /**
  * The HUD (Heads-Up Display) Scene is responsible for displaying game
@@ -9,10 +7,8 @@ import { Scenes } from "."
  * be non-intrusive, allowing players to focus on the game while still providing
  * essential information at a glance.
  */
-export default class extends Phaser.Scene {
-  constructor() {
-    super(Scenes.HUD)
-  }
+export default class extends BaseScene {
+  static KEY = "HUD"
 
   create() {
     // This text will stay glued to the bottom-right of the screen.

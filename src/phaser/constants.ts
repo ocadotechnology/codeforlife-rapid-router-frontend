@@ -5,3 +5,5 @@ export const COLS = 10
 export const ROWS = 8
 export const TILE_WIDTH = 64
 export const TILE_HEIGHT = 64
+export const MAP_WIDTH = COLS * TILE_WIDTH
+export const MAP_HEIGHT = ROWS * TILE_HEIGHT

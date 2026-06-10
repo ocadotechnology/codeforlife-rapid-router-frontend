@@ -1,6 +1,21 @@
 import Phaser from "phaser"
 
-export default class extends Phaser.Scene {
+import BaseScene from "./BaseScene"
+import { LayerNames } from "../layers"
+import { SCENERY_OBJECT_TYPE } from "../objects/scenery"
+
+export interface BaseLevelData {
+  backgroundTileSetNames: string[]
+  roadTileSetNames: string[]
+  environmentTileSetNames: string[]
+  sceneryTileSetNames: string[]
+}
+
+export default class BaseLevel<
+  Data extends BaseLevelData = BaseLevelData,
+> extends BaseScene<Data> {
+  static KEY = "Level"
+
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTilesets!: Phaser.Tilemaps.Tileset[]
   backgroundLayer!:
@@ -13,84 +28,6 @@ export default class extends Phaser.Scene {
     | Phaser.Tilemaps.TilemapLayer
     | Phaser.Tilemaps.TilemapGPULayer
   sceneryObjects!: Phaser.GameObjects.GameObject[]
-
-  /**
-   * Creates the background layer of the tilemap using the specified tileset
-   * names. The background layer is typically the bottom-most layer of the
-   * tilemap and is rendered first, serving as the visual foundation for the
-   * level. It is important to create this layer before other layers to ensure
-   * proper rendering order.
-   *
-   * @param tilesetNames The names of the tilesets to use for the background
-   * layer.
-   */
-  createBackgroundLayer(tilesetNames: string[]) {
-    this.backgroundTilesets = tilesetNames.map(
-      name => this.tilemap.addTilesetImage(name)!,
-    )
-    this.backgroundLayer = this.tilemap.createLayer(
-      "Background", // This is hardcoded for consistency.
-      this.backgroundTilesets,
-    )!
-  }
-
-  /**
-   * Creates the road layer of the tilemap using the specified tileset names.
-   * The road layer is typically rendered on top of the background layer and
-   * serves as the navigable paths for the player and other entities in the
-   * level. It is important to create this layer after the background layer but
-   * before the obstacle layer to ensure proper rendering order and interaction
-   * between layers.
-   *
-   * @param tilesetNames The names of the tilesets to use for the road layer.
-   */
-  createRoadLayer(tilesetNames: string[]) {
-    this.roadTilesets = tilesetNames.map(
-      name => this.tilemap.addTilesetImage(name)!,
-    )
-    this.roadLayer = this.tilemap.createLayer(
-      "Road", // This is hardcoded for consistency.
-      this.roadTilesets,
-    )
-  }
-
-  /**
-   * Creates the environment layer of the tilemap using the specified tileset
-   * names. The environment layer is typically rendered on top of the background
-   * and road layers and serves as the world objects that the player can see and
-   * potentially interact with in the level, such as traffic lights, buildings,
-   * and other interactive elements.
-   *
-   * @param tilesetNames The names of the tilesets to use for the environment.
-   * layer.
-   */
-  createEnvironmentLayer(tilesetNames: string[]) {
-    this.environmentTilesets = tilesetNames.map(
-      name => this.tilemap.addTilesetImage(name)!,
-    )
-    this.environmentLayer = this.tilemap.createLayer(
-      "Environment", // This is hardcoded for consistency.
-      this.environmentTilesets,
-    )!
-  }
-
-  /**
-   * Creates the scenery objects of the tilemap using the specified types.
-   * Scenery objects are typically rendered on top of all layers and serve as
-   * decorative elements in the level.
-   *
-   * @param types The types of the scenery objects to create.
-   */
-  createSceneryObjects(types: string[]) {
-    this.sceneryObjects = this.tilemap.createFromObjects(
-      "Scenery", // This is hardcoded for consistency.
-      types.map(type => ({
-        type,
-        classType: Phaser.GameObjects.Image,
-        key: type,
-      })),
-    )
-  }
 
   /**
    * Creates the tilemap for the level using the specified key and tileset
@@ -107,29 +44,44 @@ export default class extends Phaser.Scene {
    * environment layer.
    * @param sceneryObjectTypes The types of the scenery objects to create.
    */
-  createTilemap({
-    key,
-    backgroundTilesetNames,
-    roadTilesetNames,
-    environmentTilesetNames,
-    sceneryObjectTypes,
-  }: {
-    key: string
-    backgroundTilesetNames: string[]
-    roadTilesetNames: string[]
-    environmentTilesetNames: string[]
-    sceneryObjectTypes: string[]
-  }) {
+  createTilemap({ key }: { key: string }) {
     this.tilemap = this.make.tilemap({ key })
 
-    // NOTE: The order of these method calls matters.
     // 1. The background layer is created.
+    this.backgroundTilesets = this.initData.backgroundTileSetNames.map(
+      name => this.tilemap.addTilesetImage(name)!,
+    )
+    this.backgroundLayer = this.tilemap.createLayer(
+      LayerNames.Tile.BACKGROUND,
+      this.backgroundTilesets,
+    )
+
     // 2. The road layer is created, on top of the background layer.
+    this.roadTilesets = this.initData.roadTileSetNames.map(
+      name => this.tilemap.addTilesetImage(name)!,
+    )
+    this.roadLayer = this.tilemap.createLayer(
+      LayerNames.Tile.ROAD,
+      this.roadTilesets,
+    )
+
     // 3. The environment layer is created, on top of the road layer.
+    this.environmentTilesets = this.initData.environmentTileSetNames.map(
+      name => this.tilemap.addTilesetImage(name)!,
+    )
+    this.environmentLayer = this.tilemap.createLayer(
+      LayerNames.Tile.ENVIRONMENT,
+      this.environmentTilesets,
+    )
+
     // 4. The scenery objects are created, on top of all layers.
-    this.createBackgroundLayer(backgroundTilesetNames)
-    this.createRoadLayer(roadTilesetNames)
-    this.createEnvironmentLayer(environmentTilesetNames)
-    this.createSceneryObjects(sceneryObjectTypes)
+    this.sceneryObjects = this.tilemap.createFromObjects(
+      LayerNames.ObjectGroup.SCENERY,
+      this.initData.sceneryTileSetNames.map(name => ({
+        key: name,
+        type: SCENERY_OBJECT_TYPE,
+        classType: Phaser.GameObjects.Image,
+      })),
+    )
   }
 }

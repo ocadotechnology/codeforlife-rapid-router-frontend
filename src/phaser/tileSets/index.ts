@@ -3,6 +3,11 @@ import type { TiledProperty, TiledTileset } from "tiled-types"
 import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
 import { type DeepNumbersOf } from "../utils"
 
+export type { BackgroundTileSet, BackgroundTileSetID } from "./background"
+export type { EnvironmentTileSet, EnvironmentTileSetID } from "./environment"
+export type { RoadTileSet, RoadTileSetID } from "./road"
+export type { SceneryTileSet, SceneryTileSetID } from "./scenery"
+
 type PathSpec = string | { readonly [key: string]: PathSpec }
 
 type PathSpecToResult<T, ID extends number> = T extends string
@@ -60,6 +65,16 @@ export function setIDs<T extends Record<number, PathSpec>>(
   return result as SetIDs<T>
 }
 
+export function flattenIDs<T extends object>(obj: T): DeepNumbersOf<T>[] {
+  return Object.values(obj).flatMap(v =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    typeof v === "number"
+      ? [v]
+      : // @ts-expect-error Ignore infinite type recursion.
+        flattenIDs(v),
+  ) as DeepNumbersOf<T>[]
+}
+
 /**
  * Tilesets are defined in a way that allows us to easily map numeric tile IDs
  * from the Tiled map editor to descriptive string paths that we can use to
@@ -112,30 +127,20 @@ export const TileSetIDs = setIDs({
   35: { Environment: { Snow: "SCHOOL" } },
   36: { Environment: { Snow: "SHOP" } },
   37: { Environment: { Snow: "SOLAR_PANEL" } },
-  38: { Environment: { TrafficLight: "GREEN" } },
-  39: { Environment: { TrafficLight: "RED" } },
-  40: { Environment: "PIGEON" },
+  38: { Environment: { Common: { TrafficLight: "GREEN" } } },
+  39: { Environment: { Common: { TrafficLight: "RED" } } },
+  40: { Environment: { Common: "PIGEON" } },
   41: { Scenery: { Snow: "BUSH" } },
   42: { Scenery: { Snow: "POND" } },
   43: { Scenery: { Snow: "TREE1" } },
   44: { Scenery: { Snow: "TREE2" } },
-  45: { Scenery: "BUSH" },
-  46: { Scenery: "HAY" },
-  47: { Scenery: "POND" },
-  48: { Scenery: "TREE1" },
-  49: { Scenery: "TREE2" },
+  45: { Scenery: { Common: "BUSH" } },
+  46: { Scenery: { Common: "HAY" } },
+  47: { Scenery: { Common: "POND" } },
+  48: { Scenery: { Common: "TREE1" } },
+  49: { Scenery: { Common: "TREE2" } },
 } as const)
 export type TileSetID = DeepNumbersOf<typeof TileSetIDs>
-// NOTE: Background tiles cannot be empty.
-export type BackgroundTileSetID = DeepNumbersOf<typeof TileSetIDs.Background>
-export type RoadTileSetID =
-  | typeof TileSetIDs.EMPTY
-  | DeepNumbersOf<typeof TileSetIDs.Road>
-export type EnvironmentTileSetID =
-  | typeof TileSetIDs.EMPTY
-  | DeepNumbersOf<typeof TileSetIDs.Environment>
-// NOTE: Scenery tiles cannot be empty.
-export type SceneryTileSetID = DeepNumbersOf<typeof TileSetIDs.Scenery>
 
 export type TileSet<
   GID extends TileSetID = TileSetID,
@@ -165,33 +170,40 @@ export type MakeTileSetOptions<
 export const makeTileSet = <
   GID extends TileSetID,
   Props extends TiledProperty[] | undefined = undefined,
->({
-  image,
-  name,
-  tilecount = 1,
-  columns = 1,
-  spacing = 0,
-  margin = 0,
-  imageheight = TILE_HEIGHT,
-  imagewidth = TILE_WIDTH,
-  tileheight = TILE_HEIGHT,
-  tilewidth = TILE_WIDTH,
-  properties,
-  ...tileset
-}: MakeTileSetOptions<GID, Props>): TileSet<GID, Props> => ({
-  image,
-  name: name ?? image, // Use the provided name or fallback to the image path.
-  tilecount,
-  columns,
-  spacing,
-  margin,
-  imageheight,
-  imagewidth,
-  tileheight,
-  tilewidth,
-  properties: properties as Props,
-  ...tileset,
-})
+>(
+  importMetaUrl: string,
+  {
+    image,
+    name,
+    tilecount = 1,
+    columns = 1,
+    spacing = 0,
+    margin = 0,
+    imageheight = TILE_HEIGHT,
+    imagewidth = TILE_WIDTH,
+    tileheight = TILE_HEIGHT,
+    tilewidth = TILE_WIDTH,
+    properties,
+    ...tileset
+  }: MakeTileSetOptions<GID, Props>,
+): TileSet<GID, Props> => {
+  image = new URL(image, importMetaUrl).href
+
+  return {
+    image,
+    name: name ?? image, // Use the provided name or fallback to the image path.
+    tilecount,
+    columns,
+    spacing,
+    margin,
+    imageheight,
+    imagewidth,
+    tileheight,
+    tilewidth,
+    properties: properties as Props,
+    ...tileset,
+  }
+}
 
 const H = 0x80000000
 const V = 0x40000000

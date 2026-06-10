@@ -1,15 +1,17 @@
-import Phaser from "phaser"
+import BaseScene from "./BaseScene"
 
-import { SVGs } from "../enums"
+export default class BasePreloader<
+  Data extends object | undefined = undefined,
+> extends BaseScene<Data> {
+  static KEY = "Preloader"
 
-export default class extends Phaser.Scene {
   // Blob URLs created during preload; revoked in create() once textures are
   // cached by Phaser.
   private blobUrls: string[] = []
 
   init() {
     // We loaded this image in our Boot Scene, so we can display it here
-    this.add.image(512, 384, SVGs.Logos.RR._)
+    this.add.image(512, 384, "logo")
 
     // A simple progress bar. This is the outline of the bar.
     this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff)

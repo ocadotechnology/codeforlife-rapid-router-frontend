@@ -1,6 +1,19 @@
-import { type MakeTileSetOptions, type RoadTileSetID, makeTileSet } from ".."
+import {
+  type MakeTileSetOptions,
+  TileSetIDs,
+  flattenIDs,
+  makeTileSet,
+} from ".."
 import type { AsphaltRoadTileSet } from "./asphalt"
 import type { DirtRoadTileSet } from "./dirt"
+
+export const RoadTileSetIDs = [
+  TileSetIDs.EMPTY, // Road tiles can be empty.
+  ...flattenIDs(TileSetIDs.Road),
+]
+export type RoadTileSetID = (typeof RoadTileSetIDs)[number]
+
+export type RoadTileSet = AsphaltRoadTileSet | DirtRoadTileSet
 
 type RoadTileSetProperties<
   F extends boolean,
@@ -38,16 +51,19 @@ export const makeRoadTileSet = <
   B extends boolean,
   L extends boolean,
   R extends boolean,
->({
-  properties: {
-    canDriveForwards,
-    canDriveBackwards,
-    canTurnLeft,
-    canTurnRight,
-  },
-  ...options
-}: MakeRoadTileSetOptions<GID, F, B, L, R>) =>
-  makeTileSet({
+>(
+  importMetaUrl: string,
+  {
+    properties: {
+      canDriveForwards,
+      canDriveBackwards,
+      canTurnLeft,
+      canTurnRight,
+    },
+    ...options
+  }: MakeRoadTileSetOptions<GID, F, B, L, R>,
+) =>
+  makeTileSet(importMetaUrl, {
     properties: [
       { name: "canDriveForwards", value: canDriveForwards, type: "bool" },
       { name: "canDriveBackwards", value: canDriveBackwards, type: "bool" },
@@ -56,5 +72,3 @@ export const makeRoadTileSet = <
     ] as RoadTileSetProperties<F, B, L, R>,
     ...options,
   })
-
-export type RoadTileSet = AsphaltRoadTileSet | DirtRoadTileSet

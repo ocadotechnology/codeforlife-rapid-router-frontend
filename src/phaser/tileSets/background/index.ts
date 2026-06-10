@@ -1,29 +1,32 @@
 import {
-  type BackgroundTileSetID,
   type MakeTileSetOptions,
   TileSetIDs,
+  flattenIDs,
   makeTileSet,
 } from ".."
+
+export const BackgroundTileSetIDs = flattenIDs(TileSetIDs.Background)
+export type BackgroundTileSetID = (typeof BackgroundTileSetIDs)[number]
 
 export type MakeBackgroundTileSetOptions<GID extends BackgroundTileSetID> =
   MakeTileSetOptions<GID>
 
 export const makeBackgroundTileSet = <GID extends BackgroundTileSetID>(
   options: MakeBackgroundTileSetOptions<GID>,
-) => makeTileSet(options)
+) => makeTileSet(import.meta.url, options)
 
 export const grass = makeBackgroundTileSet({
-  image: new URL(`./grass.svg`, import.meta.url).href,
+  image: "./grass.svg",
   firstgid: TileSetIDs.Background.GRASS,
 })
 
 export const snow = makeBackgroundTileSet({
-  image: new URL(`./snow.svg`, import.meta.url).href,
+  image: "./snow.svg",
   firstgid: TileSetIDs.Background.SNOW,
 })
 
 export const pavement = makeBackgroundTileSet({
-  image: new URL(`./pavement.svg`, import.meta.url).href,
+  image: "./pavement.svg",
   firstgid: TileSetIDs.Background.PAVEMENT,
 })
 
