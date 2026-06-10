@@ -1,0 +1,22 @@
+import type { TiledProperty as Property } from "tiled-types"
+
+import * as objects from "../objects"
+import type { ID } from "../../tileSets/scenery"
+
+export const TYPE = "scenery"
+
+export type MakeBaseKwArgs<N extends string, GID extends ID> = Omit<
+  objects.MakeBaseKwArgs<typeof TYPE, N, Property[], GID>,
+  "type" | "gid"
+> & { gid: GID }
+
+export const makeBase = <N extends string, GID extends ID>(
+  kwArgs: MakeBaseKwArgs<N, GID>,
+) =>
+  objects.makeBase({
+    type: TYPE,
+    properties: [],
+    ...kwArgs,
+  }) as Omit<objects.ObjectBase<typeof TYPE, N, Property[], GID>, "gid"> & {
+    gid: GID
+  }

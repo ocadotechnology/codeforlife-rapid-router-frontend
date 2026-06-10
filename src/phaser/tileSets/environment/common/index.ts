@@ -1,34 +1,28 @@
-import { type MakeEnvironmentTileSetOptions, makeEnvironmentTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as environment from "../environment"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const CommonEnvironmentTileSetIDs = flattenIDs(
-  TileSetIDs.Environment.Common,
-)
-export type CommonEnvironmentTileSetID =
-  (typeof CommonEnvironmentTileSetIDs)[number]
+const _IDs = tilesets.IDs.Environment.Common
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeCommonEnvironmentTileSet = <GID extends CommonEnvironmentTileSetID>(
-  options: MakeEnvironmentTileSetOptions<GID, boolean>,
-) => makeEnvironmentTileSet(import.meta.url, options)
+const make = <GID extends ID, T extends boolean = false>(
+  kwArgs: environment.MakeKwArgs<GID, T>,
+) => environment.make(import.meta.url, kwArgs)
 
 export const trafficLight = {
-  red: makeCommonEnvironmentTileSet({
+  red: make({
     image: "./trafficLight/red.svg",
-    firstgid: TileSetIDs.Environment.Common.TrafficLight.RED,
+    firstgid: _IDs.TrafficLight.RED,
   }),
-  green: makeCommonEnvironmentTileSet({
+  green: make({
     image: "./trafficLight/green.svg",
-    firstgid: TileSetIDs.Environment.Common.TrafficLight.GREEN,
+    firstgid: _IDs.TrafficLight.GREEN,
     properties: { canDriveThrough: true },
   }),
 } as const
 
-export const pigeon = makeCommonEnvironmentTileSet({
+export const pigeon = make({
   image: "./pigeon.svg",
-  firstgid: TileSetIDs.Environment.Common.PIGEON,
+  firstgid: _IDs.PIGEON,
 })
-
-export type CommonEnvironmentTileSet =
-  | typeof trafficLight.red
-  | typeof trafficLight.green
-  | typeof pigeon

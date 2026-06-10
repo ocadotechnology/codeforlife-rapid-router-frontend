@@ -1,16 +1,24 @@
-import { type MakeRoadTileSetOptions, makeRoadTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as road from "../road"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const DirtRoadTileSetIDs = flattenIDs(TileSetIDs.Road.Dirt)
-export type DirtRoadTileSetID = (typeof DirtRoadTileSetIDs)[number]
+const _IDs = tilesets.IDs.Road.Dirt
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeDirtRoadTileSet = <GID extends DirtRoadTileSetID>(
-  options: MakeRoadTileSetOptions<GID, boolean, boolean, boolean, boolean>,
-) => makeRoadTileSet(import.meta.url, options)
+const make = <
+  GID extends ID,
+  F extends boolean,
+  B extends boolean,
+  L extends boolean,
+  R extends boolean,
+>(
+  kwArgs: road.MakeKwArgs<GID, F, B, L, R>,
+) => road.make(import.meta.url, kwArgs)
 
-export const crossroads = makeDirtRoadTileSet({
+export const crossroads = make({
   image: "./crossroads.svg",
-  firstgid: TileSetIDs.Road.Dirt.CROSSROADS,
+  firstgid: _IDs.CROSSROADS,
   properties: {
     canDriveForwards: true,
     canDriveBackwards: true,
@@ -19,9 +27,9 @@ export const crossroads = makeDirtRoadTileSet({
   },
 })
 
-export const deadEnd = makeDirtRoadTileSet({
+export const deadEnd = make({
   image: "./dead_end.svg",
-  firstgid: TileSetIDs.Road.Dirt.DEAD_END,
+  firstgid: _IDs.DEAD_END,
   properties: {
     canDriveForwards: false,
     canDriveBackwards: true,
@@ -30,9 +38,9 @@ export const deadEnd = makeDirtRoadTileSet({
   },
 })
 
-export const straight = makeDirtRoadTileSet({
+export const straight = make({
   image: "./straight.svg",
-  firstgid: TileSetIDs.Road.Dirt.STRAIGHT,
+  firstgid: _IDs.STRAIGHT,
   properties: {
     canDriveForwards: true,
     canDriveBackwards: true,
@@ -41,9 +49,9 @@ export const straight = makeDirtRoadTileSet({
   },
 })
 
-export const tJunction = makeDirtRoadTileSet({
+export const tJunction = make({
   image: "./t_junction.svg",
-  firstgid: TileSetIDs.Road.Dirt.T_JUNCTION,
+  firstgid: _IDs.T_JUNCTION,
   properties: {
     canDriveForwards: false,
     canDriveBackwards: true,
@@ -52,9 +60,9 @@ export const tJunction = makeDirtRoadTileSet({
   },
 })
 
-export const turn = makeDirtRoadTileSet({
+export const turn = make({
   image: "./turn.svg",
-  firstgid: TileSetIDs.Road.Dirt.TURN,
+  firstgid: _IDs.TURN,
   properties: {
     canDriveForwards: false,
     canDriveBackwards: false,
@@ -62,10 +70,3 @@ export const turn = makeDirtRoadTileSet({
     canTurnRight: true,
   },
 })
-
-export type DirtRoadTileSet =
-  | typeof crossroads
-  | typeof deadEnd
-  | typeof straight
-  | typeof tJunction
-  | typeof turn

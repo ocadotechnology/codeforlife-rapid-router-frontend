@@ -1,33 +1,24 @@
-import {
-  type MakeTileSetOptions,
-  TileSetIDs,
-  flattenIDs,
-  makeTileSet,
-} from ".."
+import * as tilesets from "../tilesets"
+import { flattenIDs } from "../../utils"
 
-export const BackgroundTileSetIDs = flattenIDs(TileSetIDs.Background)
-export type BackgroundTileSetID = (typeof BackgroundTileSetIDs)[number]
+const _IDs = tilesets.IDs.Background
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-export type MakeBackgroundTileSetOptions<GID extends BackgroundTileSetID> =
-  MakeTileSetOptions<GID>
+const make = <GID extends ID>(kwArgs: tilesets.MakeKwArgs<GID>) =>
+  tilesets.make(import.meta.url, kwArgs)
 
-export const makeBackgroundTileSet = <GID extends BackgroundTileSetID>(
-  options: MakeBackgroundTileSetOptions<GID>,
-) => makeTileSet(import.meta.url, options)
-
-export const grass = makeBackgroundTileSet({
+export const grass = make({
   image: "./grass.svg",
-  firstgid: TileSetIDs.Background.GRASS,
+  firstgid: _IDs.GRASS,
 })
 
-export const snow = makeBackgroundTileSet({
+export const snow = make({
   image: "./snow.svg",
-  firstgid: TileSetIDs.Background.SNOW,
+  firstgid: _IDs.SNOW,
 })
 
-export const pavement = makeBackgroundTileSet({
+export const pavement = make({
   image: "./pavement.svg",
-  firstgid: TileSetIDs.Background.PAVEMENT,
+  firstgid: _IDs.PAVEMENT,
 })
-
-export type BackgroundTileSet = typeof grass | typeof snow | typeof pavement

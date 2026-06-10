@@ -1,41 +1,35 @@
-import { type MakeSceneryTileSetOptions, makeSceneryTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as scenery from "../scenery"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const CommonSceneryTileSetIDs = flattenIDs(TileSetIDs.Scenery.Common)
-export type CommonSceneryTileSetID = (typeof CommonSceneryTileSetIDs)[number]
+const _IDs = tilesets.IDs.Scenery.Common
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeCommonSceneryTileSet = <GID extends CommonSceneryTileSetID>(
-  options: MakeSceneryTileSetOptions<GID>,
-) => makeSceneryTileSet(import.meta.url, options)
+const make = <GID extends ID>(kwArgs: scenery.MakeKwArgs<GID>) =>
+  scenery.make(import.meta.url, kwArgs)
 
-export const bush = makeCommonSceneryTileSet({
+export const bush = make({
   image: "./bush.svg",
-  firstgid: TileSetIDs.Scenery.Common.BUSH,
+  firstgid: _IDs.BUSH,
 })
 
-export const hay = makeCommonSceneryTileSet({
+export const hay = make({
   image: "./hay.svg",
-  firstgid: TileSetIDs.Scenery.Common.HAY,
+  firstgid: _IDs.HAY,
 })
 
-export const pond = makeCommonSceneryTileSet({
+export const pond = make({
   image: "./pond.svg",
-  firstgid: TileSetIDs.Scenery.Common.POND,
+  firstgid: _IDs.POND,
 })
 
-export const tree1 = makeCommonSceneryTileSet({
+export const tree1 = make({
   image: "./tree1.svg",
-  firstgid: TileSetIDs.Scenery.Common.TREE1,
+  firstgid: _IDs.TREE1,
 })
 
-export const tree2 = makeCommonSceneryTileSet({
+export const tree2 = make({
   image: "./tree2.svg",
-  firstgid: TileSetIDs.Scenery.Common.TREE2,
+  firstgid: _IDs.TREE2,
 })
-
-export type CommonSceneryTileSet =
-  | typeof bush
-  | typeof hay
-  | typeof pond
-  | typeof tree1
-  | typeof tree2

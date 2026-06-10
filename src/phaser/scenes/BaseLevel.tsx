@@ -1,8 +1,8 @@
 import Phaser from "phaser"
 
+import * as layers from "../layers"
+import * as objects from "../objects"
 import BaseScene from "./BaseScene"
-import { LayerNames } from "../layers"
-import { SCENERY_OBJECT_TYPE } from "../objects/scenery"
 
 export interface BaseLevelData {
   backgroundTileSetNames: string[]
@@ -52,7 +52,7 @@ export default class BaseLevel<
       name => this.tilemap.addTilesetImage(name)!,
     )
     this.backgroundLayer = this.tilemap.createLayer(
-      LayerNames.Tile.BACKGROUND,
+      layers.Names.Tile.BACKGROUND,
       this.backgroundTilesets,
     )
 
@@ -61,7 +61,7 @@ export default class BaseLevel<
       name => this.tilemap.addTilesetImage(name)!,
     )
     this.roadLayer = this.tilemap.createLayer(
-      LayerNames.Tile.ROAD,
+      layers.Names.Tile.ROAD,
       this.roadTilesets,
     )
 
@@ -70,16 +70,16 @@ export default class BaseLevel<
       name => this.tilemap.addTilesetImage(name)!,
     )
     this.environmentLayer = this.tilemap.createLayer(
-      LayerNames.Tile.ENVIRONMENT,
+      layers.Names.Tile.ENVIRONMENT,
       this.environmentTilesets,
     )
 
     // 4. The scenery objects are created, on top of all layers.
     this.sceneryObjects = this.tilemap.createFromObjects(
-      LayerNames.ObjectGroup.SCENERY,
+      layers.Names.ObjectGroup.SCENERY,
       this.initData.sceneryTileSetNames.map(name => ({
         key: name,
-        type: SCENERY_OBJECT_TYPE,
+        type: objects.scenery.TYPE,
         classType: Phaser.GameObjects.Image,
       })),
     )

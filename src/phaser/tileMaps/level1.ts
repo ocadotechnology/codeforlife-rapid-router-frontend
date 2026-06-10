@@ -1,68 +1,67 @@
-import * as asphaltRoadTileSets from "../tileSets/road/asphalt"
-import * as backgroundTileSets from "../tileSets/background"
-import * as commonEnvironmentTileSets from "../tileSets/environment/common"
-import * as commonSceneryObjects from "../objects/scenery/common"
-import * as commonSceneryTileSets from "../tileSets/scenery/common"
-import { fillManyTileLayerRows, fillTileLayerRow } from "../layers"
+import * as layers from "../layers"
+import * as objects from "../objects"
+import * as tilesets from "../tileSets"
 import { makeOrthogonalTileMap } from "."
-import { rotateTileSet } from "../tileSets"
 
 export default makeOrthogonalTileMap({
   tilesets: [
-    backgroundTileSets.grass,
-    asphaltRoadTileSets.straight,
-    commonEnvironmentTileSets.trafficLight.red,
-    commonEnvironmentTileSets.trafficLight.green,
-    commonSceneryTileSets.tree1,
-    commonSceneryTileSets.tree2,
+    tilesets.background.grass,
+    tilesets.road.asphalt.straight,
+    tilesets.road.asphalt.deadEnd,
+    tilesets.environment.common.trafficLight.red,
+    tilesets.scenery.common.tree1,
+    tilesets.scenery.common.tree2,
   ],
   layers: {
     // Rows 1 to 8 - 10 columns of grass tiles
     background: {
-      data: fillManyTileLayerRows({ id: backgroundTileSets.grass.firstgid }),
+      data: layers.tile.fillManyRows({
+        id: tilesets.background.grass.firstgid,
+      }),
     },
     road: {
       data: [
         // Row 1
         [
-          0,
-          rotateTileSet(asphaltRoadTileSets.straight.firstgid, 90),
-          ...fillTileLayerRow({ cols: 8 }),
+          tilesets.IDs.EMPTY,
+          tilesets.rotateC(tilesets.IDs.Road.Asphalt.STRAIGHT, 90),
+          tilesets.rotateC(tilesets.IDs.Road.Asphalt.DEAD_END, 90),
+          ...layers.tile.fillRow({ cols: 7 }),
         ],
         // Row 2 to 8 - 10 columns of empty tiles
-        ...fillManyTileLayerRows({ rows: 7 }),
+        ...layers.tile.fillManyRows({ rows: 7 }),
       ],
     },
     environment: {
       data: [
         // Row 1 to 2 - 10 columns of empty tiles
-        ...fillManyTileLayerRows({ rows: 2 }),
+        ...layers.tile.fillManyRows({ rows: 2 }),
         // Row 3
         [
-          ...fillTileLayerRow({ cols: 5 }), // 5 columns of empty tiles
-          commonEnvironmentTileSets.trafficLight.red.firstgid,
-          ...fillTileLayerRow({ cols: 4 }), // 4 columns of empty tiles
+          ...layers.tile.fillRow({ cols: 5 }), // 5 columns of empty tiles
+          tilesets.IDs.Environment.Common.TrafficLight.RED,
+          ...layers.tile.fillRow({ cols: 4 }), // 4 columns of empty tiles
         ],
-        fillTileLayerRow(), // Row 4 - 10 columns of empty tiles
+        layers.tile.fillRow(), // Row 4 - 10 columns of empty tiles
         // Row 5
         [
-          ...fillTileLayerRow({ cols: 2 }), // 2 columns of empty tiles
-          commonEnvironmentTileSets.trafficLight.red.firstgid,
-          ...fillTileLayerRow({ cols: 7 }), // 7 columns of empty tiles
+          ...layers.tile.fillRow({ cols: 2 }), // 2 columns of empty tiles
+          tilesets.IDs.Environment.Common.TrafficLight.RED,
+          ...layers.tile.fillRow({ cols: 7 }), // 7 columns of empty tiles
         ],
         // Row 6
         [
-          ...fillTileLayerRow({ cols: 9 }), // 9 columns of empty tiles
-          commonEnvironmentTileSets.trafficLight.red.firstgid,
+          ...layers.tile.fillRow({ cols: 9 }), // 9 columns of empty tiles
+          tilesets.IDs.Environment.Common.TrafficLight.RED,
         ],
         // Row 7 to 8 - 10 columns of empty tiles
-        ...fillManyTileLayerRows({ rows: 2 }),
+        ...layers.tile.fillManyRows({ rows: 2 }),
       ],
     },
     scenery: {
       objects: [
-        { ...commonSceneryObjects.tree1, x: 128, y: 128 },
-        { ...commonSceneryObjects.tree2, x: 256, y: 128 },
+        { ...objects.scenery.common.tree1, x: 128, y: 128 },
+        { ...objects.scenery.common.tree2, x: 256, y: 128 },
       ],
     },
   },

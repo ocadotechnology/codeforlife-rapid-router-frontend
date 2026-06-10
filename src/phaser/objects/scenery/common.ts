@@ -1,34 +1,29 @@
-import { TileSetIDs } from "../../tileSets"
-import { makeSceneryObjectBase } from "."
+import * as scenery from "./scenery"
+import * as tilesets from "../../tileSets"
 
-export const bush = makeSceneryObjectBase({
-  gid: TileSetIDs.Scenery.Common.BUSH,
+const _IDs = tilesets.IDs.Scenery.Common
+
+export const bush = scenery.makeBase({
+  gid: _IDs.BUSH,
   name: "Bush",
 })
 
-export const hay = makeSceneryObjectBase({
-  gid: TileSetIDs.Scenery.Common.HAY,
+export const hay = scenery.makeBase({
+  gid: _IDs.HAY,
   name: "Hay",
 })
 
-export const pond = makeSceneryObjectBase({
-  gid: TileSetIDs.Scenery.Common.POND,
+export const pond = scenery.makeBase({
+  gid: _IDs.POND,
   name: "Pond",
 })
 
-export const tree1 = makeSceneryObjectBase({
-  gid: TileSetIDs.Scenery.Common.TREE1,
+export const tree1 = scenery.makeBase({
+  gid: _IDs.TREE1,
   name: "Tree 1",
 })
 
-export const tree2 = makeSceneryObjectBase({
-  gid: TileSetIDs.Scenery.Common.TREE2,
+export const tree2 = scenery.makeBase({
+  gid: _IDs.TREE2,
   name: "Tree 2",
 })
-
-export type CommonSceneryObjectBase =
-  | typeof bush
-  | typeof hay
-  | typeof pond
-  | typeof tree1
-  | typeof tree2

@@ -1,42 +1,36 @@
-import { type MakeEnvironmentTileSetOptions, makeEnvironmentTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as environment from "../environment"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const CityEnvironmentTileSetIDs = flattenIDs(TileSetIDs.Environment.City)
-export type CityEnvironmentTileSetID =
-  (typeof CityEnvironmentTileSetIDs)[number]
+const _IDs = tilesets.IDs.Environment.City
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeCityEnvironmentTileSet = <GID extends CityEnvironmentTileSetID>(
-  options: MakeEnvironmentTileSetOptions<GID, boolean>,
-) => makeEnvironmentTileSet(import.meta.url, options)
+const make = <GID extends ID, T extends boolean = false>(
+  kwArgs: environment.MakeKwArgs<GID, T>,
+) => environment.make(import.meta.url, kwArgs)
 
-export const hospital = makeCityEnvironmentTileSet({
+export const hospital = make({
   image: "./hospital.svg",
-  firstgid: TileSetIDs.Environment.City.HOSPITAL,
+  firstgid: _IDs.HOSPITAL,
 })
 
-export const house = makeCityEnvironmentTileSet({
+export const house = make({
   image: "./house.svg",
-  firstgid: TileSetIDs.Environment.City.HOUSE,
+  firstgid: _IDs.HOUSE,
 })
 
-export const school = makeCityEnvironmentTileSet({
+export const school = make({
   image: "./school.svg",
-  firstgid: TileSetIDs.Environment.City.SCHOOL,
+  firstgid: _IDs.SCHOOL,
 })
 
-export const shop = makeCityEnvironmentTileSet({
+export const shop = make({
   image: "./shop.svg",
-  firstgid: TileSetIDs.Environment.City.SHOP,
+  firstgid: _IDs.SHOP,
 })
 
-export const solarPanel = makeCityEnvironmentTileSet({
+export const solarPanel = make({
   image: "./solar_panel.svg",
-  firstgid: TileSetIDs.Environment.City.SOLAR_PANEL,
+  firstgid: _IDs.SOLAR_PANEL,
 })
-
-export type CityEnvironmentTileSet =
-  | typeof hospital
-  | typeof house
-  | typeof school
-  | typeof shop
-  | typeof solarPanel

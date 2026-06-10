@@ -1,20 +1,7 @@
 import Phaser from "phaser"
 import type { TiledTileset as TileSet } from "tiled-types"
 
-import {
-  type BackgroundTileSetID,
-  BackgroundTileSetIDs,
-} from "../../tileSets/background"
-import {
-  type EnvironmentTileSetID,
-  EnvironmentTileSetIDs,
-} from "../../tileSets/environment"
-import { type RoadTileSetID, RoadTileSetIDs } from "../../tileSets/road"
-import {
-  type SceneryTileSetID,
-  SceneryTileSetIDs,
-} from "../../tileSets/scenery"
-
+import * as tilesets from "../../tileSets"
 import Level, { type LevelData } from "./Level"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../constants"
 import BasePreloader from "../BasePreloader"
@@ -55,13 +42,15 @@ export default class extends BasePreloader {
     } of tileSets) {
       // Categorize the tileset based on its GID and store the relevant data in
       // levelData for later use in the Level Scene.
-      if (BackgroundTileSetIDs.includes(id as BackgroundTileSetID)) {
+      if (tilesets.background.IDs.includes(id as tilesets.background.ID)) {
         this.levelData.backgroundTileSetNames.push(name)
-      } else if (RoadTileSetIDs.includes(id as RoadTileSetID)) {
+      } else if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
         this.levelData.roadTileSetNames.push(name)
-      } else if (EnvironmentTileSetIDs.includes(id as EnvironmentTileSetID)) {
+      } else if (
+        tilesets.environment.IDs.includes(id as tilesets.environment.ID)
+      ) {
         this.levelData.environmentTileSetNames.push(name)
-      } else if (SceneryTileSetIDs.includes(id as SceneryTileSetID)) {
+      } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
         this.levelData.sceneryTileSetNames.push(name)
       } else {
         throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)

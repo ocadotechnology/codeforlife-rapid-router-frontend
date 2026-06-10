@@ -1,19 +1,8 @@
 import type { TiledMapOrthogonal as OrthogonalTileMap } from "tiled-types"
 
-import type {
-  BackgroundTileSetID,
-  EnvironmentTileSetID,
-  RoadTileSetID,
-  SceneryTileSetID,
-} from "../tileSets"
+import * as layers from "../layers"
+import type * as tilesets from "../tileSets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../constants"
-import {
-  LayerNames,
-  type MakeObjectGroupLayerOptions,
-  type MakeTileLayerOptions,
-  makeObjectGroupLayer,
-  makeTileLayer,
-} from "../layers"
 
 type MakeOrthogonalTileMapPartials =
   | "renderorder"
@@ -33,19 +22,36 @@ export type MakeOrthogonalTileMapOptions<
     height?: ROWS
     layers: {
       background: Omit<
-        MakeTileLayerOptions<"Background", BackgroundTileSetID, COLS, ROWS>,
+        layers.tile.MakeKwArgs<
+          "Background",
+          tilesets.background.ID,
+          COLS,
+          ROWS
+        >,
         "name"
       >
       road: Omit<
-        MakeTileLayerOptions<"Road", RoadTileSetID, COLS, ROWS>,
+        layers.tile.MakeKwArgs<
+          "Road",
+          // Road tiles can be empty.
+          typeof tilesets.IDs.EMPTY | tilesets.road.ID,
+          COLS,
+          ROWS
+        >,
         "name"
       >
       environment: Omit<
-        MakeTileLayerOptions<"Environment", EnvironmentTileSetID, COLS, ROWS>,
+        layers.tile.MakeKwArgs<
+          "Environment",
+          // Environment tiles can be empty.
+          typeof tilesets.IDs.EMPTY | tilesets.environment.ID,
+          COLS,
+          ROWS
+        >,
         "name"
       >
       scenery: Omit<
-        MakeObjectGroupLayerOptions<"Scenery", SceneryTileSetID>,
+        layers.objectGroup.MakeKwArgs<"Scenery", tilesets.scenery.ID>,
         "name"
       >
     }
@@ -62,8 +68,8 @@ export const makeOrthogonalTileMap = <
   height: mapHeight = ROWS as ROWS,
   tilewidth: mapTileWidth = TILE_WIDTH,
   tileheight: mapTileHeight = TILE_HEIGHT,
-  tilesets,
-  layers,
+  tilesets: _tilesets,
+  layers: _layers,
   ...tilemap
 }: MakeOrthogonalTileMapOptions<COLS, ROWS>): OrthogonalTileMap => {
   // Provide default values for layer dimensions based on the tilemap
@@ -74,23 +80,23 @@ export const makeOrthogonalTileMap = <
     width: backgroundWidth = mapWidth,
     height: backgroundHeight = mapHeight,
     ...backgroundLayer
-  } = layers.background
+  } = _layers.background
   const {
     width: roadWidth = mapWidth,
     height: roadHeight = mapHeight,
     ...roadLayer
-  } = layers.road
+  } = _layers.road
   const {
     width: environmentWidth = mapWidth,
     height: environmentHeight = mapHeight,
     ...environmentLayer
-  } = layers.environment
+  } = _layers.environment
   const {
     width: sceneryWidth = mapWidth,
     height: sceneryHeight = mapHeight,
     objects: sceneryObjects,
     ...sceneryLayer
-  } = layers.scenery
+  } = _layers.scenery
 
   return {
     orientation: "orthogonal",
@@ -101,7 +107,7 @@ export const makeOrthogonalTileMap = <
     height: mapHeight,
     tilewidth: mapTileWidth,
     tileheight: mapTileHeight,
-    tilesets: tilesets.map(
+    tilesets: _tilesets.map(
       ({
         // Provide default values for width and height based on the tilewidth
         // and tileheight of the tilemap.
@@ -119,26 +125,26 @@ export const makeOrthogonalTileMap = <
       }),
     ),
     layers: [
-      makeTileLayer({
-        name: LayerNames.Tile.BACKGROUND,
+      layers.tile.make({
+        name: layers.Names.Tile.BACKGROUND,
         width: backgroundWidth,
         height: backgroundHeight,
         ...backgroundLayer,
       }),
-      makeTileLayer({
-        name: LayerNames.Tile.ROAD,
+      layers.tile.make({
+        name: layers.Names.Tile.ROAD,
         width: roadWidth,
         height: roadHeight,
         ...roadLayer,
       }),
-      makeTileLayer({
-        name: LayerNames.Tile.ENVIRONMENT,
+      layers.tile.make({
+        name: layers.Names.Tile.ENVIRONMENT,
         width: environmentWidth,
         height: environmentHeight,
         ...environmentLayer,
       }),
-      makeObjectGroupLayer({
-        name: LayerNames.ObjectGroup.SCENERY,
+      layers.objectGroup.make({
+        name: layers.Names.ObjectGroup.SCENERY,
         width: sceneryWidth,
         height: sceneryHeight,
         objects: sceneryObjects.map(

@@ -1,48 +1,41 @@
-import { type MakeEnvironmentTileSetOptions, makeEnvironmentTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as environment from "../environment"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const FarmEnvironmentTileSetIDs = flattenIDs(TileSetIDs.Environment.Farm)
-export type FarmEnvironmentTileSetID =
-  (typeof FarmEnvironmentTileSetIDs)[number]
+const _IDs = tilesets.IDs.Environment.Farm
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeFarmEnvironmentTileSet = <GID extends FarmEnvironmentTileSetID>(
-  options: MakeEnvironmentTileSetOptions<GID, boolean>,
-) => makeEnvironmentTileSet(import.meta.url, options)
+const make = <GID extends ID, T extends boolean = false>(
+  kwArgs: environment.MakeKwArgs<GID, T>,
+) => environment.make(import.meta.url, kwArgs)
 
-export const cfcBlack = makeFarmEnvironmentTileSet({
+export const cfcBlack = make({
   image: "./cfc_black.svg",
-  firstgid: TileSetIDs.Environment.Farm.CFC_BLACK,
+  firstgid: _IDs.CFC_BLACK,
 })
 
-export const cfc = makeFarmEnvironmentTileSet({
+export const cfc = make({
   image: "./cfc.svg",
-  firstgid: TileSetIDs.Environment.Farm.CFC,
+  firstgid: _IDs.CFC,
 })
 
-export const crops = makeFarmEnvironmentTileSet({
+export const crops = make({
   image: "./crops.svg",
-  firstgid: TileSetIDs.Environment.Farm.CROPS,
+  firstgid: _IDs.CROPS,
 })
 
-export const house1 = makeFarmEnvironmentTileSet({
+export const house1 = make({
   image: "./house1.svg",
-  firstgid: TileSetIDs.Environment.Farm.HOUSE1,
+  firstgid: _IDs.HOUSE1,
 })
 
-export const house2 = makeFarmEnvironmentTileSet({
+export const house2 = make({
   image: "./house2.svg",
-  firstgid: TileSetIDs.Environment.Farm.HOUSE2,
+  firstgid: _IDs.HOUSE2,
 })
 
-export const solarPanel = makeFarmEnvironmentTileSet({
+export const solarPanel = make({
   image: "./solar_panel.svg",
-  firstgid: TileSetIDs.Environment.Farm.SOLAR_PANEL,
+  firstgid: _IDs.SOLAR_PANEL,
 })
-
-export type FarmEnvironmentTileSet =
-  | typeof cfcBlack
-  | typeof cfc
-  | typeof crops
-  | typeof house1
-  | typeof house2
-  | typeof solarPanel

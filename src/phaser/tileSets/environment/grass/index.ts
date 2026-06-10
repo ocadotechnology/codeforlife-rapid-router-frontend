@@ -1,32 +1,26 @@
-import { type MakeEnvironmentTileSetOptions, makeEnvironmentTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as environment from "../environment"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const GrassEnvironmentTileSetIDs = flattenIDs(
-  TileSetIDs.Environment.Grass,
-)
-export type GrassEnvironmentTileSetID =
-  (typeof GrassEnvironmentTileSetIDs)[number]
+const _IDs = tilesets.IDs.Environment.Grass
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeGrassEnvironmentTileSet = <GID extends GrassEnvironmentTileSetID>(
-  options: MakeEnvironmentTileSetOptions<GID, boolean>,
-) => makeEnvironmentTileSet(import.meta.url, options)
+const make = <GID extends ID, T extends boolean = false>(
+  kwArgs: environment.MakeKwArgs<GID, T>,
+) => environment.make(import.meta.url, kwArgs)
 
-export const cfc = makeGrassEnvironmentTileSet({
+export const cfc = make({
   image: "./cfc.svg",
-  firstgid: TileSetIDs.Environment.Grass.CFC,
+  firstgid: _IDs.CFC,
 })
 
-export const house = makeGrassEnvironmentTileSet({
+export const house = make({
   image: "./house.svg",
-  firstgid: TileSetIDs.Environment.Grass.HOUSE,
+  firstgid: _IDs.HOUSE,
 })
 
-export const solarPanel = makeGrassEnvironmentTileSet({
+export const solarPanel = make({
   image: "./solar_panel.svg",
-  firstgid: TileSetIDs.Environment.Grass.SOLAR_PANEL,
+  firstgid: _IDs.SOLAR_PANEL,
 })
-
-export type GrassEnvironmentTileSet =
-  | typeof cfc
-  | typeof house
-  | typeof solarPanel

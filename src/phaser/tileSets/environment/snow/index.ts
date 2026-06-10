@@ -1,72 +1,61 @@
-import { type MakeEnvironmentTileSetOptions, makeEnvironmentTileSet } from ".."
-import { TileSetIDs, flattenIDs } from "../.."
+import * as environment from "../environment"
+import * as tilesets from "../../tilesets"
+import { flattenIDs } from "../../../utils"
 
-export const SnowEnvironmentTileSetIDs = flattenIDs(TileSetIDs.Environment.Snow)
-export type SnowEnvironmentTileSetID =
-  (typeof SnowEnvironmentTileSetIDs)[number]
+const _IDs = tilesets.IDs.Environment.Snow
+export const IDs = flattenIDs(_IDs)
+export type ID = (typeof IDs)[number]
 
-const makeSnowEnvironmentTileSet = <GID extends SnowEnvironmentTileSetID>(
-  options: MakeEnvironmentTileSetOptions<GID, boolean>,
-) => makeEnvironmentTileSet(import.meta.url, options)
+const make = <GID extends ID, T extends boolean = false>(
+  kwArgs: environment.MakeKwArgs<GID, T>,
+) => environment.make(import.meta.url, kwArgs)
 
-export const barn = makeSnowEnvironmentTileSet({
+export const barn = make({
   image: "./barn.svg",
-  firstgid: TileSetIDs.Environment.Snow.BARN,
+  firstgid: _IDs.BARN,
 })
 
-export const cfc = makeSnowEnvironmentTileSet({
+export const cfc = make({
   image: "./cfc.svg",
-  firstgid: TileSetIDs.Environment.Snow.CFC,
+  firstgid: _IDs.CFC,
 })
 
-export const crops = makeSnowEnvironmentTileSet({
+export const crops = make({
   image: "./crops.svg",
-  firstgid: TileSetIDs.Environment.Snow.CROPS,
+  firstgid: _IDs.CROPS,
 })
 
-export const hospital = makeSnowEnvironmentTileSet({
+export const hospital = make({
   image: "./hospital.svg",
-  firstgid: TileSetIDs.Environment.Snow.HOSPITAL,
+  firstgid: _IDs.HOSPITAL,
 })
 
-export const house1 = makeSnowEnvironmentTileSet({
+export const house1 = make({
   image: "./house1.svg",
-  firstgid: TileSetIDs.Environment.Snow.HOUSE1,
+  firstgid: _IDs.HOUSE1,
 })
 
-export const house2 = makeSnowEnvironmentTileSet({
+export const house2 = make({
   image: "./house2.svg",
-  firstgid: TileSetIDs.Environment.Snow.HOUSE2,
+  firstgid: _IDs.HOUSE2,
 })
 
-export const house3 = makeSnowEnvironmentTileSet({
+export const house3 = make({
   image: "./house3.svg",
-  firstgid: TileSetIDs.Environment.Snow.HOUSE3,
+  firstgid: _IDs.HOUSE3,
 })
 
-export const school = makeSnowEnvironmentTileSet({
+export const school = make({
   image: "./school.svg",
-  firstgid: TileSetIDs.Environment.Snow.SCHOOL,
+  firstgid: _IDs.SCHOOL,
 })
 
-export const shop = makeSnowEnvironmentTileSet({
+export const shop = make({
   image: "./shop.svg",
-  firstgid: TileSetIDs.Environment.Snow.SHOP,
+  firstgid: _IDs.SHOP,
 })
 
-export const solarPanel = makeSnowEnvironmentTileSet({
+export const solarPanel = make({
   image: "./solar_panel.svg",
-  firstgid: TileSetIDs.Environment.Snow.SOLAR_PANEL,
+  firstgid: _IDs.SOLAR_PANEL,
 })
-
-export type SnowEnvironmentTileSet =
-  | typeof barn
-  | typeof cfc
-  | typeof crops
-  | typeof hospital
-  | typeof house1
-  | typeof house2
-  | typeof house3
-  | typeof school
-  | typeof shop
-  | typeof solarPanel
