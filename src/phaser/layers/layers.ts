@@ -4,8 +4,8 @@ import { COLS, ROWS } from "../constants"
 
 // Global registry of layer names.
 export const Names = {
-  Tile: { BACKGROUND: "Background", ROAD: "Road", ENVIRONMENT: "Environment" },
-  ObjectGroup: { SCENERY: "Scenery" },
+  Tile: { BACKGROUND: "background", ROAD: "road", ENVIRONMENT: "environment" },
+  ObjectGroup: { SCENERY: "scenery" },
 } as const
 export type Name = tile.Name | objectGroup.Name
 

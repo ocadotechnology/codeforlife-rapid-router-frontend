@@ -17,10 +17,7 @@ import level1 from "../../tileMaps/level1"
  */
 export default class extends BasePreloader {
   private levelData: LevelData = {
-    backgroundTileSetNames: [],
-    roadTileSetNames: [],
-    environmentTileSetNames: [],
-    sceneryTileSetNames: [],
+    tilesets: { background: [], road: [], environment: [], scenery: [] },
   }
 
   preload() {
@@ -43,15 +40,15 @@ export default class extends BasePreloader {
       // Categorize the tileset based on its GID and store the relevant data in
       // levelData for later use in the Level Scene.
       if (tilesets.background.IDs.includes(id as tilesets.background.ID)) {
-        this.levelData.backgroundTileSetNames.push(name)
+        this.levelData.tilesets.background.push({ name })
       } else if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
-        this.levelData.roadTileSetNames.push(name)
+        this.levelData.tilesets.road.push({ name })
       } else if (
         tilesets.environment.IDs.includes(id as tilesets.environment.ID)
       ) {
-        this.levelData.environmentTileSetNames.push(name)
+        this.levelData.tilesets.environment.push({ name })
       } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
-        this.levelData.sceneryTileSetNames.push(name)
+        this.levelData.tilesets.scenery.push({ name, gid: id })
       } else {
         throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)
       }

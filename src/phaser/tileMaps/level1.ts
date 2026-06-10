@@ -15,9 +15,7 @@ export default makeOrthogonalTileMap({
   layers: {
     // Rows 1 to 8 - 10 columns of grass tiles
     background: {
-      data: layers.tile.fillManyRows({
-        id: tilesets.background.grass.firstgid,
-      }),
+      data: layers.tile.fillManyRows({ id: tilesets.IDs.Background.GRASS }),
     },
     road: {
       data: [
