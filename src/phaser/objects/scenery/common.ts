@@ -1,5 +1,5 @@
 import * as scenery from "./scenery"
-import * as tilesets from "../../tileSets"
+import * as tilesets from "../../tilesets"
 
 const _IDs = tilesets.IDs.Scenery.Common
 

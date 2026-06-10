@@ -1,9 +1,9 @@
 import * as layers from "../layers"
 import * as objects from "../objects"
-import * as tilesets from "../tileSets"
-import { makeOrthogonalTileMap } from "."
+import * as tilemaps from "./tilemaps"
+import * as tilesets from "../tilesets"
 
-export default makeOrthogonalTileMap({
+export default tilemaps.makeOrthogonal({
   tilesets: [
     tilesets.background.grass,
     tilesets.road.asphalt.straight,

@@ -1,7 +1,7 @@
 import type { TiledLayerTilelayer as _Layer } from "tiled-types"
 
 import * as layers from "./layers"
-import * as tilesets from "../tileSets"
+import * as tilesets from "../tilesets"
 import { COLS, ROWS } from "../constants"
 import type { Tuple } from "../utils"
 

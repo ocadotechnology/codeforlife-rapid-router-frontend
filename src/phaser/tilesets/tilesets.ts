@@ -73,7 +73,7 @@ export const IDs = setIDs({
 } as const)
 export type ID = DeepNumbersOf<typeof IDs>
 
-export type TileSet<
+export type Tileset<
   GID extends ID = ID,
   Props extends Property[] | undefined = undefined,
 > = Omit<_Tileset, "firstgid" | "properties"> & {
@@ -95,8 +95,8 @@ type MakePartials =
 export type MakeKwArgs<
   GID extends ID,
   Props extends Property[] | undefined = undefined,
-> = Omit<TileSet<GID, Props>, MakePartials> &
-  Partial<Pick<TileSet<GID, Props>, MakePartials>> & { image: string }
+> = Omit<Tileset<GID, Props>, MakePartials> &
+  Partial<Pick<Tileset<GID, Props>, MakePartials>> & { image: string }
 
 export const make = <
   GID extends ID,
@@ -117,7 +117,7 @@ export const make = <
     properties,
     ...tileset
   }: MakeKwArgs<GID, Props>,
-): TileSet<GID, Props> => {
+): Tileset<GID, Props> => {
   image = new URL(image, importMetaUrl).href
 
   return {

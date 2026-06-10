@@ -1,7 +1,7 @@
 import type { TiledProperty as Property } from "tiled-types"
 
 import * as objects from "../objects"
-import type { ID } from "../../tileSets/scenery"
+import type { ID } from "../../tilesets/scenery"
 
 export const TYPE = "scenery"
 

@@ -2,7 +2,7 @@ import type { TiledLayerObjectgroup as _Layer } from "tiled-types"
 
 import * as layers from "./layers"
 import * as objects from "../objects"
-import type * as tilesets from "../tileSets"
+import type * as tilesets from "../tilesets"
 
 export type Name =
   (typeof layers.Names.ObjectGroup)[keyof typeof layers.Names.ObjectGroup]

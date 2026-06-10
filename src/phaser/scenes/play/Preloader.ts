@@ -1,5 +1,5 @@
 import Phaser from "phaser"
-import type { TiledMap as TileMap } from "tiled-types"
+import type { TiledMap as Tilemap } from "tiled-types"
 
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
@@ -25,7 +25,7 @@ export default class extends BasePreloader {
       console.log("Preloader: Loading assets for level", levelId)
       const { default: data } = (await import(
         `../../tilemaps/level${levelId}`
-      )) as { default: TileMap }
+      )) as { default: Tilemap }
 
       this.cache.tilemap.add("level", {
         format: Phaser.Tilemaps.Formats.TILED_JSON,

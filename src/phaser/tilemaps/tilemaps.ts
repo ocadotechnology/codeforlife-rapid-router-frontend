@@ -1,29 +1,29 @@
-import type { TiledMapOrthogonal as OrthogonalTileMap } from "tiled-types"
+import type { TiledMapOrthogonal as OrthogonalTilemap } from "tiled-types"
 
 import * as layers from "../layers"
-import type * as tilesets from "../tileSets"
+import type * as tilesets from "../tilesets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../constants"
 
-type MakeOrthogonalTileMapPartials =
+type MakeOrthogonalTilemapPartials =
   | "renderorder"
   | "version"
   | "nextobjectid"
   | "tilewidth"
   | "tileheight"
-export type MakeOrthogonalTileMapOptions<
+export type MakeOrthogonalTilemapKwArgs<
   COLS extends number = typeof COLS,
   ROWS extends number = typeof ROWS,
 > = Omit<
-  OrthogonalTileMap,
-  MakeOrthogonalTileMapPartials | "orientation" | "layers" | "width" | "height"
+  OrthogonalTilemap,
+  MakeOrthogonalTilemapPartials | "orientation" | "layers" | "width" | "height"
 > &
-  Partial<Pick<OrthogonalTileMap, MakeOrthogonalTileMapPartials>> & {
+  Partial<Pick<OrthogonalTilemap, MakeOrthogonalTilemapPartials>> & {
     width?: COLS
     height?: ROWS
     layers: {
       background: Omit<
         layers.tile.MakeKwArgs<
-          "Background",
+          "background",
           tilesets.background.ID,
           COLS,
           ROWS
@@ -32,7 +32,7 @@ export type MakeOrthogonalTileMapOptions<
       >
       road: Omit<
         layers.tile.MakeKwArgs<
-          "Road",
+          "road",
           // Road tiles can be empty.
           typeof tilesets.IDs.EMPTY | tilesets.road.ID,
           COLS,
@@ -42,7 +42,7 @@ export type MakeOrthogonalTileMapOptions<
       >
       environment: Omit<
         layers.tile.MakeKwArgs<
-          "Environment",
+          "environment",
           // Environment tiles can be empty.
           typeof tilesets.IDs.EMPTY | tilesets.environment.ID,
           COLS,
@@ -51,13 +51,13 @@ export type MakeOrthogonalTileMapOptions<
         "name"
       >
       scenery: Omit<
-        layers.objectGroup.MakeKwArgs<"Scenery", tilesets.scenery.ID>,
+        layers.objectGroup.MakeKwArgs<"scenery", tilesets.scenery.ID>,
         "name"
       >
     }
   }
 
-export const makeOrthogonalTileMap = <
+export const makeOrthogonal = <
   COLS extends number = typeof COLS,
   ROWS extends number = typeof ROWS,
 >({
@@ -71,7 +71,7 @@ export const makeOrthogonalTileMap = <
   tilesets: _tilesets,
   layers: _layers,
   ...tilemap
-}: MakeOrthogonalTileMapOptions<COLS, ROWS>): OrthogonalTileMap => {
+}: MakeOrthogonalTilemapKwArgs<COLS, ROWS>): OrthogonalTilemap => {
   // Provide default values for layer dimensions based on the tilemap
   // dimensions. This ensures that if any layer is missing width or height, it
   // will default to the tilemap's width and height, maintaining consistency
