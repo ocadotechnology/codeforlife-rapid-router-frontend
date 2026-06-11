@@ -9,20 +9,20 @@ export type OrthogonalTilemap = Omit<
   "layers" | "tilesets"
 > & { layers: layers.Layer[]; tilesets: tilesets.Tileset<tilesets.ID, any>[] }
 
-type MakeOrthogonalTilemapPartials =
+type MakeOrthogonalPartials =
   | "renderorder"
   | "version"
   | "nextobjectid"
   | "tilewidth"
   | "tileheight"
-export type MakeOrthogonalTilemapKwArgs<
+export type MakeOrthogonalKwArgs<
   COLS extends number = typeof COLS,
   ROWS extends number = typeof ROWS,
 > = Omit<
   OrthogonalTilemap,
-  MakeOrthogonalTilemapPartials | "orientation" | "layers" | "width" | "height"
+  MakeOrthogonalPartials | "orientation" | "layers" | "width" | "height"
 > &
-  Partial<Pick<OrthogonalTilemap, MakeOrthogonalTilemapPartials>> & {
+  Partial<Pick<OrthogonalTilemap, MakeOrthogonalPartials>> & {
     width?: COLS
     height?: ROWS
     layers: {
@@ -76,7 +76,7 @@ export const makeOrthogonal = <
   tilesets: _tilesets,
   layers: _layers,
   ...tilemap
-}: MakeOrthogonalTilemapKwArgs<COLS, ROWS>): OrthogonalTilemap => {
+}: MakeOrthogonalKwArgs<COLS, ROWS>): OrthogonalTilemap => {
   // Provide default values for layer dimensions based on the tilemap
   // dimensions. This ensures that if any layer is missing width or height, it
   // will default to the tilemap's width and height, maintaining consistency

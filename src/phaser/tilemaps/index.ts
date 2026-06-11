@@ -1,1 +1,5 @@
-export { type OrthogonalTilemap } from "./tilemaps"
+export {
+  type OrthogonalTilemap,
+  makeOrthogonal,
+  type MakeOrthogonalKwArgs,
+} from "./tilemaps"
