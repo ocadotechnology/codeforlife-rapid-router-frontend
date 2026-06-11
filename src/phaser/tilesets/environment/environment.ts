@@ -1,7 +1,7 @@
 import * as tilesets from "../tilesets"
-import { flattenIDs } from "../../utils"
+import { flattenNumberValues } from "../../utils"
 
-export const IDs = flattenIDs(tilesets.IDs.Environment)
+export const IDs = flattenNumberValues(tilesets.IDs.Environment)
 export type ID = (typeof IDs)[number]
 
 type Properties<T extends boolean> = [

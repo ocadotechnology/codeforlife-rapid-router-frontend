@@ -14,7 +14,7 @@ export type Tuple<
 
 type PathSpec = string | { readonly [key: string]: PathSpec }
 
-type PathSpecToResult<T, ID extends number> = T extends string
+type PathSpecToResult<T, ID extends number | string> = T extends string
   ? Record<T, ID>
   : { [K in keyof T]: PathSpecToResult<T[K], ID> }
 
@@ -24,57 +24,75 @@ type UnionToIntersection<U> = (
   ? I
   : never
 
-export type SetIDs<T extends Record<number, PathSpec>> = UnionToIntersection<
-  {
-    [K in keyof T]: K extends number ? PathSpecToResult<T[K], K> : never
-  }[keyof T]
->
+export type SetAtPath<T extends Record<number | string, PathSpec>> =
+  UnionToIntersection<
+    {
+      [K in keyof T]: K extends number | string
+        ? PathSpecToResult<T[K], K>
+        : never
+    }[keyof T]
+  >
 
 /**
- * Converts a mapping of numeric IDs to path specifications into a nested object
- * structure where each path specification is replaced with the corresponding
- * numeric ID. This allows us to define our tilesets in a way that is easy to
- * read and maintain, while still providing a convenient way to reference tile
- * IDs in our code.
+ * Converts a mapping of numeric or string keys to path specifications into a
+ * nested object structure where each path specification is replaced with the
+ * corresponding numeric or string key. This allows to create a global registry
+ * of unique keys that can be easily referenced in the code.
  *
- * @param specs A mapping of numeric IDs to path specifications, where each path
- *  specification can be a string or a nested object of strings.
+ * @param specs A mapping of numeric or string keys to path specifications,
+ *  where each path specification can be a string or a nested object of strings.
  * @returns A nested object structure where each path specification is replaced
- *  with the corresponding numeric ID.
+ *  with the corresponding numeric or string key.
  */
-export function setIDs<T extends Record<number, PathSpec>>(
+export function setAtPath<T extends Record<number | string, PathSpec>>(
   specs: T,
-): SetIDs<T> {
+): SetAtPath<T> {
   const result: Record<string, unknown> = {}
 
-  function setAtPath(
+  function _setAtPath(
     target: Record<string, unknown>,
     pathSpec: PathSpec,
-    id: number,
+    id: number | string,
   ): void {
     if (typeof pathSpec === "string") {
       target[pathSpec] = id
     } else {
       for (const [key, nested] of Object.entries(pathSpec)) {
         if (!(key in target)) target[key] = {}
-        setAtPath(target[key] as Record<string, unknown>, nested, id)
+        _setAtPath(target[key] as Record<string, unknown>, nested, id)
       }
     }
   }
 
   for (const [idStr, pathSpec] of Object.entries(specs)) {
-    setAtPath(result, pathSpec, Number(idStr))
+    const num = Number(idStr)
+    const id: number | string = !isNaN(num) && idStr.trim() !== "" ? num : idStr
+    _setAtPath(result, pathSpec, id)
   }
 
-  return result as SetIDs<T>
+  return result as SetAtPath<T>
 }
 
-export function flattenIDs<T extends object>(obj: T): DeepNumbersOf<T>[] {
+export function flattenNumberValues<T extends object>(
+  obj: T,
+): DeepNumbersOf<T>[] {
   return Object.values(obj).flatMap(v =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof v === "number"
       ? [v]
       : // @ts-expect-error Ignore infinite type recursion.
-        flattenIDs(v),
+        flattenNumberValues(v),
   ) as DeepNumbersOf<T>[]
+}
+
+export function flattenStringValues<T extends object>(
+  obj: T,
+): DeepStringsOf<T>[] {
+  return Object.values(obj).flatMap(v =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    typeof v === "string"
+      ? [v]
+      : // @ts-expect-error Ignore infinite type recursion.
+        flattenStringValues(v),
+  ) as DeepStringsOf<T>[]
 }

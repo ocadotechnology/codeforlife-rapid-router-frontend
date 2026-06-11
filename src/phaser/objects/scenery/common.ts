@@ -1,29 +1,38 @@
+import * as objects from "../objects"
 import * as scenery from "./scenery"
 import * as tilesets from "../../tilesets"
+import { flattenStringValues } from "../../utils"
 
 const _IDs = tilesets.IDs.Scenery.Common
+const _Names = objects.Names.Scenery.Common
+export const Names = flattenStringValues(_Names)
+export type Name = (typeof Names)[number]
 
-export const bush = scenery.makeBase({
+const makeBase = <N extends Name, GID extends tilesets.scenery.common.ID>(
+  kwArgs: scenery.MakeBaseKwArgs<N, GID>,
+) => scenery.makeBase(kwArgs)
+
+export const bush = makeBase({
   gid: _IDs.BUSH,
-  name: "Bush",
+  name: _Names.BUSH,
 })
 
-export const hay = scenery.makeBase({
+export const hay = makeBase({
   gid: _IDs.HAY,
-  name: "Hay",
+  name: _Names.HAY,
 })
 
-export const pond = scenery.makeBase({
+export const pond = makeBase({
   gid: _IDs.POND,
-  name: "Pond",
+  name: _Names.POND,
 })
 
-export const tree1 = scenery.makeBase({
+export const tree1 = makeBase({
   gid: _IDs.TREE1,
-  name: "Tree 1",
+  name: _Names.TREE1,
 })
 
-export const tree2 = scenery.makeBase({
+export const tree2 = makeBase({
   gid: _IDs.TREE2,
-  name: "Tree 2",
+  name: _Names.TREE2,
 })

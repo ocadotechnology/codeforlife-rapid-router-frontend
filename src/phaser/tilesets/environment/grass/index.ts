@@ -1,9 +1,9 @@
 import * as environment from "../environment"
 import * as tilesets from "../../tilesets"
-import { flattenIDs } from "../../../utils"
+import { flattenNumberValues } from "../../../utils"
 
 const _IDs = tilesets.IDs.Environment.Grass
-export const IDs = flattenIDs(_IDs)
+export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
 const make = <GID extends ID, T extends boolean = false>(
@@ -13,6 +13,8 @@ const make = <GID extends ID, T extends boolean = false>(
 export const cfc = make({
   image: "./cfc.svg",
   firstgid: _IDs.CFC,
+  // TODO: Configure offset to align the tile properly.
+  // tileoffset: { x: 3, y: 2 },
 })
 
 export const house = make({

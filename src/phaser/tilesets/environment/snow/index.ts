@@ -1,9 +1,9 @@
 import * as environment from "../environment"
 import * as tilesets from "../../tilesets"
-import { flattenIDs } from "../../../utils"
+import { flattenNumberValues } from "../../../utils"
 
 const _IDs = tilesets.IDs.Environment.Snow
-export const IDs = flattenIDs(_IDs)
+export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
 const make = <GID extends ID, T extends boolean = false>(

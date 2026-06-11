@@ -1,8 +1,8 @@
 import * as tilesets from "../tilesets"
-import { flattenIDs } from "../../utils"
+import { flattenNumberValues } from "../../utils"
 
 const _IDs = tilesets.IDs.Background
-export const IDs = flattenIDs(_IDs)
+export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
 const make = <GID extends ID>(kwArgs: tilesets.MakeKwArgs<GID>) =>

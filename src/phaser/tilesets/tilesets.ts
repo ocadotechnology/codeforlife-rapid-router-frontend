@@ -3,23 +3,16 @@ import type {
   TiledTileset as _Tileset,
 } from "tiled-types"
 
-import { type DeepNumbersOf, setIDs } from "../utils"
+import { type DeepNumbersOf, setAtPath } from "../utils"
 import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
 
 /**
- * Tilesets are defined in a way that allows us to easily map numeric tile IDs
- * from the Tiled map editor to descriptive string paths that we can use to
- * reference the corresponding assets in our code. The `setIDs` function takes
- * care of converting the nested object structure into a flat mapping of string
- * paths to numeric IDs, while also ensuring type safety.
+ * Global registry of tile IDs.
  *
- * WARNING: The numeric IDs assigned to each tileset must match the tile IDs
- * used in the Tiled map editor. 🚫You should not recycle numeric IDs🚫 across
- * different tilesets, as this can lead to confusion and bugs when referencing
- * tiles in the code. Each unique tile in Tiled should have a unique numeric ID
- * in this mapping.
+ * WARNING: 🚫You should not recycle numeric IDs🚫 across different tilesets,
+ * as this can lead to confusion and bugs when referencing tiles in the code.
  */
-export const IDs = setIDs({
+export const IDs = setAtPath({
   0: "EMPTY", // Phaser treats 0 as a special "empty" tile.
   1: { Background: "GRASS" },
   2: { Background: "SNOW" },
