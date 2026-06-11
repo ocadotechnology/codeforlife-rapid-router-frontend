@@ -21,10 +21,10 @@ export const Names = setAtPath({
 export type Name = DeepStringsOf<typeof Names>
 
 // Global registry of object types.
-export const Types = {
-  SCENERY: "scenery",
-} as const
-export type Type = (typeof Types)[keyof typeof Types]
+export const Types = setAtPath({
+  scenery: "SCENERY",
+} as const)
+export type Type = DeepStringsOf<typeof Types>
 
 export type ObjectBase<
   T extends Type,
