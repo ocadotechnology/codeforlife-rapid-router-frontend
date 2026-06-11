@@ -77,7 +77,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
         gameRef.current = null
       }
     }
-  }, [mode])
+  }, [mode, levelId])
 
   // Pass the current game commands to Phaser.
   useEffect(() => {

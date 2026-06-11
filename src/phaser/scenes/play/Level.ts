@@ -39,6 +39,7 @@ export default class extends BaseLevel<LevelData> {
     this.game.events.emit(Events.GAMEPLAY_SCENE_READY)
   }
 
+  // @ts-expect-error will be used in the future
   private pause() {
     this.scene.pause(HUD.KEY)
     this.scene.pause()
@@ -48,6 +49,7 @@ export default class extends BaseLevel<LevelData> {
     this.commands = this.game.registry.get(Variables.COMMANDS) as GameCommand[]
   }
 
+  // @ts-expect-error will be used in the future
   private runCommands() {
     // TODO: Implement the logic to process the character commands and update
     // the game state accordingly.

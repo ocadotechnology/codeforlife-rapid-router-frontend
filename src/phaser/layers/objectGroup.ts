@@ -18,7 +18,10 @@ export type MakeKwArgs<
     keyof layers.MakeKwArgs<N, "objectgroup"> | MakePartials | "objects"
   > &
   Partial<Pick<Layer, MakePartials>> & {
-    objects: Omit<objects.MakeKwArgs<string, string, any, ID>, "id">[]
+    objects: Omit<
+      objects.MakeKwArgs<objects.Type, objects.Name, any, ID>,
+      "id"
+    >[]
   }
 
 export const make = <
