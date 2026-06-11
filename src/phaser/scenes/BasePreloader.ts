@@ -17,15 +17,30 @@ export default class BasePreloader<
   }
 
   init() {
+    const centerX = this.scale.width / 2
+    const centerY = this.scale.height / 2
+
     // We loaded this image in our Boot Scene, so we can display it here
-    this.add.image(512, 384, "logo")
+    const logo = this.add.image(centerX, centerY, "logo")
+
+    // Render a tile sprite behind everything as the background.
+    this.add
+      .tileSprite(
+        centerX,
+        centerY,
+        this.scale.width,
+        this.scale.height,
+        backgrounds.Backgrounds.GRASS,
+      )
+      .setDepth(-1) // Render behind everything
 
     // A simple progress bar. This is the outline of the bar.
-    this.add.rectangle(512, 484, 468, 32).setStrokeStyle(1, 0xffffff)
+    const barY = centerY + logo.height / 2
+    this.add.rectangle(centerX, barY, 468, 32).setStrokeStyle(1, 0xffffff)
 
     // This is the progress bar itself. It will increase in size from the left
     // based on the % of progress.
-    const bar = this.add.rectangle(512 - 230, 484, 4, 28, 0xffffff)
+    const bar = this.add.rectangle(centerX - 230, barY, 4, 28, 0xffffff)
 
     // Use the 'progress' event emitted by the LoaderPlugin to update the
     // loading bar
