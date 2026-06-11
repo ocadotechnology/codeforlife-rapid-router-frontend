@@ -13,11 +13,8 @@ import Level from "./Level"
 export default class extends BasePreloader {
   preload() {
     const tilemap = tilemaps.makeOrthogonal({
+      properties: { background: "grass" },
       tilesets: [
-        // Background
-        tilesets.background.grass,
-        tilesets.background.pavement,
-        tilesets.background.snow,
         // Road
         tilesets.road.asphalt.crossroads,
         tilesets.road.asphalt.deadEnd,
@@ -69,9 +66,6 @@ export default class extends BasePreloader {
         tilesets.scenery.snow.tree2,
       ],
       layers: {
-        background: {
-          data: layers.tile.fillManyRows({ id: tilesets.IDs.Background.GRASS }),
-        },
         road: { data: layers.tile.fillManyRows() },
         environment: { data: layers.tile.fillManyRows() },
         scenery: { objects: [] },

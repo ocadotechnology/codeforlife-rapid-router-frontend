@@ -21,8 +21,6 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Game>(null)
 
-  const backgroundColor = "#a0c53a"
-
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
     let active = true // Used to synchronously guard initialization logic.
@@ -60,7 +58,6 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
           resizeInterval: 100, // Check for resize every 100ms.
         },
         parent: containerRef.current,
-        backgroundColor,
         scene,
       })
       gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
@@ -139,12 +136,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       <div
         id="phaser-game"
         ref={containerRef}
-        style={{
-          width: "100%",
-          height: "100%",
-          // Match the background color of the game and the game's container.
-          backgroundColor: gameIsInitialized ? backgroundColor : "transparent",
-        }}
+        style={{ width: "100%", height: "100%" }}
       />
     </div>
   )

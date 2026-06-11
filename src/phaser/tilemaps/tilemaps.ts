@@ -3,11 +3,22 @@ import type { TiledMapOrthogonal as _OrthogonalTilemap } from "tiled-types"
 import * as layers from "../layers"
 import type * as tilesets from "../tilesets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../globals"
+import type { Background } from "../backgrounds"
 
 export type OrthogonalTilemap = Omit<
   _OrthogonalTilemap,
-  "layers" | "tilesets"
-> & { layers: layers.Layer[]; tilesets: tilesets.Tileset<tilesets.ID, any>[] }
+  "layers" | "tilesets" | "properties"
+> & {
+  layers: layers.Layer[]
+  tilesets: tilesets.Tileset<tilesets.ID, any>[]
+  properties: [
+    {
+      name: "background"
+      type: "string"
+      value: Background
+    },
+  ]
+}
 
 type MakeOrthogonalPartials =
   | "renderorder"
@@ -20,21 +31,18 @@ export type MakeOrthogonalKwArgs<
   ROWS extends number = typeof ROWS,
 > = Omit<
   OrthogonalTilemap,
-  MakeOrthogonalPartials | "orientation" | "layers" | "width" | "height"
+  | MakeOrthogonalPartials
+  | "orientation"
+  | "layers"
+  | "width"
+  | "height"
+  | "properties"
 > &
   Partial<Pick<OrthogonalTilemap, MakeOrthogonalPartials>> & {
     width?: COLS
     height?: ROWS
+    properties: { background: Background }
     layers: {
-      background: Omit<
-        layers.tile.MakeKwArgs<
-          "background",
-          tilesets.background.ID,
-          NoInfer<COLS>,
-          NoInfer<ROWS>
-        >,
-        "name"
-      >
       road: Omit<
         layers.tile.MakeKwArgs<
           "road",
@@ -73,6 +81,7 @@ export const makeOrthogonal = <
   height: mapHeight = ROWS as ROWS,
   tilewidth: mapTileWidth = TILE_WIDTH,
   tileheight: mapTileHeight = TILE_HEIGHT,
+  properties,
   tilesets: _tilesets,
   layers: _layers,
   ...tilemap
@@ -81,11 +90,6 @@ export const makeOrthogonal = <
   // dimensions. This ensures that if any layer is missing width or height, it
   // will default to the tilemap's width and height, maintaining consistency
   // across the map.
-  const {
-    width: backgroundWidth = mapWidth,
-    height: backgroundHeight = mapHeight,
-    ...backgroundLayer
-  } = _layers.background
   const {
     width: roadWidth = mapWidth,
     height: roadHeight = mapHeight,
@@ -112,6 +116,9 @@ export const makeOrthogonal = <
     height: mapHeight,
     tilewidth: mapTileWidth,
     tileheight: mapTileHeight,
+    properties: [
+      { name: "background", type: "string", value: properties.background },
+    ],
     tilesets: _tilesets.map(
       ({
         // Provide default values for width and height based on the tilewidth
@@ -130,12 +137,6 @@ export const makeOrthogonal = <
       }),
     ),
     layers: [
-      layers.tile.make({
-        name: layers.Names.Tile.BACKGROUND,
-        width: backgroundWidth,
-        height: backgroundHeight,
-        ...backgroundLayer,
-      }),
       layers.tile.make({
         name: layers.Names.Tile.ROAD,
         width: roadWidth,

@@ -1,14 +1,6 @@
 import type Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
-import {
-  COLS,
-  MAP_HEIGHT,
-  MAP_WIDTH,
-  ROWS,
-  TILE_HEIGHT,
-  TILE_WIDTH,
-} from "../../globals"
 
 export interface LevelData extends BaseLevelData {}
 
@@ -25,14 +17,9 @@ export default class extends BaseLevel<LevelData> {
   lineGraphics!: Phaser.GameObjects.Graphics
 
   create() {
-    this.cameras.main.setZoom(1)
-
-    this.createTilemap()
+    super.create()
 
     this.addLineGraphics()
-
-    // ── Camera ───────────────────────────────────────────────────────────────
-    this.cameras.main.centerOn(MAP_WIDTH / 2, MAP_HEIGHT / 2)
   }
 
   private addLineGraphics() {
@@ -40,15 +27,19 @@ export default class extends BaseLevel<LevelData> {
     this.lineGraphics = this.add.graphics().lineStyle(1, 0x000000, 1)
 
     // Draw vertical lines.
-    for (let col = 0; col <= COLS; col++) {
-      this.lineGraphics.moveTo(col * TILE_WIDTH, 0)
-      this.lineGraphics.lineTo(col * TILE_WIDTH, MAP_HEIGHT)
+    const mapHeight = this.tilemap.height * this.tilemap.tileHeight
+    for (let col = 0; col <= this.tilemap.width; col++) {
+      const x = col * this.tilemap.tileWidth
+      this.lineGraphics.moveTo(x, 0)
+      this.lineGraphics.lineTo(x, mapHeight)
     }
 
     // Draw horizontal lines.
-    for (let row = 0; row <= ROWS; row++) {
-      this.lineGraphics.moveTo(0, row * TILE_HEIGHT)
-      this.lineGraphics.lineTo(MAP_WIDTH, row * TILE_HEIGHT)
+    const mapWidth = this.tilemap.width * this.tilemap.tileWidth
+    for (let row = 0; row <= this.tilemap.height; row++) {
+      const y = row * this.tilemap.tileHeight
+      this.lineGraphics.moveTo(0, y)
+      this.lineGraphics.lineTo(mapWidth, y)
     }
 
     // Stroke the grid lines to render them on the scene.

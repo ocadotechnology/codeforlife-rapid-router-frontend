@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 
+import * as backgrounds from "../backgrounds"
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
@@ -11,7 +12,8 @@ export default class BasePreloader<
 > extends BaseScene<Data> {
   static KEY = "Preloader"
   levelData: BaseLevelData = {
-    tilesets: { background: [], road: [], environment: [], scenery: [] },
+    background: "grass",
+    tilesets: { road: [], environment: [], scenery: [] },
   }
 
   init() {
@@ -40,6 +42,14 @@ export default class BasePreloader<
       data: tilemap,
     })
 
+    // Load the background image specified in the tilemap properties.
+    const background = tilemap.properties[0].value
+    this.load.svg(background, backgrounds.getSvgUrl(background), {
+      width: tilemap.tilewidth ?? TILE_WIDTH,
+      height: tilemap.tileheight ?? TILE_HEIGHT,
+    })
+    this.levelData.background = background
+
     // Load the tileset images and store relevant data in levelData for later
     // use in the Level Scene. This is necessary because Phaser needs the
     // tileset images to create the tilemap, but we also need to know which
@@ -53,9 +63,7 @@ export default class BasePreloader<
       imageheight = TILE_HEIGHT,
     } of tilemap.tilesets) {
       // Track each layer's tilesets.
-      if (tilesets.background.IDs.includes(id as tilesets.background.ID)) {
-        this.levelData.tilesets.background.push({ name })
-      } else if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
+      if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
         this.levelData.tilesets.road.push({ name })
       } else if (
         tilesets.environment.IDs.includes(id as tilesets.environment.ID)

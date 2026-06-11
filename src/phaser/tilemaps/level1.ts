@@ -5,18 +5,14 @@ import * as tilesets from "../tilesets"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 export default tilemaps.makeOrthogonal({
+  properties: { background: "grass" },
   tilesets: [
-    tilesets.background.grass,
     tilesets.road.asphalt.straight,
     tilesets.road.asphalt.deadEnd,
     tilesets.environment.grass.cfc,
     tilesets.scenery.common.tree1,
   ],
   layers: {
-    background: {
-      // Rows 1 to 8 - 10 columns of grass tiles
-      data: layers.tile.fillManyRows({ id: tilesets.IDs.Background.GRASS }),
-    },
     road: {
       data: [
         // Row 1 to 2 - 10 columns of empty tiles
