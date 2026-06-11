@@ -7,7 +7,7 @@ import { CircularProgress } from "@mui/material"
 //  to be loaded at runtime.
 import type { Game, Scene } from "phaser"
 
-import { Events, Variables } from "./enums"
+import { Events, Variables } from "./globals"
 import type { Level } from "../api/level"
 import { useGameCommands } from "../app/hooks"
 

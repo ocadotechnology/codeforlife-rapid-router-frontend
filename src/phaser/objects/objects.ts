@@ -4,7 +4,7 @@ import type {
 } from "tiled-types"
 
 import type * as scenery from "./scenery"
-import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 import { setAtPath } from "../utils"
 
 // Global registry of object names.

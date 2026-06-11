@@ -2,7 +2,7 @@ import type { TiledLayerTilelayer as _Layer } from "tiled-types"
 
 import * as layers from "./layers"
 import * as tilesets from "../tilesets"
-import { COLS, ROWS } from "../constants"
+import { COLS, ROWS } from "../globals"
 import type { Tuple } from "../utils"
 
 export const Names = Object.values(layers.Names.Tile)

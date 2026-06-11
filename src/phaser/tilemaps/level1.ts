@@ -2,7 +2,7 @@ import * as layers from "../layers"
 import * as objects from "../objects"
 import * as tilemaps from "./tilemaps"
 import * as tilesets from "../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 export default tilemaps.makeOrthogonal({
   tilesets: [

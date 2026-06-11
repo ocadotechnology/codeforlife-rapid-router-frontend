@@ -3,7 +3,7 @@ import Phaser from "phaser"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 import type { OrthogonalTilemap } from "../../tilemaps"
-import { Variables } from "../../enums"
+import { Variables } from "../../globals"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for

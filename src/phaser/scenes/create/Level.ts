@@ -8,7 +8,7 @@ import {
   ROWS,
   TILE_HEIGHT,
   TILE_WIDTH,
-} from "../../constants"
+} from "../../globals"
 
 export interface LevelData extends BaseLevelData {}
 

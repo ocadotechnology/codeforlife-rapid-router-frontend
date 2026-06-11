@@ -2,7 +2,7 @@ import Phaser from "phaser"
 
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
-import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 import BaseScene from "./BaseScene"
 import type { OrthogonalTilemap } from "../tilemaps"
 

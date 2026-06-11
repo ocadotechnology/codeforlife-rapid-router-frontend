@@ -2,7 +2,7 @@ import type { TiledMapOrthogonal as _OrthogonalTilemap } from "tiled-types"
 
 import * as layers from "../layers"
 import type * as tilesets from "../tilesets"
-import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 export type OrthogonalTilemap = Omit<
   _OrthogonalTilemap,

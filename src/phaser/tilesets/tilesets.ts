@@ -4,7 +4,7 @@ import type {
 } from "tiled-types"
 
 import { type DeepNumbersOf, setAtPath } from "../utils"
-import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 /**
  * Global registry of tile IDs.

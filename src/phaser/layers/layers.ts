@@ -1,6 +1,6 @@
 import type * as objectGroup from "./objectGroup"
 import type * as tile from "./tile"
-import { COLS, ROWS } from "../constants"
+import { COLS, ROWS } from "../globals"
 
 // Global registry of layer names.
 export const Names = {
