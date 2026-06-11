@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
-import { Events, Variables } from "../../enums"
+import { Events, Variables } from "../../globals"
 import type { GameCommand } from "../../../app/slices"
 import HUD from "./HUD"
 
