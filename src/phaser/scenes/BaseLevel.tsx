@@ -42,15 +42,6 @@ export default class BaseLevel<
    * names.The tilemap is the main structure that holds all the layers and
    * objects in the level. This method ensures that the layers and objects are
    * created in the correct order for proper rendering.
-   *
-   * @param key The key of the tilemap to create.
-   * @param backgroundTilesetNames The names of the tilesets to use for the
-   * background layer.
-   * @param roadTilesetNames The names of the tilesets to use for the road
-   * layer.
-   * @param environmentTilesetNames The names of the tilesets to use for the
-   * environment layer.
-   * @param sceneryObjectTypes The types of the scenery objects to create.
    */
   createTilemap() {
     // 1. Create a tilemap from the cached tilemap data.
