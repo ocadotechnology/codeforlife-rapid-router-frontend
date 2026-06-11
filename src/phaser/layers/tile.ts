@@ -5,7 +5,8 @@ import * as tilesets from "../tilesets"
 import { COLS, ROWS } from "../constants"
 import type { Tuple } from "../utils"
 
-export type Name = (typeof layers.Names.Tile)[keyof typeof layers.Names.Tile]
+export const Names = Object.values(layers.Names.Tile)
+export type Name = (typeof Names)[number]
 export type Layer = Omit<_Layer, "name"> & { name: Name }
 
 export type MakeKwArgs<

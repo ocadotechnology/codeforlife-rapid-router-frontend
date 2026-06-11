@@ -4,8 +4,8 @@ import * as layers from "./layers"
 import * as objects from "../objects"
 import type * as tilesets from "../tilesets"
 
-export type Name =
-  (typeof layers.Names.ObjectGroup)[keyof typeof layers.Names.ObjectGroup]
+export const Names = Object.values(layers.Names.ObjectGroup)
+export type Name = (typeof Names)[number]
 export type Layer = Omit<_Layer, "name"> & { name: Name }
 
 type MakePartials = "draworder"

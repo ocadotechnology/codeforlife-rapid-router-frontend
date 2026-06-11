@@ -3,8 +3,9 @@ import type {
   TiledObject as _Object,
 } from "tiled-types"
 
-import { type DeepStringsOf, setAtPath } from "../utils"
+import type * as scenery from "./scenery"
 import { TILE_HEIGHT, TILE_WIDTH } from "../constants"
+import { setAtPath } from "../utils"
 
 // Global registry of object names.
 export const Names = setAtPath({
@@ -18,13 +19,13 @@ export const Names = setAtPath({
   "scenery.common.tree1": { Scenery: { Common: "TREE1" } },
   "scenery.common.tree2": { Scenery: { Common: "TREE2" } },
 } as const)
-export type Name = DeepStringsOf<typeof Names>
+export type Name = scenery.Name
 
 // Global registry of object types.
 export const Types = setAtPath({
   scenery: "SCENERY",
 } as const)
-export type Type = DeepStringsOf<typeof Types>
+export type Type = (typeof Types)[keyof typeof Types]
 
 export type ObjectBase<
   T extends Type,

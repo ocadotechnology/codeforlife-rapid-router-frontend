@@ -1,12 +1,12 @@
 import type { TiledProperty as Property } from "tiled-types"
 
+import type * as common from "./common"
 import * as objects from "../objects"
+import type * as snow from "./snow"
 import type * as tilesets from "../../tilesets"
-import { flattenStringValues } from "../../utils"
 
 export const TYPE = objects.Types.SCENERY
-export const Names = flattenStringValues(objects.Names.Scenery)
-export type Name = (typeof Names)[number]
+export type Name = common.Name | snow.Name
 
 export type MakeBaseKwArgs<
   N extends Name,
