@@ -1,10 +1,12 @@
+import { flattenStringValues } from "codeforlife/utils/object"
+
 import * as objects from "../objects"
 import * as scenery from "./scenery"
 import * as tilesets from "../../tilesets"
 
 const _IDs = tilesets.IDs.Scenery.Snow
 const _Names = objects.Names.Scenery.Snow
-export const Names = Object.values(_Names)
+export const Names = flattenStringValues(_Names)
 export type Name = (typeof Names)[number]
 
 const makeBase = <N extends Name, GID extends tilesets.scenery.snow.ID>(

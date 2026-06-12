@@ -1,12 +1,15 @@
+import { createIdRegistry } from "codeforlife/utils/object"
+
 import type * as objectGroup from "./objectGroup"
 import type * as tile from "./tile"
 import { COLS, ROWS } from "../globals"
 
 // Global registry of layer names.
-export const Names = {
-  Tile: { ROAD: "road", ENVIRONMENT: "environment" },
-  ObjectGroup: { SCENERY: "scenery" },
-} as const
+export const Names = createIdRegistry({
+  road: { Tile: "ROAD" },
+  environment: { Tile: "ENVIRONMENT" },
+  scenery: { ObjectGroup: "SCENERY" },
+} as const)
 
 export type Name = tile.Name | objectGroup.Name
 export type Layer = tile.Layer | objectGroup.Layer

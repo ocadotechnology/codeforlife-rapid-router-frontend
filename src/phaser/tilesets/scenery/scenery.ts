@@ -1,5 +1,6 @@
+import { flattenNumberValues } from "codeforlife/utils/object"
+
 import * as tilesets from "../tilesets"
-import { flattenNumberValues } from "../../utils"
 
 export const IDs = flattenNumberValues(tilesets.IDs.Scenery)
 export type ID = (typeof IDs)[number]

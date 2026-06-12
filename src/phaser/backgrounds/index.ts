@@ -1,8 +1,10 @@
-export const Backgrounds = {
-  GRASS: "grass",
-  SNOW: "snow",
-  PAVEMENT: "pavement",
-} as const
+import { createIdRegistry } from "codeforlife/utils/object"
+
+export const Backgrounds = createIdRegistry({
+  grass: "GRASS",
+  snow: "SNOW",
+  pavement: "PAVEMENT",
+} as const)
 export type Background = (typeof Backgrounds)[keyof typeof Backgrounds]
 
 export function getSvgUrl(background: Background) {

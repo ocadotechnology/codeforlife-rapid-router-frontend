@@ -1911,10 +1911,10 @@ clsx@^2.1.1:
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
 
-codeforlife@2.14.10:
-  version "2.14.10"
-  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.14.10.tgz#7e9f20e69d5332386daeeea1fb330529f229e1eb"
-  integrity sha512-Gu1SmxcNir57Dl939UHBhKAte8rypzzuZkWyk/G/aHh2QcUpuxnXsLizZ2CjfY2ByDfZejyYTHIeVZ49idN0dQ==
+codeforlife@2.15.2:
+  version "2.15.2"
+  resolved "https://registry.yarnpkg.com/codeforlife/-/codeforlife-2.15.2.tgz#543475550801a6df59f52c1fb30b7092e734949b"
+  integrity sha512-W1qzI9imAjEy8x+M1ItlEr7s6hddJhf3SIJK4Mrwb61xfnxVpB1S1amKSWRoDfEdf3cbbMXTweCBnG7LMTEYsw==
   dependencies:
     "@emotion/cache" "11.14.0"
     "@emotion/react" "11.14.0"
@@ -1934,7 +1934,7 @@ codeforlife@2.14.10:
     react "19.1.1"
     react-dom "19.1.1"
     react-redux "9.2.0"
-    react-router "7.12.0"
+    react-router "7.15.0"
     sirv "3.0.2"
     yup "1.7.1"
 
@@ -4116,10 +4116,10 @@ react-resizable-panels@3.0.6:
   resolved "https://registry.yarnpkg.com/react-resizable-panels/-/react-resizable-panels-3.0.6.tgz#8183132ea13a09821e9c93962ed49f240cdcfd3f"
   integrity sha512-b3qKHQ3MLqOgSS+FRYKapNkJZf5EQzuf6+RLiq1/IlTHw99YrZ2NJZLk4hQIzTnnIkRg2LUqyVinu6YWWpUYew==
 
-react-router@7.12.0:
-  version "7.12.0"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.12.0.tgz#459a86862abbedd02e76e686751fe71f9fd73a4f"
-  integrity sha512-kTPDYPFzDVGIIGNLS5VJykK0HfHLY5MF3b+xj0/tTyNYL1gF1qs7u67Z9jEhQk2sQ98SUaHxlG31g1JtF7IfVw==
+react-router@7.15.0:
+  version "7.15.0"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.15.0.tgz#cb438ff254ab5a1e356ef5a23d7821d8f6fbe652"
+  integrity sha512-HW9vYwuM8f4yx66Izy8xfrzCM+SBJluoZcCbww9A1TySax11S5Vgw6fi3ZjMONw9J4gQwngL7PzkyIpJJpJ7RQ==
   dependencies:
     cookie "^1.0.1"
     set-cookie-parser "^2.6.0"

@@ -1,6 +1,7 @@
+import { flattenNumberValues } from "codeforlife/utils/object"
+
 import * as environment from "../environment"
 import * as tilesets from "../../tilesets"
-import { flattenNumberValues } from "../../../utils"
 
 const _IDs = tilesets.IDs.Environment.Farm
 export const IDs = flattenNumberValues(_IDs)

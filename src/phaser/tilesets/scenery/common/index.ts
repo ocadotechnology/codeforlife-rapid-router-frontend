@@ -1,6 +1,7 @@
+import { flattenNumberValues } from "codeforlife/utils/object"
+
 import * as scenery from "../scenery"
 import * as tilesets from "../../tilesets"
-import { flattenNumberValues } from "../../../utils"
 
 const _IDs = tilesets.IDs.Scenery.Common
 export const IDs = flattenNumberValues(_IDs)

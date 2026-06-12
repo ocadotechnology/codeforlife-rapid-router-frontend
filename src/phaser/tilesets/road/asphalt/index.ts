@@ -1,6 +1,7 @@
+import { flattenNumberValues } from "codeforlife/utils/object"
+
 import * as road from "../road"
 import * as tilesets from "../../tilesets"
-import { flattenNumberValues } from "../../../utils"
 
 const _IDs = tilesets.IDs.Road.Asphalt
 export const IDs = flattenNumberValues(_IDs)

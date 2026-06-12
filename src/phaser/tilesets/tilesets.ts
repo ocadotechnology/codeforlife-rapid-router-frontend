@@ -1,9 +1,9 @@
+import { type DeepNumbersOf, createIdRegistry } from "codeforlife/utils/object"
 import type {
   TiledProperty as Property,
   TiledTileset as _Tileset,
 } from "tiled-types"
 
-import { type DeepNumbersOf, setAtPath } from "../utils"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 /**
@@ -12,7 +12,7 @@ import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
  * WARNING: 🚫You should not recycle numeric IDs🚫 across different tilesets,
  * as this can lead to confusion and bugs when referencing tiles in the code.
  */
-export const IDs = setAtPath({
+export const IDs = createIdRegistry({
   0: "EMPTY", // Phaser treats 0 as a special "empty" tile.
   1: { Road: { Asphalt: "STRAIGHT" } },
   2: { Road: { Asphalt: "TURN" } },

@@ -1,30 +1,22 @@
+import { type DeepStringsOf, createPathStrings } from "codeforlife/utils/object"
 import type {
   TiledProperty as Property,
   TiledObject as _Object,
 } from "tiled-types"
 
-import type * as scenery from "./scenery"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
-import { setAtPath } from "../utils"
 
 // Global registry of object names.
-export const Names = setAtPath({
-  "scenery.snow.bush": { Scenery: { Snow: "BUSH" } },
-  "scenery.snow.pond": { Scenery: { Snow: "POND" } },
-  "scenery.snow.tree1": { Scenery: { Snow: "TREE1" } },
-  "scenery.snow.tree2": { Scenery: { Snow: "TREE2" } },
-  "scenery.common.bush": { Scenery: { Common: "BUSH" } },
-  "scenery.common.hay": { Scenery: { Common: "HAY" } },
-  "scenery.common.pond": { Scenery: { Common: "POND" } },
-  "scenery.common.tree1": { Scenery: { Common: "TREE1" } },
-  "scenery.common.tree2": { Scenery: { Common: "TREE2" } },
+export const Names = createPathStrings({
+  Scenery: {
+    Snow: ["BUSH", "POND", "TREE1", "TREE2"],
+    Common: ["BUSH", "HAY", "POND", "TREE1", "TREE2"],
+  },
 } as const)
-export type Name = scenery.Name
+export type Name = DeepStringsOf<typeof Names>
 
 // Global registry of object types.
-export const Types = setAtPath({
-  scenery: "SCENERY",
-} as const)
+export const Types = createPathStrings(["SCENERY"] as const)
 export type Type = (typeof Types)[keyof typeof Types]
 
 export type ObjectBase<
