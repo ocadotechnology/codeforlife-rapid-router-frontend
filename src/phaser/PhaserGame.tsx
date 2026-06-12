@@ -5,22 +5,21 @@ import { CircularProgress } from "@mui/material"
 //  compiled into JavaScript, these type-only imports are completely erased.
 //  They do not generate any JavaScript code that would cause the phaser module
 //  to be loaded at runtime.
-import type { Game } from "phaser"
+import type { Game, Scene } from "phaser"
 
-import { Events, Variables } from "./enums"
+import { Events, Variables } from "./globals"
+import type { Level } from "../api/level"
 import { useGameCommands } from "../app/hooks"
 
-export interface PhaserGameProps {
-  mode: "play" | "create"
-}
+export type PhaserGameProps =
+  | { mode: "play"; levelId: Level["id"] }
+  | { mode: "create"; levelId?: never }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
+const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Game>(null)
-
-  const backgroundColor = "#a0c53a"
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
@@ -33,7 +32,9 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
       // Dynamically import Phaser and our scenes.
       // NOTE: This makes Phaser a browser-only dependency.
       const Phaser = await import("phaser")
-      const scenes = await import("./scenes")
+      const { default: scene } = (await import(`./scenes/${mode}`)) as {
+        default: Scene[]
+      }
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.
@@ -57,9 +58,9 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
           resizeInterval: 100, // Check for resize every 100ms.
         },
         parent: containerRef.current,
-        backgroundColor,
-        scene: scenes[mode],
+        scene,
       })
+      gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
       setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
     }
@@ -73,7 +74,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
         gameRef.current = null
       }
     }
-  }, [mode])
+  }, [mode, levelId])
 
   // Pass the current game commands to Phaser.
   useEffect(() => {
@@ -104,6 +105,22 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
     }
   }, [mode, gameCommands])
 
+  // // Pass the current level ID to Phaser.
+  // useEffect(() => {
+  //   if (mode !== "play" || !gameRef.current) return
+
+  //   gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
+
+  //   // // Tells any currently active scenes to fetch the new data.
+  //   // const emitSetLevelIdEvent = () => {
+  //   //   if (gameRef.current) gameRef.current.events.emit(Events.SET_LEVEL_ID)
+  //   // }
+
+  //   // // Immediately emit an event for any active scenes to get the new level ID.
+  //   // emitSetLevelIdEvent()
+  //   // return () => {}
+  // }, [mode, levelId])
+
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       {!gameIsInitialized && (
@@ -119,12 +136,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode }) => {
       <div
         id="phaser-game"
         ref={containerRef}
-        style={{
-          width: "100%",
-          height: "100%",
-          // Match the background color of the game and the game's container.
-          backgroundColor: gameIsInitialized ? backgroundColor : "transparent",
-        }}
+        style={{ width: "100%", height: "100%" }}
       />
     </div>
   )

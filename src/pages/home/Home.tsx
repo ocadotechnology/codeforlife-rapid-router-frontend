@@ -3,7 +3,7 @@ import { type FC } from "react"
 import { Image } from "codeforlife/components"
 import { Typography } from "@mui/material"
 
-import CflLogoImage from "../../images/cfl_logo.png"
+import CflLogoImage from "../../images/logos/cfl.png"
 import { selectIsLoggedIn } from "../../app/slices"
 
 export interface HomeProps {}

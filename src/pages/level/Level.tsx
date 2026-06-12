@@ -40,7 +40,7 @@ const InnerLevel: FC<Pick<LevelModel, "id">> = ({ id }) => {
         <Controls panelCount={level.panel_count} />
         {/* TODO: fix style*/}
         <Box component="main" sx={{ height: "100vh" }}>
-          <Panels count={level.panel_count} />
+          <Panels count={level.panel_count} levelId={id} />
         </Box>
       </Box>
     </BlocklyWorkspaceContext.Provider>

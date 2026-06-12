@@ -1,0 +1,44 @@
+import { createIdRegistry } from "codeforlife/utils/object"
+
+import type * as objectGroup from "./objectGroup"
+import type * as tile from "./tile"
+import { COLS, ROWS } from "../globals"
+
+// Global registry of layer names.
+export const Names = createIdRegistry({
+  road: { Tile: "ROAD" },
+  environment: { Tile: "ENVIRONMENT" },
+  scenery: { ObjectGroup: "SCENERY" },
+} as const)
+
+export type Name = tile.Name | objectGroup.Name
+export type Layer = tile.Layer | objectGroup.Layer
+
+export type MakeKwArgs<N extends Name, T extends string> = {
+  name: N
+  type: T
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  opacity?: number
+  visible?: boolean
+}
+
+export const make = <N extends Name, T extends string>({
+  x = 0,
+  y = 0,
+  width = COLS,
+  height = ROWS,
+  opacity = 1,
+  visible = true,
+  ...layer
+}: MakeKwArgs<N, T>) => ({
+  x,
+  y,
+  width,
+  height,
+  opacity,
+  visible,
+  ...layer,
+})

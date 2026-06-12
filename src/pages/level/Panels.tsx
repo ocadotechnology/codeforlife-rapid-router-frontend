@@ -21,6 +21,7 @@ import {
   useSettings,
 } from "../../app/hooks"
 import { BlocklyWorkspace } from "../../blockly"
+import type { Level } from "../../api/level"
 import { PhaserGame } from "../../phaser"
 import PythonEditor from "./PythonEditor"
 
@@ -109,14 +110,18 @@ const PythonEditorPanel: FC<PanelProps> = ({ order, defaultSize }) => (
   </Panel>
 )
 
-const PhaserGamePanel: FC<PanelProps> = ({ order, defaultSize }) => (
+const PhaserGamePanel: FC<PanelProps & { levelId: Level["id"] }> = ({
+  order,
+  defaultSize,
+  levelId,
+}) => (
   <Panel
     id="phaser-game-panel"
     defaultSize={defaultSize}
     order={order}
     minSize={20}
   >
-    <PhaserGame mode="play" />
+    <PhaserGame mode="play" levelId={levelId} />
   </Panel>
 )
 
@@ -134,8 +139,11 @@ const PanelGroup: FC<PanelGroupProps> = panelGroupProps => {
 }
 
 const Flat2PanelLayout: FC<
-  Pick<PanelGroupProps, "direction"> & { reverseOrder?: boolean }
-> = ({ direction, reverseOrder = false }) => {
+  Pick<PanelGroupProps, "direction"> & {
+    reverseOrder?: boolean
+    levelId: Level["id"]
+  }
+> = ({ direction, reverseOrder = false, levelId }) => {
   const panels = [
     <BlocklyPanel
       key="blockly-panel"
@@ -146,6 +154,7 @@ const Flat2PanelLayout: FC<
       key="phaser-game-panel"
       defaultSize={50}
       order={reverseOrder ? 1 : 2}
+      levelId={levelId}
     />,
   ]
   if (reverseOrder) panels.reverse()
@@ -159,8 +168,11 @@ const Flat2PanelLayout: FC<
 }
 
 const Flat3PanelLayout: FC<
-  Pick<PanelGroupProps, "direction"> & { reverseOrder?: boolean }
-> = ({ direction, reverseOrder = false }) => {
+  Pick<PanelGroupProps, "direction"> & {
+    reverseOrder?: boolean
+    levelId: Level["id"]
+  }
+> = ({ direction, reverseOrder = false, levelId }) => {
   const panels = [
     <BlocklyPanel
       key="blockly-panel"
@@ -172,6 +184,7 @@ const Flat3PanelLayout: FC<
       key="phaser-game-panel"
       defaultSize={33}
       order={reverseOrder ? 1 : 3}
+      levelId={levelId}
     />,
   ]
   if (reverseOrder) panels.reverse()
@@ -186,7 +199,7 @@ const Flat3PanelLayout: FC<
   )
 }
 
-const Nested3PanelLayout: FC = () => {
+const Nested3PanelLayout: FC<{ levelId: Level["id"] }> = ({ levelId }) => {
   return (
     <PanelGroup direction="horizontal">
       <Panel defaultSize={50} minSize={20}>
@@ -199,16 +212,17 @@ const Nested3PanelLayout: FC = () => {
         </PanelGroup>
       </Panel>
       <AppResizeHandle />
-      <PhaserGamePanel defaultSize={50} />
+      <PhaserGamePanel defaultSize={50} levelId={levelId} />
     </PanelGroup>
   )
 }
 
 interface PanelsProps {
   count: number
+  levelId: Level["id"]
 }
 
-const Panels: FC<PanelsProps> = ({ count }) => {
+const Panels: FC<PanelsProps> = ({ count, levelId }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
@@ -219,10 +233,16 @@ const Panels: FC<PanelsProps> = ({ count }) => {
       AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]
     ) {
       case "horizontal":
-        return <Flat2PanelLayout direction="vertical" reverseOrder />
+        return (
+          <Flat2PanelLayout
+            direction="vertical"
+            reverseOrder
+            levelId={levelId}
+          />
+        )
       case "vertical":
       default:
-        return <Flat2PanelLayout direction="horizontal" />
+        return <Flat2PanelLayout direction="horizontal" levelId={levelId} />
     }
   }
 
@@ -231,12 +251,14 @@ const Panels: FC<PanelsProps> = ({ count }) => {
     AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
   ) {
     case "verticalWithLeftHorizontal":
-      return <Nested3PanelLayout />
+      return <Nested3PanelLayout levelId={levelId} />
     case "horizontal":
-      return <Flat3PanelLayout direction="vertical" reverseOrder />
+      return (
+        <Flat3PanelLayout direction="vertical" reverseOrder levelId={levelId} />
+      )
     case "vertical":
     default:
-      return <Flat3PanelLayout direction="horizontal" />
+      return <Flat3PanelLayout direction="horizontal" levelId={levelId} />
   }
 }
 

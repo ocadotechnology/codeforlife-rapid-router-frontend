@@ -1,6 +1,9 @@
 import Phaser from "phaser"
 
-import { SVGs, Scenes } from "../../enums"
+import BasePreloader from "../BasePreloader"
+import Level from "./Level"
+import type { OrthogonalTilemap } from "../../tilemaps"
+import { Variables } from "../../globals"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -8,43 +11,31 @@ import { SVGs, Scenes } from "../../enums"
  * the player about the loading progress. Once all assets are loaded, the
  * Preloader Scene transitions to the Gameplay Scene.
  */
-export default class extends Phaser.Scene {
-  constructor() {
-    super(Scenes.Play.PRELOADER)
-  }
-
-  init() {
-    // We loaded this image in our Boot Scene, so we can display it here.
-    this.add.image(512, 384, SVGs.LOGO)
-
-    // A simple progress bar. This is the outline of the bar.
-    this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff)
-
-    // This is the progress bar itself. It will increase in size from the left
-    // based on the % of progress.
-    const bar = this.add.rectangle(512 - 230, 384, 4, 28, 0xffffff)
-
-    // Use the 'progress' event emitted by the LoaderPlugin to update the
-    // loading bar
-    this.load.on("progress", (progress: number) => {
-      //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-      bar.width = 4 + 460 * progress
-    })
-  }
-
-  preload() {
-    //  Load the assets for the game - Replace with your own assets
-    // this.load.setPath("assets")
-    // this.load.image("logo", "logo.png")
-    // this.load.image("star", "star.png")
-  }
-
+export default class extends BasePreloader {
   create() {
     // When all the assets have loaded, it's often worth creating global objects
     // here that the rest of the game can use. For example, you can define
     // global animations here, so we can use them in other scenes.
 
-    // Start the game.
-    this.scene.start(Scenes.Play.GAMEPLAY)
+    void this.lazyLoadTilemap()
+  }
+
+  async lazyLoadTilemap() {
+    // Get the level ID from the registry.
+    const levelId = this.game.registry.get(Variables.LEVEL_ID) as number
+
+    // Dynamically import the tilemap JSON file based on the level ID.
+    const { default: tilemap } = (await import(
+      `../../tilemaps/level${levelId}`
+    )) as { default: OrthogonalTilemap }
+
+    this.loadTilemap(tilemap)
+
+    // Handle loading manually as we aren't leveraging Phaser's `preload`
+    // lifecycle callback.
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      this.startLevel(Level)
+    })
+    this.load.start()
   }
 }
