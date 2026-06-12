@@ -17,7 +17,7 @@
     "blockly": "12.3.1",
     "codeforlife": "2.15.2",
     "phaser": "4.1.0",
-    "react-resizable-panels": "3.0.6"
+    "react-resizable-panels": "4.11.2"
   },
   "devDependencies": {
     "@codeforlife/workspace": "link:.workspace/frontend",

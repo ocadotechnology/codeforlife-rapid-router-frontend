@@ -1,10 +1,11 @@
 import { type FC, useCallback } from "react"
 import {
   Panel,
-  PanelResizeHandle,
-  PanelGroup as _PanelGroup,
-  type PanelGroupProps as _PanelGroupProps,
+  Group as _Group,
+  type GroupProps as _GroupProps,
+  Separator as _Separator,
 } from "react-resizable-panels"
+import { type Theme, styled } from "@mui/material/styles"
 import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
@@ -25,10 +26,7 @@ import type { Level } from "../../api/level"
 import { PhaserGame } from "../../phaser"
 import PythonEditor from "./PythonEditor"
 
-interface PanelProps {
-  order?: number
-  defaultSize: number
-}
+type PanelProps = { defaultSize: string }
 
 type AutoPanelLayout<PL extends PanelLayout> = Record<
   ScreenOrientation,
@@ -69,65 +67,58 @@ const AUTO_THREE_PANEL_LAYOUTS: AutoPanelLayout<ThreePanelLayout> = {
   },
 }
 
-const AppResizeHandle: FC = () => (
-  /* TODO: fix style */
-  <PanelResizeHandle
-    style={{
-      color: "#000",
-      border: "1px solid gray",
-      outline: "none",
-      flex: "0 0 .5rem",
-      justifyContent: "center",
-      alignItems: "center",
-      display: "flex",
-    }}
-  >
-    <DragIndicatorIcon />
-  </PanelResizeHandle>
-)
-
-const BlocklyPanel: FC<PanelProps> = ({ order, defaultSize }) => {
+const BlocklyPanel: FC<PanelProps> = ({ defaultSize }) => {
   return (
-    <Panel
-      id="blockly-panel"
-      defaultSize={defaultSize}
-      order={order}
-      minSize={20}
-    >
+    <Panel id="blockly-panel" defaultSize={defaultSize} minSize="20%">
       <BlocklyWorkspace />
     </Panel>
   )
 }
 
-const PythonEditorPanel: FC<PanelProps> = ({ order, defaultSize }) => (
-  <Panel
-    id="python-editor-panel"
-    defaultSize={defaultSize}
-    order={order}
-    minSize={20}
-  >
+const PythonEditorPanel: FC<PanelProps> = ({ defaultSize }) => (
+  <Panel id="python-editor-panel" defaultSize={defaultSize} minSize="20%">
     <PythonEditor />
   </Panel>
 )
 
+const StyledSeparator = styled(_Separator)(({ theme }: { theme: Theme }) => ({
+  alignItems: "center",
+  backgroundColor: theme.palette.divider,
+  display: "flex",
+  justifyContent: "center",
+  "&[data-separator='hover']": {
+    backgroundColor: theme.palette.action.hover,
+  },
+  "&[data-separator='active'], &[data-separator='focus']": {
+    backgroundColor: theme.palette.primary.main,
+  },
+}))
+
+const Separator: FC<Pick<GroupProps, "orientation">> = ({ orientation }) => (
+  <StyledSeparator>
+    <DragIndicatorIcon
+      sx={{
+        fontSize: 15,
+        ...(orientation === "vertical" ? { transform: "rotate(90deg)" } : {}),
+      }}
+    />
+  </StyledSeparator>
+)
+
 const PhaserGamePanel: FC<PanelProps & { levelId: Level["id"] }> = ({
-  order,
   defaultSize,
   levelId,
 }) => (
-  <Panel
-    id="phaser-game-panel"
-    defaultSize={defaultSize}
-    order={order}
-    minSize={20}
-  >
+  <Panel id="phaser-game-panel" defaultSize={defaultSize} minSize="20%">
     <PhaserGame mode="play" levelId={levelId} />
   </Panel>
 )
 
-type PanelGroupProps = Omit<_PanelGroupProps, "onLayout">
+type GroupProps = Omit<_GroupProps, "onLayoutChanged" | "orientation"> & {
+  orientation: "horizontal" | "vertical"
+}
 
-const PanelGroup: FC<PanelGroupProps> = panelGroupProps => {
+const Group: FC<GroupProps> = groupProps => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
 
   const resizeBlocklyWorkspace = useCallback(() => {
@@ -135,85 +126,75 @@ const PanelGroup: FC<PanelGroupProps> = panelGroupProps => {
       blocklyWorkspaceContext.ref.current.resize()
   }, [blocklyWorkspaceContext])
 
-  return <_PanelGroup onLayout={resizeBlocklyWorkspace} {...panelGroupProps} />
+  return <_Group onLayoutChanged={resizeBlocklyWorkspace} {...groupProps} />
 }
 
 const Flat2PanelLayout: FC<
-  Pick<PanelGroupProps, "direction"> & {
+  Pick<GroupProps, "orientation"> & {
     reverseOrder?: boolean
     levelId: Level["id"]
   }
-> = ({ direction, reverseOrder = false, levelId }) => {
+> = ({ orientation, reverseOrder = false, levelId }) => {
   const panels = [
-    <BlocklyPanel
-      key="blockly-panel"
-      defaultSize={50}
-      order={reverseOrder ? 2 : 1}
-    />,
+    <BlocklyPanel key="blockly-panel" defaultSize="50%" />,
     <PhaserGamePanel
       key="phaser-game-panel"
-      defaultSize={50}
-      order={reverseOrder ? 1 : 2}
+      defaultSize="50%"
       levelId={levelId}
     />,
   ]
   if (reverseOrder) panels.reverse()
   return (
-    <PanelGroup direction={direction}>
+    <Group orientation={orientation}>
       {panels[0]}
-      <AppResizeHandle />
+      <Separator orientation={orientation} />
       {panels[1]}
-    </PanelGroup>
+    </Group>
   )
 }
 
 const Flat3PanelLayout: FC<
-  Pick<PanelGroupProps, "direction"> & {
+  Pick<GroupProps, "orientation"> & {
     reverseOrder?: boolean
     levelId: Level["id"]
   }
-> = ({ direction, reverseOrder = false, levelId }) => {
+> = ({ orientation, reverseOrder = false, levelId }) => {
   const panels = [
-    <BlocklyPanel
-      key="blockly-panel"
-      defaultSize={34}
-      order={reverseOrder ? 3 : 1}
-    />,
-    <PythonEditorPanel key="python-editor-panel" defaultSize={33} order={2} />,
+    <BlocklyPanel key="blockly-panel" defaultSize="34%" />,
+    <PythonEditorPanel key="python-editor-panel" defaultSize="33%" />,
     <PhaserGamePanel
       key="phaser-game-panel"
-      defaultSize={33}
-      order={reverseOrder ? 1 : 3}
+      defaultSize="33%"
       levelId={levelId}
     />,
   ]
   if (reverseOrder) panels.reverse()
   return (
-    <PanelGroup direction={direction}>
+    <Group orientation={orientation}>
       {panels[0]}
-      <AppResizeHandle />
+      <Separator orientation={orientation} />
       {panels[1]}
-      <AppResizeHandle />
+      <Separator orientation={orientation} />
       {panels[2]}
-    </PanelGroup>
+    </Group>
   )
 }
 
 const Nested3PanelLayout: FC<{ levelId: Level["id"] }> = ({ levelId }) => {
   return (
-    <PanelGroup direction="horizontal">
-      <Panel defaultSize={50} minSize={20}>
-        <PanelGroup direction="vertical">
-          <BlocklyPanel defaultSize={50} />
-          <AppResizeHandle />
-          <Panel key="panel-2" id="panel-2" defaultSize={50} minSize={20}>
+    <Group orientation="horizontal">
+      <Panel defaultSize="50%" minSize="20%">
+        <Group orientation="vertical">
+          <BlocklyPanel defaultSize="50%" />
+          <Separator orientation="vertical" />
+          <Panel key="panel-2" id="panel-2" defaultSize="50%" minSize="20%">
             <PythonEditor />
           </Panel>
-        </PanelGroup>
+        </Group>
       </Panel>
-      <AppResizeHandle />
-      <PhaserGamePanel defaultSize={50} levelId={levelId} />
-    </PanelGroup>
+      <Separator orientation="horizontal" />
+      <PhaserGamePanel defaultSize="50%" levelId={levelId} />
+    </Group>
   )
 }
 
@@ -235,14 +216,14 @@ const Panels: FC<PanelsProps> = ({ count, levelId }) => {
       case "horizontal":
         return (
           <Flat2PanelLayout
-            direction="vertical"
+            orientation="vertical"
             reverseOrder
             levelId={levelId}
           />
         )
       case "vertical":
       default:
-        return <Flat2PanelLayout direction="horizontal" levelId={levelId} />
+        return <Flat2PanelLayout orientation="horizontal" levelId={levelId} />
     }
   }
 
@@ -254,11 +235,15 @@ const Panels: FC<PanelsProps> = ({ count, levelId }) => {
       return <Nested3PanelLayout levelId={levelId} />
     case "horizontal":
       return (
-        <Flat3PanelLayout direction="vertical" reverseOrder levelId={levelId} />
+        <Flat3PanelLayout
+          orientation="vertical"
+          reverseOrder
+          levelId={levelId}
+        />
       )
     case "vertical":
     default:
-      return <Flat3PanelLayout direction="horizontal" levelId={levelId} />
+      return <Flat3PanelLayout orientation="horizontal" levelId={levelId} />
   }
 }
 

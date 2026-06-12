@@ -60,6 +60,10 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
         parent: containerRef.current,
         scene,
       })
+      // TODO: Determine if we need to set the level ID here. As is, this will
+      // destroy and reinitialize the entire Phaser game instance whenever the
+      // level ID changes, which is not ideal. We should look into ways to only
+      // reload the relevant parts of the game.
       gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
       setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
@@ -104,22 +108,6 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       )
     }
   }, [mode, gameCommands])
-
-  // // Pass the current level ID to Phaser.
-  // useEffect(() => {
-  //   if (mode !== "play" || !gameRef.current) return
-
-  //   gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
-
-  //   // // Tells any currently active scenes to fetch the new data.
-  //   // const emitSetLevelIdEvent = () => {
-  //   //   if (gameRef.current) gameRef.current.events.emit(Events.SET_LEVEL_ID)
-  //   // }
-
-  //   // // Immediately emit an event for any active scenes to get the new level ID.
-  //   // emitSetLevelIdEvent()
-  //   // return () => {}
-  // }, [mode, levelId])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
