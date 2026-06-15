@@ -94,3 +94,15 @@ export const useGameHasFinished = () => useSelector(selectGameHasFinished)
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
+
+// Blockly
+export const useResizeBlocklyWorkspace = () => {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  return useCallback(() => {
+    if (blocklyWorkspaceContext && blocklyWorkspaceContext.ref.current) {
+      console.log("Resizing Blockly workspace...")
+      blocklyWorkspaceContext.ref.current.resize()
+    }
+  }, [blocklyWorkspaceContext])
+}

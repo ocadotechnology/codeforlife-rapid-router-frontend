@@ -15,18 +15,25 @@ export interface MiniDrawerProps {
   open: boolean
   children: ReactNode
   onToggle: () => void
+  onOpened?: () => void
+  onClosed?: () => void
   width?: number
 }
 
 const MiniDrawer: FC<MiniDrawerProps> = ({
   open,
   onToggle,
+  onOpened,
+  onClosed,
   children,
   width = 240,
 }) => (
   <Drawer
     variant="permanent"
     open={open}
+    slotProps={{
+      paper: { onTransitionEnd: () => (open ? onOpened : onClosed)?.() },
+    }}
     sx={theme => {
       const base: CSSObject = {
         width,

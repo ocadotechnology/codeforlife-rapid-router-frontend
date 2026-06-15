@@ -1,4 +1,4 @@
-import { type FC, type ReactNode, useCallback } from "react"
+import { type FC, type ReactNode } from "react"
 import {
   Panel,
   Group as _Group,
@@ -16,8 +16,8 @@ import type {
 } from "../../app/slices"
 import {
   type ScreenOrientation,
-  useBlocklyWorkspaceContext,
   useBreakpoint,
+  useResizeBlocklyWorkspace,
   useScreenOrientation,
   useSettings,
 } from "../../app/hooks"
@@ -133,12 +133,7 @@ const Group: FC<GroupProps> = ({ panels, orientation, ...groupProps }) => (
 )
 
 const BlocklyGroup: FC<Omit<GroupProps, "onLayoutChanged">> = props => {
-  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
-
-  const resizeBlocklyWorkspace = useCallback(() => {
-    if (blocklyWorkspaceContext && blocklyWorkspaceContext.ref.current)
-      blocklyWorkspaceContext.ref.current.resize()
-  }, [blocklyWorkspaceContext])
+  const resizeBlocklyWorkspace = useResizeBlocklyWorkspace()
 
   return <Group onLayoutChanged={resizeBlocklyWorkspace} {...props} />
 }

@@ -7,7 +7,7 @@ import {
   Speed as SpeedIcon,
   Stop as StopIcon,
 } from "@mui/icons-material"
-import { type FC, useState } from "react"
+import { type FC, useCallback, useState } from "react"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
 import * as miniDrawers from "../../components/miniDrawers"
@@ -28,16 +28,19 @@ import {
   useGameInPlay,
   useGameIsDefined,
   usePlayInterval,
+  useResizeBlocklyWorkspace,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
 
 export type ControlsProps = { level: Pick<Level, "mode"> }
 
-const Base: FC<{ panelCount: number; onClear: () => void }> = ({
-  panelCount,
-  onClear,
-}) => {
+const Base: FC<
+  Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
+    panelCount: number
+    onClear: () => void
+  }
+> = ({ panelCount, onClear, onOpened, onClosed }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
   const settings = useSettings()
@@ -66,6 +69,8 @@ const Base: FC<{ panelCount: number; onClear: () => void }> = ({
       onToggle={() => {
         setIsDrawerOpen(!isDrawerOpen)
       }}
+      onOpened={onOpened}
+      onClosed={onClosed}
     >
       <miniDrawers.ButtonItem
         isDrawerOpen={isDrawerOpen}
@@ -136,41 +141,54 @@ const Base: FC<{ panelCount: number; onClear: () => void }> = ({
   )
 }
 
-function clearBlocklyWorkspace(
-  blocklyWorkspaceContext: ReturnType<typeof useBlocklyWorkspaceContext>,
-) {
-  if (blocklyWorkspaceContext?.ref.current) {
-    blocklyWorkspaceContext.ref.current.clear()
-  }
+function useClearBlocklyWorkspace() {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  return useCallback(() => {
+    if (blocklyWorkspaceContext?.ref.current) {
+      blocklyWorkspaceContext.ref.current.clear()
+    }
+  }, [blocklyWorkspaceContext])
 }
 
-function clearPythonWorkspace() {}
+function useClearPythonWorkspace() {
+  return useCallback(() => {}, [])
+}
 
 const Blockly: FC = () => {
-  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const clearBlocklyWorkspace = useClearBlocklyWorkspace()
+  const resizeBlocklyWorkspace = useResizeBlocklyWorkspace()
 
   return (
     <Base
       panelCount={2}
-      onClear={() => clearBlocklyWorkspace(blocklyWorkspaceContext)}
+      onClear={clearBlocklyWorkspace}
+      onOpened={resizeBlocklyWorkspace}
+      onClosed={resizeBlocklyWorkspace}
     />
   )
 }
 
-const Python: FC = () => (
-  <Base panelCount={2} onClear={() => clearPythonWorkspace()} />
-)
+const Python: FC = () => {
+  const clearPythonWorkspace = useClearPythonWorkspace()
+
+  return <Base panelCount={2} onClear={clearPythonWorkspace} />
+}
 
 const BlocklyAndPython: FC = () => {
-  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const clearBlocklyWorkspace = useClearBlocklyWorkspace()
+  const resizeBlocklyWorkspace = useResizeBlocklyWorkspace()
+  const clearPythonWorkspace = useClearPythonWorkspace()
 
   return (
     <Base
       panelCount={3}
       onClear={() => {
-        clearBlocklyWorkspace(blocklyWorkspaceContext)
+        clearBlocklyWorkspace()
         clearPythonWorkspace()
       }}
+      onOpened={resizeBlocklyWorkspace}
+      onClosed={resizeBlocklyWorkspace}
     />
   )
 }
