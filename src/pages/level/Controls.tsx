@@ -28,7 +28,6 @@ import {
   useGameInPlay,
   useGameIsDefined,
   usePlayInterval,
-  useResizeBlocklyWorkspace,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
@@ -141,23 +140,14 @@ const Base: FC<
   )
 }
 
-function useClearBlocklyWorkspace() {
-  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
-
-  return useCallback(() => {
-    if (blocklyWorkspaceContext?.ref.current) {
-      blocklyWorkspaceContext.ref.current.clear()
-    }
-  }, [blocklyWorkspaceContext])
-}
-
-function useClearPythonWorkspace() {
-  return useCallback(() => {}, [])
-}
-
 const Blockly: FC = () => {
-  const clearBlocklyWorkspace = useClearBlocklyWorkspace()
-  const resizeBlocklyWorkspace = useResizeBlocklyWorkspace()
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const clearBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.clear()
+  }, [blocklyWorkspaceContext])
+  const resizeBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.resize()
+  }, [blocklyWorkspaceContext])
 
   return (
     <Base
@@ -170,22 +160,33 @@ const Blockly: FC = () => {
 }
 
 const Python: FC = () => {
-  const clearPythonWorkspace = useClearPythonWorkspace()
+  // const clearPythonWorkspace = useClearPythonWorkspace()
 
-  return <Base panelCount={2} onClear={clearPythonWorkspace} />
+  return (
+    <Base
+      panelCount={2}
+      onClear={() => {
+        console.log("Clear Python Workspace")
+      }}
+    />
+  )
 }
 
 const BlocklyAndPython: FC = () => {
-  const clearBlocklyWorkspace = useClearBlocklyWorkspace()
-  const resizeBlocklyWorkspace = useResizeBlocklyWorkspace()
-  const clearPythonWorkspace = useClearPythonWorkspace()
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const clearBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.clear()
+  }, [blocklyWorkspaceContext])
+  const resizeBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.resize()
+  }, [blocklyWorkspaceContext])
 
   return (
     <Base
       panelCount={3}
       onClear={() => {
         clearBlocklyWorkspace()
-        clearPythonWorkspace()
+        // clearPythonWorkspace()
       }}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
