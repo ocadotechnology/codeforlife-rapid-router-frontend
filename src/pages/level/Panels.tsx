@@ -114,11 +114,13 @@ const PhaserGamePanel: FC<PanelProps & { levelId: Level["id"] }> = ({
   </Panel>
 )
 
-type GroupProps = Omit<_GroupProps, "onLayoutChanged" | "orientation"> & {
+type GroupProps = Omit<_GroupProps, "orientation"> & {
   orientation: "horizontal" | "vertical"
 }
 
-const Group: FC<GroupProps> = groupProps => {
+const Group: FC<GroupProps> = _Group
+
+const BlocklyGroup: FC<Omit<GroupProps, "onLayoutChanged">> = props => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
 
   const resizeBlocklyWorkspace = useCallback(() => {
@@ -126,30 +128,33 @@ const Group: FC<GroupProps> = groupProps => {
       blocklyWorkspaceContext.ref.current.resize()
   }, [blocklyWorkspaceContext])
 
-  return <_Group onLayoutChanged={resizeBlocklyWorkspace} {...groupProps} />
+  return <Group onLayoutChanged={resizeBlocklyWorkspace} {...props} />
 }
 
 const Flat2PanelLayout: FC<
   Pick<GroupProps, "orientation"> & {
     reverseOrder?: boolean
-    levelId: Level["id"]
+    level: { id: Level["id"]; mode: "blockly" | "python" }
   }
-> = ({ orientation, reverseOrder = false, levelId }) => {
-  const panels = [
-    <BlocklyPanel key="blockly-panel" defaultSize="50%" />,
+> = ({ orientation, reverseOrder = false, level }) => {
+  const children = [
+    level.mode === "blockly" ? (
+      <BlocklyPanel key="blockly-panel" defaultSize="50%" />
+    ) : (
+      <PythonEditorPanel key="python-editor-panel" defaultSize="50%" />
+    ),
+    <Separator key="separator" orientation={orientation} />,
     <PhaserGamePanel
       key="phaser-game-panel"
       defaultSize="50%"
-      levelId={levelId}
+      levelId={level.id}
     />,
   ]
-  if (reverseOrder) panels.reverse()
-  return (
-    <Group orientation={orientation}>
-      {panels[0]}
-      <Separator orientation={orientation} />
-      {panels[1]}
-    </Group>
+  if (reverseOrder) children.reverse()
+  return level.mode === "blockly" ? (
+    <BlocklyGroup orientation={orientation}>{...children}</BlocklyGroup>
+  ) : (
+    <Group orientation={orientation}>{...children}</Group>
   )
 }
 
@@ -170,31 +175,31 @@ const Flat3PanelLayout: FC<
   ]
   if (reverseOrder) panels.reverse()
   return (
-    <Group orientation={orientation}>
+    <BlocklyGroup orientation={orientation}>
       {panels[0]}
       <Separator orientation={orientation} />
       {panels[1]}
       <Separator orientation={orientation} />
       {panels[2]}
-    </Group>
+    </BlocklyGroup>
   )
 }
 
 const Nested3PanelLayout: FC<{ levelId: Level["id"] }> = ({ levelId }) => {
   return (
-    <Group orientation="horizontal">
+    <BlocklyGroup orientation="horizontal">
       <Panel defaultSize="50%" minSize="20%">
-        <Group orientation="vertical">
+        <BlocklyGroup orientation="vertical">
           <BlocklyPanel defaultSize="50%" />
           <Separator orientation="vertical" />
           <Panel key="panel-2" id="panel-2" defaultSize="50%" minSize="20%">
             <PythonEditor />
           </Panel>
-        </Group>
+        </BlocklyGroup>
       </Panel>
       <Separator orientation="horizontal" />
       <PhaserGamePanel defaultSize="50%" levelId={levelId} />
-    </Group>
+    </BlocklyGroup>
   )
 }
 
@@ -202,12 +207,12 @@ export interface PanelsProps {
   level: Pick<Level, "id" | "mode">
 }
 
-const Panels: FC<PanelsProps> = ({ level }) => {
+const Panels: FC<PanelsProps> = ({ level: { id, mode } }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
 
-  if (level.mode === "blockly" || level.mode === "python") {
+  if (mode === "blockly" || mode === "python") {
     switch (
       settings.twoPanelLayout ??
       AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]
@@ -217,12 +222,14 @@ const Panels: FC<PanelsProps> = ({ level }) => {
           <Flat2PanelLayout
             orientation="vertical"
             reverseOrder
-            levelId={level.id}
+            level={{ id, mode }}
           />
         )
       case "vertical":
       default:
-        return <Flat2PanelLayout orientation="horizontal" levelId={level.id} />
+        return (
+          <Flat2PanelLayout orientation="horizontal" level={{ id, mode }} />
+        )
     }
   }
 
@@ -231,18 +238,14 @@ const Panels: FC<PanelsProps> = ({ level }) => {
     AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
   ) {
     case "verticalWithLeftHorizontal":
-      return <Nested3PanelLayout levelId={level.id} />
+      return <Nested3PanelLayout levelId={id} />
     case "horizontal":
       return (
-        <Flat3PanelLayout
-          orientation="vertical"
-          reverseOrder
-          levelId={level.id}
-        />
+        <Flat3PanelLayout orientation="vertical" reverseOrder levelId={id} />
       )
     case "vertical":
     default:
-      return <Flat3PanelLayout orientation="horizontal" levelId={level.id} />
+      return <Flat3PanelLayout orientation="horizontal" levelId={id} />
   }
 }
 

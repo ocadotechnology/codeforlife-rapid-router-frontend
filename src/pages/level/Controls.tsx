@@ -34,17 +34,17 @@ import { type Level } from "../../api/level"
 
 export type ControlsProps = { level: Pick<Level, "mode"> }
 
-const Controls: FC<ControlsProps> = ({ level }) => {
+const Base: FC<{ panelCount: number; onClear: () => void }> = ({
+  panelCount,
+  onClear,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
   const settings = useSettings()
-  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
   const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
-
-  const panelCount = level.mode === "blocklyAndPython" ? 3 : 2
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -73,9 +73,7 @@ const Controls: FC<ControlsProps> = ({ level }) => {
         icon={<DeleteIcon />}
         onClick={() => {
           clearPlayInterval()
-          if (blocklyWorkspaceContext?.ref.current) {
-            blocklyWorkspaceContext.ref.current.clear()
-          }
+          onClear()
         }}
       />
       <miniDrawers.ButtonItem
@@ -137,5 +135,51 @@ const Controls: FC<ControlsProps> = ({ level }) => {
     </miniDrawers.MiniDrawer>
   )
 }
+
+function clearBlocklyWorkspace(
+  blocklyWorkspaceContext: ReturnType<typeof useBlocklyWorkspaceContext>,
+) {
+  if (blocklyWorkspaceContext?.ref.current) {
+    blocklyWorkspaceContext.ref.current.clear()
+  }
+}
+
+function clearPythonWorkspace() {}
+
+const Blockly: FC = () => {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  return (
+    <Base
+      panelCount={2}
+      onClear={() => clearBlocklyWorkspace(blocklyWorkspaceContext)}
+    />
+  )
+}
+
+const Python: FC = () => (
+  <Base panelCount={2} onClear={() => clearPythonWorkspace()} />
+)
+
+const BlocklyAndPython: FC = () => {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  return (
+    <Base
+      panelCount={3}
+      onClear={() => {
+        clearBlocklyWorkspace(blocklyWorkspaceContext)
+        clearPythonWorkspace()
+      }}
+    />
+  )
+}
+
+const Controls: FC<ControlsProps> = ({ level }) =>
+  ({
+    blockly: <Blockly />,
+    python: <Python />,
+    blocklyAndPython: <BlocklyAndPython />,
+  })[level.mode]
 
 export default Controls
