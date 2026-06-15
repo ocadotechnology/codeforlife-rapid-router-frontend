@@ -32,9 +32,9 @@ import {
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
 
-export type ControlsProps = { panelCount: Level["panel_count"] }
+export type ControlsProps = { level: Pick<Level, "mode"> }
 
-const Controls: FC<ControlsProps> = ({ panelCount }) => {
+const Controls: FC<ControlsProps> = ({ level }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const dispatch = useAppDispatch()
   const settings = useSettings()
@@ -43,6 +43,8 @@ const Controls: FC<ControlsProps> = ({ panelCount }) => {
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
   const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+
+  const panelCount = level.mode === "blocklyAndPython" ? 3 : 2
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<

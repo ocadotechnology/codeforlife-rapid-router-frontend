@@ -198,17 +198,16 @@ const Nested3PanelLayout: FC<{ levelId: Level["id"] }> = ({ levelId }) => {
   )
 }
 
-interface PanelsProps {
-  count: number
-  levelId: Level["id"]
+export interface PanelsProps {
+  level: Pick<Level, "id" | "mode">
 }
 
-const Panels: FC<PanelsProps> = ({ count, levelId }) => {
+const Panels: FC<PanelsProps> = ({ level }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
 
-  if (count === 2) {
+  if (level.mode === "blockly" || level.mode === "python") {
     switch (
       settings.twoPanelLayout ??
       AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]
@@ -218,12 +217,12 @@ const Panels: FC<PanelsProps> = ({ count, levelId }) => {
           <Flat2PanelLayout
             orientation="vertical"
             reverseOrder
-            levelId={levelId}
+            levelId={level.id}
           />
         )
       case "vertical":
       default:
-        return <Flat2PanelLayout orientation="horizontal" levelId={levelId} />
+        return <Flat2PanelLayout orientation="horizontal" levelId={level.id} />
     }
   }
 
@@ -232,18 +231,18 @@ const Panels: FC<PanelsProps> = ({ count, levelId }) => {
     AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
   ) {
     case "verticalWithLeftHorizontal":
-      return <Nested3PanelLayout levelId={levelId} />
+      return <Nested3PanelLayout levelId={level.id} />
     case "horizontal":
       return (
         <Flat3PanelLayout
           orientation="vertical"
           reverseOrder
-          levelId={levelId}
+          levelId={level.id}
         />
       )
     case "vertical":
     default:
-      return <Flat3PanelLayout orientation="horizontal" levelId={levelId} />
+      return <Flat3PanelLayout orientation="horizontal" levelId={level.id} />
   }
 }
 

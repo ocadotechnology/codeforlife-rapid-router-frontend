@@ -1,7 +1,7 @@
 import * as yup from "yup"
 import { type FC, useRef } from "react"
 import { Box } from "@mui/material"
-// import { handleResultState } from "codeforlife/utils/api"
+import { handleResultState } from "codeforlife/utils/api"
 import { useParamsRequired } from "codeforlife/hooks"
 
 import {
@@ -16,45 +16,48 @@ import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
 
-export interface LevelProps {}
+type DefinedLevelProps = Pick<
+  LevelModel,
+  "id" | "mode" | "blockly_toolbox_block_types"
+>
 
-const InnerLevel: FC<Pick<LevelModel, "id">> = ({ id }) => {
+const DefinedLevel: FC<DefinedLevelProps> = ({
+  id,
+  mode,
+  blockly_toolbox_block_types,
+}) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
-  // TODO: swap these when pulling from the API
-  // const result = useRetrieveLevelQuery(id)
-  const level = useRetrieveLevelQuery(id)
 
-  // TODO: swap these when pulling from the API
-  // return handleResultState(result, level => (
   return (
     <BlocklyWorkspaceContext.Provider
       value={{
         ref: blocklyWorkspaceRef,
-        toolboxContents: level.blockly_toolbox_block_types.map(type => ({
+        toolboxContents: blockly_toolbox_block_types.map(type => ({
           kind: "block",
           type,
         })),
       }}
     >
       <Box sx={{ display: "flex" }}>
-        <Controls panelCount={level.panel_count} />
+        <Controls level={{ mode }} />
         {/* TODO: fix style*/}
-        <Box component="main" sx={{ height: "100vh" }}>
-          <Panels count={level.panel_count} levelId={id} />
+        <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
+          <Panels level={{ id, mode }} />
         </Box>
       </Box>
     </BlocklyWorkspaceContext.Provider>
   )
 }
 
-const Level: FC<LevelProps> = () =>
+const InnerCustomLevel: FC<Pick<LevelModel, "id">> = ({ id }) =>
+  handleResultState(useRetrieveLevelQuery(id), level => (
+    <DefinedLevel {...level} />
+  ))
+
+const CustomLevel: FC = () =>
   useParamsRequired({
     shape: { id: yup.number().required().min(1) },
-    children: ({ id }) => <InnerLevel id={id} />,
-    onValidationSuccess: params => {
-      console.log(`Level ID from URL: ${params.id}`)
-      // TODO: call API
-    },
+    children: ({ id }) => <InnerCustomLevel id={id} />,
     onValidationError: navigate => {
       // Redirect to home with error message
       navigate(paths._, {
@@ -66,5 +69,10 @@ const Level: FC<LevelProps> = () =>
       })
     },
   })
+
+export type LevelProps = DefinedLevelProps | {}
+
+const Level: FC<LevelProps> = level =>
+  "id" in level ? <DefinedLevel {...level} /> : <CustomLevel />
 
 export default Level
