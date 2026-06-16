@@ -1,6 +1,7 @@
 import type Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
+import HUD from "./HUD"
 
 export interface LevelData extends BaseLevelData {}
 
@@ -20,6 +21,8 @@ export default class extends BaseLevel<LevelData> {
     super.create()
 
     this.addLineGraphics()
+
+    this.scene.launch(HUD.KEY)
   }
 
   private addLineGraphics() {

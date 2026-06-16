@@ -19,6 +19,8 @@ export default class extends BaseLevel<LevelData> {
   private commands: GameCommand[] = []
 
   create() {
+    this.scene.launch(HUD.KEY)
+
     super.create()
 
     // Listen for updates to the game commands.
@@ -27,13 +29,6 @@ export default class extends BaseLevel<LevelData> {
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.events.off(Events.SET_COMMANDS, getCommands)
     })
-
-    // WARN: This must come after the objects have been added!
-    // Launch the HUD scene in parallel with the Gameplay scene. Phaser dictates
-    // the visual stacking order (z-index) based on the order scenes are
-    // initialized. By having this scene launch the HUD scene after the level is
-    // built, the HUD is naturally drawn on top.
-    this.scene.launch(HUD.KEY)
 
     // WARN: This must come last!
     this.game.events.emit(Events.GAMEPLAY_SCENE_READY)
