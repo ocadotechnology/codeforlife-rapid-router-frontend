@@ -43,6 +43,13 @@ export default class extends BaseLevel<LevelData> {
   private dragTileSet = new Set<string>()
   private dragHighlightGraphics!: Phaser.GameObjects.Graphics
   private lastDragTile: { row: number; col: number } | null = null
+  /**
+   * Maps a tile key to the direction of travel when the cursor last moved
+   * through it. Both the source and destination tile of each step share the
+   * same travel direction, so the last tile in a drag always shows the correct
+   * direction (e.g. all tiles in a left→right sweep show "right").
+   */
+  private dragArrowDirs = new Map<string, Direction>()
 
   create() {
     super.create()
@@ -66,21 +73,19 @@ export default class extends BaseLevel<LevelData> {
     return (this.scene.get(HUD.KEY) as HUD) ?? null
   }
 
+  /**
+   * Converts world coordinates to a tile position, clamping to the nearest
+   * edge tile when the cursor is outside the tilemap bounds. Returns null only
+   * if the tilemap conversion itself fails.
+   */
   private worldToTile(
     worldX: number,
     worldY: number,
   ): { row: number; col: number } | null {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
     if (!tileXY) return null
-    const col = tileXY.x
-    const row = tileXY.y
-    if (
-      row < 0 ||
-      row >= this.tilemap.height ||
-      col < 0 ||
-      col >= this.tilemap.width
-    )
-      return null
+    const col = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
+    const row = Phaser.Math.Clamp(tileXY.y, 0, this.tilemap.height - 1)
     return { row, col }
   }
 
@@ -126,6 +131,7 @@ export default class extends BaseLevel<LevelData> {
         this.isDragging = true
         this.dragSequence = [tile]
         this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
+        this.dragArrowDirs.clear()
         this.lastDragTile = tile
         this.redrawHighlights()
       },
@@ -146,6 +152,14 @@ export default class extends BaseLevel<LevelData> {
 
         this.dragSequence.push(tile)
         this.dragTileSet.add(this.tileKey(tile.row, tile.col))
+        // Both the previous tile and the new tile share the same travel
+        // direction, so every tile (including the last) shows the correct arrow.
+        const travelDir = this.directionBetween(this.lastDragTile, tile)
+        this.dragArrowDirs.set(
+          this.tileKey(this.lastDragTile.row, this.lastDragTile.col),
+          travelDir,
+        )
+        this.dragArrowDirs.set(this.tileKey(tile.row, tile.col), travelDir)
         this.lastDragTile = tile
         this.redrawHighlights()
       },
@@ -157,6 +171,7 @@ export default class extends BaseLevel<LevelData> {
       this.finalizeDrag()
       this.dragSequence = []
       this.dragTileSet.clear()
+      this.dragArrowDirs.clear()
       this.lastDragTile = null
       this.dragHighlightGraphics.clear()
     })
@@ -173,6 +188,36 @@ export default class extends BaseLevel<LevelData> {
         worldXY.y,
         this.tilemap.tileWidth,
         this.tilemap.tileHeight,
+      )
+    }
+
+    // Draw a travel-direction arrow for each highlighted tile.
+    const tw = this.tilemap.tileWidth
+    const th = this.tilemap.tileHeight
+    const headWidth = tw * 0.15
+    const headHeight = th * 0.2
+    this.dragHighlightGraphics.lineStyle(2, 0xffffff, 1).fillStyle(0xffffff, 1)
+    for (const [key, dir] of this.dragArrowDirs) {
+      const [row, col] = key.split(",").map(Number)
+      const worldXY = this.tilemap.tileToWorldXY(col, row)
+      if (!worldXY) continue
+      const cx = worldXY.x + tw / 2
+      const cy = worldXY.y + th / 2
+      const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
+        top: { x: cx, y: worldXY.y },
+        bottom: { x: cx, y: worldXY.y + th },
+        left: { x: worldXY.x, y: cy },
+        right: { x: worldXY.x + tw, y: cy },
+      }
+      const { x: ex, y: ey } = edgeMidpoint[dir]
+      this.drawArrow(
+        this.dragHighlightGraphics,
+        cx,
+        cy,
+        ex,
+        ey,
+        headWidth,
+        headHeight,
       )
     }
   }
@@ -256,6 +301,45 @@ export default class extends BaseLevel<LevelData> {
     // - `_fromDirection` is the side the cursor first entered this tile from.
     // - Select and place the correct road tileset tile on `this.layers.road`.
     void [_row, _col, _fromDirection]
+  }
+
+  /**
+   * Draws an arrow from (x1, y1) to (x2, y2) on the given Graphics object.
+   * The arrowhead is a filled isosceles triangle of the given width and height.
+   * The Graphics object must already have lineStyle and fillStyle set.
+   *
+   * Based on: https://phaser.discourse.group/t/graphics-arrow/15193
+   */
+  private drawArrow(
+    graphics: Phaser.GameObjects.Graphics,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    headWidth: number,
+    headHeight: number,
+  ): void {
+    graphics.lineBetween(x1, y1, x2, y2)
+
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const len = Math.sqrt(dx * dx + dy * dy)
+
+    // Line unit vector.
+    const udx = dx / len
+    const udy = dy / len
+
+    // Perpendicular unit vector.
+    const pdx = -udy
+    const pdy = udx
+
+    // Arrowhead base vertices.
+    const x3 = x2 - headHeight * udx + headWidth * pdx
+    const y3 = y2 - headHeight * udy + headWidth * pdy
+    const x4 = x2 - headHeight * udx - headWidth * pdx
+    const y4 = y2 - headHeight * udy - headWidth * pdy
+
+    graphics.fillTriangle(x2, y2, x3, y3, x4, y4)
   }
 
   private addLineGraphics() {
