@@ -49,7 +49,7 @@ export default class extends BaseLevel<LevelData> {
    * same travel direction, so the last tile in a drag always shows the correct
    * direction (e.g. all tiles in a left→right sweep show "right").
    */
-  private dragArrowDirs = new Map<string, Direction>()
+  private dragArrowDirs = new Map<string, Set<Direction>>()
 
   create() {
     super.create()
@@ -155,11 +155,17 @@ export default class extends BaseLevel<LevelData> {
         // Both the previous tile and the new tile share the same travel
         // direction, so every tile (including the last) shows the correct arrow.
         const travelDir = this.directionBetween(this.lastDragTile, tile)
-        this.dragArrowDirs.set(
-          this.tileKey(this.lastDragTile.row, this.lastDragTile.col),
-          travelDir,
+        const prevKey = this.tileKey(
+          this.lastDragTile.row,
+          this.lastDragTile.col,
         )
-        this.dragArrowDirs.set(this.tileKey(tile.row, tile.col), travelDir)
+        if (!this.dragArrowDirs.has(prevKey))
+          this.dragArrowDirs.set(prevKey, new Set())
+        this.dragArrowDirs.get(prevKey)!.add(travelDir)
+        const currKey = this.tileKey(tile.row, tile.col)
+        if (!this.dragArrowDirs.has(currKey))
+          this.dragArrowDirs.set(currKey, new Set())
+        this.dragArrowDirs.get(currKey)!.add(travelDir)
         this.lastDragTile = tile
         this.redrawHighlights()
       },
@@ -197,7 +203,7 @@ export default class extends BaseLevel<LevelData> {
     const headWidth = tw * 0.15
     const headHeight = th * 0.2
     this.dragHighlightGraphics.lineStyle(2, 0xffffff, 1).fillStyle(0xffffff, 1)
-    for (const [key, dir] of this.dragArrowDirs) {
+    for (const [key, dirs] of this.dragArrowDirs) {
       const [row, col] = key.split(",").map(Number)
       const worldXY = this.tilemap.tileToWorldXY(col, row)
       if (!worldXY) continue
@@ -209,16 +215,18 @@ export default class extends BaseLevel<LevelData> {
         left: { x: worldXY.x, y: cy },
         right: { x: worldXY.x + tw, y: cy },
       }
-      const { x: ex, y: ey } = edgeMidpoint[dir]
-      this.drawArrow(
-        this.dragHighlightGraphics,
-        cx,
-        cy,
-        ex,
-        ey,
-        headWidth,
-        headHeight,
-      )
+      for (const dir of dirs) {
+        const { x: ex, y: ey } = edgeMidpoint[dir]
+        this.drawArrow(
+          this.dragHighlightGraphics,
+          cx,
+          cy,
+          ex,
+          ey,
+          headWidth,
+          headHeight,
+        )
+      }
     }
   }
 
@@ -235,12 +243,7 @@ export default class extends BaseLevel<LevelData> {
   private finalizeDrag() {
     const pending = new Map<
       string,
-      {
-        row: number
-        col: number
-        connections: Set<Direction>
-        firstFrom: Direction | undefined
-      }
+      { row: number; col: number; connections: Set<Direction> }
     >()
 
     for (let i = 0; i < this.dragSequence.length; i++) {
@@ -252,7 +255,6 @@ export default class extends BaseLevel<LevelData> {
           row: curr.row,
           col: curr.col,
           connections: new Set(),
-          firstFrom: undefined,
         })
       }
 
@@ -269,38 +271,93 @@ export default class extends BaseLevel<LevelData> {
             row: next.row,
             col: next.col,
             connections: new Set(),
-            firstFrom: entryDir,
           })
-        } else if (pending.get(nextKey)!.firstFrom === undefined) {
-          // Record the first entry direction (used by createRoad).
-          pending.get(nextKey)!.firstFrom = entryDir
         }
         pending.get(nextKey)!.connections.add(entryDir)
       }
     }
 
-    // Merge into the persistent grid and create road tiles.
-    for (const { row, col, connections, firstFrom } of pending.values()) {
+    // Merge new connections into the persistent grid, then redraw each tile.
+    for (const { row, col, connections } of pending.values()) {
       if (!this.roadTileGrid[row][col]) {
         this.roadTileGrid[row][col] = { connections: new Set() }
       }
+      const tileData = this.roadTileGrid[row][col]
       for (const dir of connections) {
-        this.roadTileGrid[row][col].connections.add(dir)
+        tileData.connections.add(dir)
       }
-      this.createRoad(row, col, firstFrom)
+      this.createRoad(row, col, tileData.connections)
     }
   }
 
+  /**
+   * Called whenever a tile's connections change. Classifies the tile based on
+   * its full set of open sides and places the correct road tile.
+   * Connections accumulate across drags, so a tile may be upgraded
+   * (e.g. turn → T-junction) by a subsequent drag.
+   */
   private createRoad(
-    _row: number,
-    _col: number,
-    _fromDirection?: Direction,
+    row: number,
+    col: number,
+    directions: Set<Direction>,
   ): void {
-    // TODO: Implement road tile rendering.
-    // - Inspect `this.roadTileGrid[_row][_col].connections` for all open sides.
-    // - `_fromDirection` is the side the cursor first entered this tile from.
-    // - Select and place the correct road tileset tile on `this.layers.road`.
-    void [_row, _col, _fromDirection]
+    // row and col will be used when placing the actual tileset tile.
+    void [row, col]
+
+    const has = (dir: Direction) => directions.has(dir)
+
+    if (directions.size === 1) {
+      // ── Dead end ──────────────────────────────────────────────────────────
+      if (has("top")) {
+        /* TODO: place dead-end tile, open side: top    */
+      }
+      if (has("bottom")) {
+        /* TODO: place dead-end tile, open side: bottom */
+      }
+      if (has("left")) {
+        /* TODO: place dead-end tile, open side: left   */
+      }
+      if (has("right")) {
+        /* TODO: place dead-end tile, open side: right  */
+      }
+    } else if (directions.size === 2) {
+      if (has("top") && has("bottom")) {
+        // ── Straight (vertical) ─────────────────────────────────────────────
+        // TODO: place straight vertical road tile
+      } else if (has("left") && has("right")) {
+        // ── Straight (horizontal) ───────────────────────────────────────────
+        // TODO: place straight horizontal road tile
+      } else if (has("top") && has("right")) {
+        // ── Turn ────────────────────────────────────────────────────────────
+        // TODO: place turn tile, open sides: top, right
+      } else if (has("top") && has("left")) {
+        // ── Turn ────────────────────────────────────────────────────────────
+        // TODO: place turn tile, open sides: top, left
+      } else if (has("bottom") && has("right")) {
+        // ── Turn ────────────────────────────────────────────────────────────
+        // TODO: place turn tile, open sides: bottom, right
+      } else if (has("bottom") && has("left")) {
+        // ── Turn ────────────────────────────────────────────────────────────
+        // TODO: place turn tile, open sides: bottom, left
+      }
+    } else if (directions.size === 3) {
+      if (!has("top")) {
+        // ── T-junction ──────────────────────────────────────────────────────
+        // TODO: place T-junction tile, open sides: bottom, left, right
+      } else if (!has("bottom")) {
+        // ── T-junction ──────────────────────────────────────────────────────
+        // TODO: place T-junction tile, open sides: top, left, right
+      } else if (!has("left")) {
+        // ── T-junction ──────────────────────────────────────────────────────
+        // TODO: place T-junction tile, open sides: top, bottom, right
+      } else {
+        // ── T-junction ──────────────────────────────────────────────────────
+        // TODO: place T-junction tile, open sides: top, bottom, left
+      }
+    } else if (directions.size === 4) {
+      // ── Crossroads ────────────────────────────────────────────────────────
+      // TODO: place crossroads tile, open sides: top, bottom, left, right
+    }
   }
 
   /**
