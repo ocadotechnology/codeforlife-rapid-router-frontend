@@ -120,6 +120,18 @@ export default class extends BaseLevel<LevelData> {
     return `${row},${col}`
   }
 
+  /**
+   * Returns true if moving in `dir` from the given tile would leave the
+   * tilemap — i.e. the direction is not a valid exit for that tile.
+   */
+  private exitsMap(row: number, col: number, dir: Direction): boolean {
+    if (dir === "top" && row === 0) return true
+    if (dir === "bottom" && row === this.tilemap.height - 1) return true
+    if (dir === "left" && col === 0) return true
+    if (dir === "right" && col === this.tilemap.width - 1) return true
+    return false
+  }
+
   private setupPointerEvents() {
     this.input.on(
       Phaser.Input.Events.POINTER_DOWN,
@@ -152,8 +164,8 @@ export default class extends BaseLevel<LevelData> {
 
         this.dragSequence.push(tile)
         this.dragTileSet.add(this.tileKey(tile.row, tile.col))
-        // Both the previous tile and the new tile share the same travel
-        // direction, so every tile (including the last) shows the correct arrow.
+        // Only the tile being exited gets an exit arrow — the destination tile
+        // has not been exited yet and will get its arrow when the cursor leaves it.
         const travelDir = this.directionBetween(this.lastDragTile, tile)
         const prevKey = this.tileKey(
           this.lastDragTile.row,
@@ -162,10 +174,6 @@ export default class extends BaseLevel<LevelData> {
         if (!this.dragArrowDirs.has(prevKey))
           this.dragArrowDirs.set(prevKey, new Set())
         this.dragArrowDirs.get(prevKey)!.add(travelDir)
-        const currKey = this.tileKey(tile.row, tile.col)
-        if (!this.dragArrowDirs.has(currKey))
-          this.dragArrowDirs.set(currKey, new Set())
-        this.dragArrowDirs.get(currKey)!.add(travelDir)
         this.lastDragTile = tile
         this.redrawHighlights()
       },
@@ -216,6 +224,8 @@ export default class extends BaseLevel<LevelData> {
         right: { x: worldXY.x + tw, y: cy },
       }
       for (const dir of dirs) {
+        // Don't draw an arrow that points off the edge of the tilemap.
+        if (this.exitsMap(row, col, dir)) continue
         const { x: ex, y: ey } = edgeMidpoint[dir]
         this.drawArrow(
           this.dragHighlightGraphics,
@@ -284,7 +294,10 @@ export default class extends BaseLevel<LevelData> {
       }
       const tileData = this.roadTileGrid[row][col]
       for (const dir of connections) {
-        tileData.connections.add(dir)
+        // Discard any connection that would exit off the edge of the tilemap.
+        if (!this.exitsMap(row, col, dir)) {
+          tileData.connections.add(dir)
+        }
       }
       this.createRoad(row, col, tileData.connections)
     }
