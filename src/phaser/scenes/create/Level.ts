@@ -106,6 +106,10 @@ export default class extends BaseLevel<LevelData> {
     return dCol < 0 ? "left" : "right"
   }
 
+  private tileKey(row: number, col: number): string {
+    return `${row},${col}`
+  }
+
   private oppositeOf(dir: Direction): Direction {
     const opposites: Record<Direction, Direction> = {
       top: "bottom",
@@ -114,10 +118,6 @@ export default class extends BaseLevel<LevelData> {
       right: "left",
     }
     return opposites[dir]
-  }
-
-  private tileKey(row: number, col: number): string {
-    return `${row},${col}`
   }
 
   /**
@@ -166,14 +166,19 @@ export default class extends BaseLevel<LevelData> {
         this.dragTileSet.add(this.tileKey(tile.row, tile.col))
         // Only the tile being exited gets an exit arrow — the destination tile
         // has not been exited yet and will get its arrow when the cursor leaves it.
+        // Also skip if the destination already exits back toward us (no mutual exits).
         const travelDir = this.directionBetween(this.lastDragTile, tile)
         const prevKey = this.tileKey(
           this.lastDragTile.row,
           this.lastDragTile.col,
         )
-        if (!this.dragArrowDirs.has(prevKey))
-          this.dragArrowDirs.set(prevKey, new Set())
-        this.dragArrowDirs.get(prevKey)!.add(travelDir)
+        const currKey = this.tileKey(tile.row, tile.col)
+        const backDir = this.oppositeOf(travelDir)
+        if (!this.dragArrowDirs.get(currKey)?.has(backDir)) {
+          if (!this.dragArrowDirs.has(prevKey))
+            this.dragArrowDirs.set(prevKey, new Set())
+          this.dragArrowDirs.get(prevKey)!.add(travelDir)
+        }
         this.lastDragTile = tile
         this.redrawHighlights()
       },
@@ -241,14 +246,13 @@ export default class extends BaseLevel<LevelData> {
   }
 
   /**
-   * Derives the connections each visited tile gained from the drag, merges
+   * Derives the exit connections each visited tile gained from the drag, merges
    * them into roadTileGrid, then calls createRoad() for every affected tile.
    *
-   * Connections are determined purely from the cursor's path:
-   * - Moving from tile A → tile B adds an exit connection to A and an entry
-   *   connection to B.
-   * - A tile revisited from a different direction accumulates both connections,
-   *   which is why an "8" shape requires tracing the inner crossing explicitly.
+   * Only exit connections are recorded: moving from tile A → tile B adds an
+   * exit connection to A only. Tile B is only connected when the cursor leaves
+   * it. This means two adjacent tiles never force a shared connection on each
+   * other.
    */
   private finalizeDrag() {
     const pending = new Map<
@@ -271,11 +275,16 @@ export default class extends BaseLevel<LevelData> {
       const next = this.dragSequence[i + 1]
       if (next) {
         const exitDir = this.directionBetween(curr, next)
-        const entryDir = this.oppositeOf(exitDir)
-
-        pending.get(key)!.connections.add(exitDir)
-
+        // Don't add this exit if the destination tile already exits back toward
+        // us — two tiles must not exit into each other.
         const nextKey = this.tileKey(next.row, next.col)
+        const backDir = this.oppositeOf(exitDir)
+        const nextPending = pending.get(nextKey)
+        if (!nextPending?.connections.has(backDir)) {
+          pending.get(key)!.connections.add(exitDir)
+        }
+        // Always register the destination so it gets processed (even if the
+        // cursor never leaves it, i.e. it is the final tile in the drag).
         if (!pending.has(nextKey)) {
           pending.set(nextKey, {
             row: next.row,
@@ -283,7 +292,6 @@ export default class extends BaseLevel<LevelData> {
             connections: new Set(),
           })
         }
-        pending.get(nextKey)!.connections.add(entryDir)
       }
     }
 
