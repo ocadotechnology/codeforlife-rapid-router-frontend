@@ -4,9 +4,10 @@ import BaseLevel, { type BaseLevelData } from "../BaseLevel"
 import HUD from "./HUD"
 
 export type Direction = "top" | "bottom" | "left" | "right"
+export type DirectionSet = Set<Direction> & { readonly size: 1 | 2 | 3 | 4 }
 
 export interface RoadTileData {
-  connections: Set<Direction>
+  connections: DirectionSet
 }
 
 export interface LevelData extends BaseLevelData {}
@@ -49,7 +50,7 @@ export default class extends BaseLevel<LevelData> {
    * same travel direction, so the last tile in a drag always shows the correct
    * direction (e.g. all tiles in a left→right sweep show "right").
    */
-  private dragArrowDirs = new Map<string, Set<Direction>>()
+  private dragArrowDirs = new Map<string, DirectionSet>()
 
   create() {
     super.create()
@@ -176,7 +177,7 @@ export default class extends BaseLevel<LevelData> {
         const backDir = this.oppositeOf(travelDir)
         if (!this.dragArrowDirs.get(currKey)?.has(backDir)) {
           if (!this.dragArrowDirs.has(prevKey))
-            this.dragArrowDirs.set(prevKey, new Set())
+            this.dragArrowDirs.set(prevKey, new Set() as DirectionSet)
           this.dragArrowDirs.get(prevKey)!.add(travelDir)
         }
         this.lastDragTile = tile
@@ -257,7 +258,7 @@ export default class extends BaseLevel<LevelData> {
   private finalizeDrag() {
     const pending = new Map<
       string,
-      { row: number; col: number; connections: Set<Direction> }
+      { row: number; col: number; connections: DirectionSet }
     >()
 
     for (let i = 0; i < this.dragSequence.length; i++) {
@@ -268,7 +269,7 @@ export default class extends BaseLevel<LevelData> {
         pending.set(key, {
           row: curr.row,
           col: curr.col,
-          connections: new Set(),
+          connections: new Set() as DirectionSet,
         })
       }
 
@@ -289,7 +290,7 @@ export default class extends BaseLevel<LevelData> {
           pending.set(nextKey, {
             row: next.row,
             col: next.col,
-            connections: new Set(),
+            connections: new Set() as DirectionSet,
           })
         }
       }
@@ -298,7 +299,7 @@ export default class extends BaseLevel<LevelData> {
     // Merge new connections into the persistent grid, then redraw each tile.
     for (const { row, col, connections } of pending.values()) {
       if (!this.roadTileGrid[row][col]) {
-        this.roadTileGrid[row][col] = { connections: new Set() }
+        this.roadTileGrid[row][col] = { connections: new Set() as DirectionSet }
       }
       const tileData = this.roadTileGrid[row][col]
       for (const dir of connections) {
@@ -317,18 +318,14 @@ export default class extends BaseLevel<LevelData> {
    * Connections accumulate across drags, so a tile may be upgraded
    * (e.g. turn → T-junction) by a subsequent drag.
    */
-  private createRoad(
-    row: number,
-    col: number,
-    directions: Set<Direction>,
-  ): void {
+  private createRoad(row: number, col: number, directions: DirectionSet): void {
     // row and col will be used when placing the actual tileset tile.
     void [row, col]
 
     const has = (dir: Direction) => directions.has(dir)
 
     if (directions.size === 1) {
-      // ── Dead end ──────────────────────────────────────────────────────────
+      // ── Dead end ───────────────────────────────────────────────────────────
       if (has("top")) {
         /* TODO: place dead-end tile, open side: top    */
       }
@@ -343,40 +340,40 @@ export default class extends BaseLevel<LevelData> {
       }
     } else if (directions.size === 2) {
       if (has("top") && has("bottom")) {
-        // ── Straight (vertical) ─────────────────────────────────────────────
+        // ── Straight (vertical) ──────────────────────────────────────────────
         // TODO: place straight vertical road tile
       } else if (has("left") && has("right")) {
-        // ── Straight (horizontal) ───────────────────────────────────────────
+        // ── Straight (horizontal) ────────────────────────────────────────────
         // TODO: place straight horizontal road tile
       } else if (has("top") && has("right")) {
-        // ── Turn ────────────────────────────────────────────────────────────
+        // ── Turn ─────────────────────────────────────────────────────────────
         // TODO: place turn tile, open sides: top, right
       } else if (has("top") && has("left")) {
-        // ── Turn ────────────────────────────────────────────────────────────
+        // ── Turn ─────────────────────────────────────────────────────────────
         // TODO: place turn tile, open sides: top, left
       } else if (has("bottom") && has("right")) {
-        // ── Turn ────────────────────────────────────────────────────────────
+        // ── Turn ─────────────────────────────────────────────────────────────
         // TODO: place turn tile, open sides: bottom, right
       } else if (has("bottom") && has("left")) {
-        // ── Turn ────────────────────────────────────────────────────────────
+        // ── Turn ─────────────────────────────────────────────────────────────
         // TODO: place turn tile, open sides: bottom, left
       }
     } else if (directions.size === 3) {
       if (!has("top")) {
-        // ── T-junction ──────────────────────────────────────────────────────
+        // ── T-junction ───────────────────────────────────────────────────────
         // TODO: place T-junction tile, open sides: bottom, left, right
       } else if (!has("bottom")) {
-        // ── T-junction ──────────────────────────────────────────────────────
+        // ── T-junction ───────────────────────────────────────────────────────
         // TODO: place T-junction tile, open sides: top, left, right
       } else if (!has("left")) {
-        // ── T-junction ──────────────────────────────────────────────────────
+        // ── T-junction ───────────────────────────────────────────────────────
         // TODO: place T-junction tile, open sides: top, bottom, right
       } else {
-        // ── T-junction ──────────────────────────────────────────────────────
+        // ── T-junction ───────────────────────────────────────────────────────
         // TODO: place T-junction tile, open sides: top, bottom, left
       }
-    } else if (directions.size === 4) {
-      // ── Crossroads ────────────────────────────────────────────────────────
+    } else {
+      // ── Crossroads ─────────────────────────────────────────────────────────
       // TODO: place crossroads tile, open sides: top, bottom, left, right
     }
   }
