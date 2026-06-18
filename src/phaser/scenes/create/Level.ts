@@ -2,6 +2,7 @@ import Phaser from "phaser"
 
 import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
+import type Graphics from "../../graphics"
 import HUD from "./HUD"
 
 export type Direction = "top" | "bottom" | "left" | "right"
@@ -23,7 +24,7 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  lineGraphics!: Phaser.GameObjects.Graphics
+  lineGraphics!: Graphics
 
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
@@ -43,7 +44,7 @@ export default class extends BaseLevel<LevelData> {
    * render highlights without duplicates.
    */
   private dragTileSet = new Set<string>()
-  private dragHighlightGraphics!: Phaser.GameObjects.Graphics
+  private dragHighlightGraphics!: Graphics
   private lastDragTile: { row: number; col: number } | null = null
   /**
    * Maps a tile key to the direction of travel when the cursor last moved
@@ -56,7 +57,14 @@ export default class extends BaseLevel<LevelData> {
   create() {
     super.create()
 
-    this.addLineGraphics()
+    this.lineGraphics = this.addGraphics()
+      .lineStyle(1, 0x000000, 1)
+      .grid(
+        this.tilemap.width,
+        this.tilemap.height,
+        this.tilemap.tileWidth,
+        this.tilemap.tileHeight,
+      )
     this.initRoadTileGrid()
     this.setupPointerEvents()
 
@@ -68,7 +76,7 @@ export default class extends BaseLevel<LevelData> {
       Array<RoadTileData | null>(this.tilemap.width).fill(null),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.dragHighlightGraphics = this.add.graphics().setDepth(1)
+    this.dragHighlightGraphics = this.addGraphics().setDepth(1)
   }
 
   private get hud(): HUD | null {
@@ -267,15 +275,7 @@ export default class extends BaseLevel<LevelData> {
         // Don't draw an arrow that points off the edge of the tilemap.
         if (this.exitsMap(row, col, dir)) continue
         const { x: ex, y: ey } = edgeMidpoint[dir]
-        this.drawArrow(
-          this.dragHighlightGraphics,
-          cx,
-          cy,
-          ex,
-          ey,
-          headWidth,
-          headHeight,
-        )
+        this.dragHighlightGraphics.arrow(cx, cy, ex, ey, headWidth, headHeight)
       }
     }
   }
@@ -401,68 +401,5 @@ export default class extends BaseLevel<LevelData> {
       else putTile(roadIDs.TJunction.TOP_LEFT_BOTTOM)
     // Crossroads
     else putTile(roadIDs.CROSSROADS)
-  }
-
-  /**
-   * Draws an arrow from (x1, y1) to (x2, y2) on the given Graphics object.
-   * The arrowhead is a filled isosceles triangle of the given width and height.
-   * The Graphics object must already have lineStyle and fillStyle set.
-   *
-   * Based on: https://phaser.discourse.group/t/graphics-arrow/15193
-   */
-  private drawArrow(
-    graphics: Phaser.GameObjects.Graphics,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    headWidth: number,
-    headHeight: number,
-  ): void {
-    graphics.lineBetween(x1, y1, x2, y2)
-
-    const dx = x2 - x1
-    const dy = y2 - y1
-    const len = Math.sqrt(dx * dx + dy * dy)
-
-    // Line unit vector.
-    const udx = dx / len
-    const udy = dy / len
-
-    // Perpendicular unit vector.
-    const pdx = -udy
-    const pdy = udx
-
-    // Arrowhead base vertices.
-    const x3 = x2 - headHeight * udx + headWidth * pdx
-    const y3 = y2 - headHeight * udy + headWidth * pdy
-    const x4 = x2 - headHeight * udx - headWidth * pdx
-    const y4 = y2 - headHeight * udy - headWidth * pdy
-
-    graphics.fillTriangle(x2, y2, x3, y3, x4, y4)
-  }
-
-  private addLineGraphics() {
-    // The tilemap has no built-in renderer, so draw grid lines explicitly.
-    this.lineGraphics = this.add.graphics().lineStyle(1, 0x000000, 1)
-
-    // Draw vertical lines.
-    const mapHeight = this.tilemap.height * this.tilemap.tileHeight
-    for (let col = 0; col <= this.tilemap.width; col++) {
-      const x = col * this.tilemap.tileWidth
-      this.lineGraphics.moveTo(x, 0)
-      this.lineGraphics.lineTo(x, mapHeight)
-    }
-
-    // Draw horizontal lines.
-    const mapWidth = this.tilemap.width * this.tilemap.tileWidth
-    for (let row = 0; row <= this.tilemap.height; row++) {
-      const y = row * this.tilemap.tileHeight
-      this.lineGraphics.moveTo(0, y)
-      this.lineGraphics.lineTo(mapWidth, y)
-    }
-
-    // Stroke the grid lines to render them on the scene.
-    this.lineGraphics.strokePath()
   }
 }

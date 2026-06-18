@@ -1,5 +1,7 @@
 import Phaser from "phaser"
 
+import Graphics from "../graphics"
+
 export default class BaseScene<
   Data extends object | undefined = undefined,
 > extends Phaser.Scene {
@@ -14,4 +16,6 @@ export default class BaseScene<
   init(data: Data) {
     this.initData = data
   }
+
+  addGraphics = () => this.add.existing(new Graphics(this))
 }
