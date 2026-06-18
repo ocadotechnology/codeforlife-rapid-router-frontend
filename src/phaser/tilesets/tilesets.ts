@@ -6,6 +6,18 @@ import type {
 
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
+const road = <const V>(v: V) => ({ Road: v })
+const asphalt = <const V>(v: V) => ({ Asphalt: v })
+const dirt = <const V>(v: V) => ({ Dirt: v })
+const env = <const V>(v: V) => ({ Environment: v })
+const city = <const V>(v: V) => ({ City: v })
+const farm = <const V>(v: V) => ({ Farm: v })
+const grass = <const V>(v: V) => ({ Grass: v })
+const snow = <const V>(v: V) => ({ Snow: v })
+const common = <const V>(v: V) => ({ Common: v })
+const scenery = <const V>(v: V) => ({ Scenery: v })
+const trafficLight = <const V>(v: V) => ({ TrafficLight: v })
+
 /**
  * Global registry of tile IDs.
  *
@@ -14,52 +26,52 @@ import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
  */
 export const IDs = createIdRegistry({
   // 0 is reserved by Phaser as a special "empty" tile.
-  1: { Road: { Asphalt: "STRAIGHT" } },
-  2: { Road: { Asphalt: "TURN" } },
-  3: { Road: { Asphalt: "T_JUNCTION" } },
-  4: { Road: { Asphalt: "CROSSROADS" } },
-  5: { Road: { Asphalt: "DEAD_END" } },
-  6: { Road: { Dirt: "STRAIGHT" } },
-  7: { Road: { Dirt: "TURN" } },
-  8: { Road: { Dirt: "T_JUNCTION" } },
-  9: { Road: { Dirt: "CROSSROADS" } },
-  10: { Road: { Dirt: "DEAD_END" } },
-  11: { Environment: { City: "HOSPITAL" } },
-  12: { Environment: { City: "HOUSE" } },
-  13: { Environment: { City: "SCHOOL" } },
-  14: { Environment: { City: "SHOP" } },
-  15: { Environment: { City: "SOLAR_PANEL" } },
-  16: { Environment: { Farm: "CFC_BLACK" } },
-  17: { Environment: { Farm: "CFC" } },
-  18: { Environment: { Farm: "CROPS" } },
-  19: { Environment: { Farm: "HOUSE1" } },
-  20: { Environment: { Farm: "HOUSE2" } },
-  21: { Environment: { Farm: "SOLAR_PANEL" } },
-  22: { Environment: { Grass: "CFC" } },
-  23: { Environment: { Grass: "HOUSE" } },
-  24: { Environment: { Grass: "SOLAR_PANEL" } },
-  25: { Environment: { Snow: "BARN" } },
-  26: { Environment: { Snow: "CFC" } },
-  27: { Environment: { Snow: "CROPS" } },
-  28: { Environment: { Snow: "HOSPITAL" } },
-  29: { Environment: { Snow: "HOUSE1" } },
-  30: { Environment: { Snow: "HOUSE2" } },
-  31: { Environment: { Snow: "HOUSE3" } },
-  32: { Environment: { Snow: "SCHOOL" } },
-  33: { Environment: { Snow: "SHOP" } },
-  34: { Environment: { Snow: "SOLAR_PANEL" } },
-  35: { Environment: { Common: { TrafficLight: "GREEN" } } },
-  36: { Environment: { Common: { TrafficLight: "RED" } } },
-  37: { Environment: { Common: "PIGEON" } },
-  38: { Scenery: { Snow: "BUSH" } },
-  39: { Scenery: { Snow: "POND" } },
-  40: { Scenery: { Snow: "TREE1" } },
-  41: { Scenery: { Snow: "TREE2" } },
-  42: { Scenery: { Common: "BUSH" } },
-  43: { Scenery: { Common: "HAY" } },
-  44: { Scenery: { Common: "POND" } },
-  45: { Scenery: { Common: "TREE1" } },
-  46: { Scenery: { Common: "TREE2" } },
+  1: road(asphalt("STRAIGHT")),
+  2: road(asphalt("TURN")),
+  3: road(asphalt("T_JUNCTION")),
+  4: road(asphalt("CROSSROADS")),
+  5: road(asphalt("DEAD_END")),
+  6: road(dirt("STRAIGHT")),
+  7: road(dirt("TURN")),
+  8: road(dirt("T_JUNCTION")),
+  9: road(dirt("CROSSROADS")),
+  10: road(dirt("DEAD_END")),
+  11: env(city("HOSPITAL")),
+  12: env(city("HOUSE")),
+  13: env(city("SCHOOL")),
+  14: env(city("SHOP")),
+  15: env(city("SOLAR_PANEL")),
+  16: env(farm("CFC_BLACK")),
+  17: env(farm("CFC")),
+  18: env(farm("CROPS")),
+  19: env(farm("HOUSE1")),
+  20: env(farm("HOUSE2")),
+  21: env(farm("SOLAR_PANEL")),
+  22: env(grass("CFC")),
+  23: env(grass("HOUSE")),
+  24: env(grass("SOLAR_PANEL")),
+  25: env(snow("BARN")),
+  26: env(snow("CFC")),
+  27: env(snow("CROPS")),
+  28: env(snow("HOSPITAL")),
+  29: env(snow("HOUSE1")),
+  30: env(snow("HOUSE2")),
+  31: env(snow("HOUSE3")),
+  32: env(snow("SCHOOL")),
+  33: env(snow("SHOP")),
+  34: env(snow("SOLAR_PANEL")),
+  35: env(common(trafficLight("GREEN"))),
+  36: env(common(trafficLight("RED"))),
+  37: env(common("PIGEON")),
+  38: scenery(snow("BUSH")),
+  39: scenery(snow("POND")),
+  40: scenery(snow("TREE1")),
+  41: scenery(snow("TREE2")),
+  42: scenery(common("BUSH")),
+  43: scenery(common("HAY")),
+  44: scenery(common("POND")),
+  45: scenery(common("TREE1")),
+  46: scenery(common("TREE2")),
 } as const)
 export type ID = DeepNumbersOf<typeof IDs>
 
