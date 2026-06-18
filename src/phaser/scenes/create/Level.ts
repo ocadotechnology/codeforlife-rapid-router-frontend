@@ -2,11 +2,9 @@ import Phaser from "phaser"
 
 import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
+import type { Direction, DirectionSet } from "../../globals"
 import type Graphics from "../../graphics"
 import HUD from "./HUD"
-
-export type Direction = "top" | "bottom" | "left" | "right"
-export type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
 
 export interface RoadTileData {
   connections: DirectionSet
@@ -57,14 +55,12 @@ export default class extends BaseLevel<LevelData> {
   create() {
     super.create()
 
-    this.lineGraphics = this.addGraphics()
-      .lineStyle(1, 0x000000, 1)
-      .grid(
-        this.tilemap.width,
-        this.tilemap.height,
-        this.tilemap.tileWidth,
-        this.tilemap.tileHeight,
-      )
+    this.lineGraphics = this.addGraphics().grid(
+      this.tilemap.width,
+      this.tilemap.height,
+      this.tilemap.tileWidth,
+      this.tilemap.tileHeight,
+    )
     this.initRoadTileGrid()
     this.setupPointerEvents()
 
@@ -240,44 +236,31 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private redrawHighlights() {
-    this.dragHighlightGraphics.clear().fillStyle(0xffff00, 0.4)
-    for (const key of this.dragTileSet) {
-      const [row, col] = key.split(",").map(Number)
-      const worldXY = this.tilemap.tileToWorldXY(col, row)
-      if (!worldXY) continue
-      this.dragHighlightGraphics.fillRect(
-        worldXY.x,
-        worldXY.y,
+    // Draw a travel-direction arrow for each highlighted tile.
+    const tiles = Array.from(this.dragArrowDirs.entries())
+      .map(([key, dirs]) => {
+        const [row, col] = key.split(",").map(Number)
+        const worldXY = this.tilemap.tileToWorldXY(col, row)
+        if (!worldXY) return null
+
+        return {
+          col: worldXY.x,
+          row: worldXY.y,
+          dirs: new Set(
+            [...dirs].filter(dir => !this.exitsMap(row, col, dir)),
+          ) as DirectionSet,
+        }
+      })
+      .filter(v => v !== null)
+    this.dragHighlightGraphics
+      .clear() // Clear previous drawings before rendering the new path.
+      .path(
         this.tilemap.tileWidth,
         this.tilemap.tileHeight,
+        this.tilemap.tileWidth * 0.15,
+        this.tilemap.tileHeight * 0.2,
+        tiles,
       )
-    }
-
-    // Draw a travel-direction arrow for each highlighted tile.
-    const tw = this.tilemap.tileWidth
-    const th = this.tilemap.tileHeight
-    const headWidth = tw * 0.15
-    const headHeight = th * 0.2
-    this.dragHighlightGraphics.lineStyle(2, 0xffffff, 1).fillStyle(0xffffff, 1)
-    for (const [key, dirs] of this.dragArrowDirs) {
-      const [row, col] = key.split(",").map(Number)
-      const worldXY = this.tilemap.tileToWorldXY(col, row)
-      if (!worldXY) continue
-      const cx = worldXY.x + tw / 2
-      const cy = worldXY.y + th / 2
-      const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
-        top: { x: cx, y: worldXY.y },
-        bottom: { x: cx, y: worldXY.y + th },
-        left: { x: worldXY.x, y: cy },
-        right: { x: worldXY.x + tw, y: cy },
-      }
-      for (const dir of dirs) {
-        // Don't draw an arrow that points off the edge of the tilemap.
-        if (this.exitsMap(row, col, dir)) continue
-        const { x: ex, y: ey } = edgeMidpoint[dir]
-        this.dragHighlightGraphics.arrow(cx, cy, ex, ey, headWidth, headHeight)
-      }
-    }
   }
 
   /**

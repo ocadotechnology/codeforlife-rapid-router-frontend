@@ -22,3 +22,13 @@ export const Variables = createIdRegistry({
   levelId: "LEVEL_ID",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
+
+export const Directions = {
+  TOP: "top",
+  BOTTOM: "bottom",
+  LEFT: "left",
+  RIGHT: "right",
+} as const
+export const DIRECTIONS = Object.values(Directions)
+export type Direction = (typeof DIRECTIONS)[number]
+export type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
