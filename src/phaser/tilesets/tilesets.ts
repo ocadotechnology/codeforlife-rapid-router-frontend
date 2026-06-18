@@ -13,7 +13,7 @@ import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
  * as this can lead to confusion and bugs when referencing tiles in the code.
  */
 export const IDs = createIdRegistry({
-  0: "EMPTY", // Phaser treats 0 as a special "empty" tile.
+  // 0 is reserved by Phaser as a special "empty" tile.
   1: { Road: { Asphalt: "STRAIGHT" } },
   2: { Road: { Asphalt: "TURN" } },
   3: { Road: { Asphalt: "T_JUNCTION" } },
@@ -125,37 +125,4 @@ export const make = <
     properties: properties as Props,
     ...tileset,
   }
-}
-
-const H = 0x80000000
-const V = 0x40000000
-const D = 0x20000000
-const MASK = H | V | D
-
-function extract(id: number): [number, number, number] {
-  return [(id >>> 31) & 1, (id >>> 30) & 1, (id >>> 29) & 1]
-}
-
-function encode<T extends number>(id: T, h: number, v: number, d: number): T {
-  return ((id & ~MASK) | (h * H) | (v * V) | (d * D)) as T
-}
-
-/** Flip a tile horizontally. */
-export function flipH<GID extends ID>(id: GID): GID {
-  const [h, v, d] = extract(id)
-  return encode(id, h ^ 1, v, d)
-}
-
-/** Flip a tile vertically. */
-export function flipV<GID extends ID>(id: GID): GID {
-  const [h, v, d] = extract(id)
-  return encode(id, h, v ^ 1, d)
-}
-
-/** Rotate a tile clockwise. */
-export function rotateC<GID extends ID>(id: GID, degrees: 90 | 180 | 270): GID {
-  const [h, v, d] = extract(id)
-  if (degrees === 90) return encode(id, v ^ 1, h, d ^ 1)
-  if (degrees === 180) return encode(id, h ^ 1, v ^ 1, d)
-  return encode(id, v, h ^ 1, d ^ 1) // 270
 }

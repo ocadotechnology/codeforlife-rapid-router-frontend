@@ -16,34 +16,34 @@ export default tilemaps.makeOrthogonal({
     road: {
       data: [
         // Row 1 to 2 - 10 columns of empty tiles
-        ...layers.tile.fillManyRows({ rows: 2 }),
+        ...layers.tile.data.fillManyRows({ rows: 2 }),
         // Row 3
         [
-          // 2 columns of straight road tiles rotated 90° to be horizontal
-          ...layers.tile.fillRow({
-            id: tilesets.rotateC(tilesets.IDs.Road.Asphalt.STRAIGHT, 90),
+          // 2 columns of horizontalstraight road tiles
+          ...layers.tile.data.fillRow({
+            id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
             cols: 2,
           }),
-          // 1 column of dead end road tile rotated 90° to be horizontal
-          tilesets.rotateC(tilesets.IDs.Road.Asphalt.DEAD_END, 90),
-          ...layers.tile.fillRow({ cols: 7 }), // 7 columns of empty tiles
+          // 1 column of a left-facing dead end road tile
+          layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
+          ...layers.tile.data.fillRow({ cols: 7 }), // 7 columns of empty tiles
         ],
         // Row 4 to 8 - 10 columns of empty tiles
-        ...layers.tile.fillManyRows({ rows: 5 }),
+        ...layers.tile.data.fillManyRows({ rows: 5 }),
       ],
     },
     environment: {
       data: [
         // Row 1 to 2 - 10 columns of empty tiles
-        ...layers.tile.fillManyRows({ rows: 2 }),
+        ...layers.tile.data.fillManyRows({ rows: 2 }),
         // Row 3
         [
-          // 1 column of CFC tile rotated 90° to be horizontal.
-          tilesets.rotateC(tilesets.IDs.Environment.Grass.CFC, 90),
-          ...layers.tile.fillRow({ cols: 9 }), // 9 columns of empty tiles
+          // 1 column of a right-facing CFC tile
+          layers.tile.data.IDs.Environment.Grass.CFC.RIGHT,
+          ...layers.tile.data.fillRow({ cols: 9 }), // 9 columns of empty tiles
         ],
         // Row 4 to 8 - 10 columns of empty tiles
-        ...layers.tile.fillManyRows({ rows: 5 }),
+        ...layers.tile.data.fillManyRows({ rows: 5 }),
       ],
     },
     scenery: {

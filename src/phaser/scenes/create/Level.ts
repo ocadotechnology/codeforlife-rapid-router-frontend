@@ -1,10 +1,11 @@
 import Phaser from "phaser"
 
+import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
 import HUD from "./HUD"
 
 export type Direction = "top" | "bottom" | "left" | "right"
-export type DirectionSet = Set<Direction> & { readonly size: 1 | 2 | 3 | 4 }
+export type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
 
 export interface RoadTileData {
   connections: DirectionSet
@@ -319,63 +320,39 @@ export default class extends BaseLevel<LevelData> {
    * (e.g. turn → T-junction) by a subsequent drag.
    */
   private createRoad(row: number, col: number, directions: DirectionSet): void {
-    // row and col will be used when placing the actual tileset tile.
-    void [row, col]
+    // TODO: select asphalt or dirt tileset based on user selection in the HUD.
+    const roadIDs = layers.tile.data.IDs.Road.Asphalt
 
+    const put = (id: layers.tile.data.RoadID) => {
+      this.layers.road.putTileAt(id, col, row)
+    }
     const has = (dir: Direction) => directions.has(dir)
 
-    if (directions.size === 1) {
-      // ── Dead end ───────────────────────────────────────────────────────────
-      if (has("top")) {
-        /* TODO: place dead-end tile, open side: top    */
-      }
-      if (has("bottom")) {
-        /* TODO: place dead-end tile, open side: bottom */
-      }
-      if (has("left")) {
-        /* TODO: place dead-end tile, open side: left   */
-      }
-      if (has("right")) {
-        /* TODO: place dead-end tile, open side: right  */
-      }
-    } else if (directions.size === 2) {
-      if (has("top") && has("bottom")) {
-        // ── Straight (vertical) ──────────────────────────────────────────────
-        // TODO: place straight vertical road tile
-      } else if (has("left") && has("right")) {
-        // ── Straight (horizontal) ────────────────────────────────────────────
-        // TODO: place straight horizontal road tile
-      } else if (has("top") && has("right")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: top, right
-      } else if (has("top") && has("left")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: top, left
-      } else if (has("bottom") && has("right")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: bottom, right
-      } else if (has("bottom") && has("left")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: bottom, left
-      }
-    } else if (directions.size === 3) {
-      if (!has("top")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: bottom, left, right
-      } else if (!has("bottom")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, left, right
-      } else if (!has("left")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, bottom, right
-      } else {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, bottom, left
-      }
-    } else {
-      // ── Crossroads ─────────────────────────────────────────────────────────
-      // TODO: place crossroads tile, open sides: top, bottom, left, right
-    }
+    // Dead end
+    if (directions.size === 0) return
+    else if (directions.size === 1)
+      if (has("top")) put(roadIDs.DeadEnd.TOP)
+      else if (has("bottom")) put(roadIDs.DeadEnd.BOTTOM)
+      else if (has("left")) put(roadIDs.DeadEnd.LEFT)
+      else put(roadIDs.DeadEnd.RIGHT)
+    // Straight or turn
+    else if (directions.size === 2)
+      if (has("top"))
+        if (has("bottom")) put(roadIDs.Straight.VERTICAL)
+        else if (has("left")) put(roadIDs.Turn.TOP_LEFT)
+        else put(roadIDs.Turn.TOP_RIGHT)
+      else if (has("bottom"))
+        if (has("left")) put(roadIDs.Turn.BOTTOM_LEFT)
+        else put(roadIDs.Turn.BOTTOM_RIGHT)
+      else put(roadIDs.Straight.HORIZONTAL)
+    // T-junction
+    else if (directions.size === 3)
+      if (!has("top")) put(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
+      else if (!has("bottom")) put(roadIDs.TJunction.TOP_LEFT_RIGHT)
+      else if (!has("left")) put(roadIDs.TJunction.TOP_RIGHT_BOTTOM)
+      else put(roadIDs.TJunction.TOP_LEFT_BOTTOM)
+    // Crossroads
+    else put(roadIDs.CROSSROADS)
   }
 
   /**
