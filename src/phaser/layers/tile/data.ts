@@ -191,11 +191,7 @@ export const IDs = {
       Hospital: createCRotations(
         tilesets.IDs.Environment.City.HOSPITAL,
         "TOP",
-        {
-          90: "RIGHT",
-          180: "BOTTOM",
-          270: "LEFT",
-        },
+        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
       ),
       House: createCRotations(tilesets.IDs.Environment.City.HOUSE, "LEFT", {
         90: "TOP",
@@ -222,11 +218,7 @@ export const IDs = {
       Pigeon: createCRotations(
         tilesets.IDs.Environment.Common.PIGEON,
         "RIGHT",
-        {
-          90: "BOTTOM",
-          180: "LEFT",
-          270: "TOP",
-        },
+        { 90: "BOTTOM", 180: "LEFT", 270: "TOP" },
       ),
       TrafficLight: {
         Green: createCRotations(
@@ -245,11 +237,7 @@ export const IDs = {
       CFCBlack: createCRotations(
         tilesets.IDs.Environment.Farm.CFC_BLACK,
         "TOP",
-        {
-          90: "RIGHT",
-          180: "BOTTOM",
-          270: "LEFT",
-        },
+        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
       ),
       CFC: createCRotations(tilesets.IDs.Environment.Farm.CFC, "TOP", {
         90: "RIGHT",
@@ -259,9 +247,7 @@ export const IDs = {
       Crops: createCRotations(
         tilesets.IDs.Environment.Farm.CROPS,
         "HORIZONTAL",
-        {
-          90: "VERTICAL",
-        },
+        { 90: "VERTICAL" },
       ),
       House1: createCRotations(tilesets.IDs.Environment.Farm.HOUSE1, "LEFT", {
         90: "TOP",
@@ -310,18 +296,12 @@ export const IDs = {
       Crops: createCRotations(
         tilesets.IDs.Environment.Snow.CROPS,
         "HORIZONTAL",
-        {
-          90: "VERTICAL",
-        },
+        { 90: "VERTICAL" },
       ),
       Hospital: createCRotations(
         tilesets.IDs.Environment.Snow.HOSPITAL,
         "TOP",
-        {
-          90: "RIGHT",
-          180: "BOTTOM",
-          270: "LEFT",
-        },
+        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
       ),
       House1: createCRotations(tilesets.IDs.Environment.Snow.HOUSE1, "LEFT", {
         90: "TOP",
