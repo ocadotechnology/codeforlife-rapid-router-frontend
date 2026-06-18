@@ -134,6 +134,32 @@ export default class extends BaseLevel<LevelData> {
     return false
   }
 
+  /**
+   * Records a single cardinal step `from` → `to` (always exactly 1 tile apart)
+   * into the drag state: adds `to` to the sequence and tile set, and records
+   * the exit arrow on `from` (unless a mutual-exit would result).
+   */
+  private advanceDragByOneStep(
+    from: { row: number; col: number },
+    to: { row: number; col: number },
+  ) {
+    this.dragSequence.push(to)
+    this.dragTileSet.add(this.tileKey(to.row, to.col))
+
+    // Only the tile being exited gets an exit arrow — the destination tile
+    // has not been exited yet and will get its arrow when the cursor leaves it.
+    // Also skip if the destination already exits back toward us (no mutual exits).
+    const travelDir = this.directionBetween(from, to)
+    const fromKey = this.tileKey(from.row, from.col)
+    const toKey = this.tileKey(to.row, to.col)
+    const backDir = this.oppositeOf(travelDir)
+    if (!this.dragArrowDirs.get(toKey)?.has(backDir)) {
+      if (!this.dragArrowDirs.has(fromKey))
+        this.dragArrowDirs.set(fromKey, new Set() as DirectionSet)
+      this.dragArrowDirs.get(fromKey)!.add(travelDir)
+    }
+  }
+
   private setupPointerEvents() {
     this.input.on(
       Phaser.Input.Events.POINTER_DOWN,
@@ -164,29 +190,32 @@ export default class extends BaseLevel<LevelData> {
         )
           return
 
-        this.dragSequence.push(tile)
-        this.dragTileSet.add(this.tileKey(tile.row, tile.col))
-        // Only the tile being exited gets an exit arrow — the destination tile
-        // has not been exited yet and will get its arrow when the cursor leaves it.
-        // Also skip if the destination already exits back toward us (no mutual exits).
-        const travelDir = this.directionBetween(this.lastDragTile, tile)
-        const prevKey = this.tileKey(
-          this.lastDragTile.row,
-          this.lastDragTile.col,
-        )
-        const currKey = this.tileKey(tile.row, tile.col)
-        const backDir = this.oppositeOf(travelDir)
-        if (!this.dragArrowDirs.get(currKey)?.has(backDir)) {
-          if (!this.dragArrowDirs.has(prevKey))
-            this.dragArrowDirs.set(prevKey, new Set() as DirectionSet)
-          this.dragArrowDirs.get(prevKey)!.add(travelDir)
+        const dRow = tile.row - this.lastDragTile.row
+        const dCol = tile.col - this.lastDragTile.col
+
+        // Diagonal movement is not allowed: the user must drag along a single
+        // axis at a time.
+        if (dRow !== 0 && dCol !== 0) return
+
+        // Walk one step at a time so that fast drags fill every intermediate
+        // tile and connections always form a continuous path.
+        const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
+        const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
+        let current = this.lastDragTile
+        while (current.row !== tile.row || current.col !== tile.col) {
+          const next = {
+            row: current.row + stepRow,
+            col: current.col + stepCol,
+          }
+          this.advanceDragByOneStep(current, next)
+          current = next
         }
-        this.lastDragTile = tile
+        this.lastDragTile = current
         this.redrawHighlights()
       },
     )
 
-    this.input.on(Phaser.Input.Events.POINTER_UP, () => {
+    const endDrag = () => {
       if (!this.isDragging) return
       this.isDragging = false
       this.finalizeDrag()
@@ -195,7 +224,11 @@ export default class extends BaseLevel<LevelData> {
       this.dragArrowDirs.clear()
       this.lastDragTile = null
       this.dragHighlightGraphics.clear()
-    })
+    }
+    this.input.on(Phaser.Input.Events.POINTER_UP, endDrag)
+    // Also handle the mouse being released outside the canvas so the
+    // highlights are always cleared even when the drag ends off-screen.
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, endDrag)
   }
 
   private redrawHighlights() {
@@ -277,16 +310,8 @@ export default class extends BaseLevel<LevelData> {
       const next = this.dragSequence[i + 1]
       if (next) {
         const exitDir = this.directionBetween(curr, next)
-        // Don't add this exit if the destination tile already exits back toward
-        // us — two tiles must not exit into each other.
-        const nextKey = this.tileKey(next.row, next.col)
         const backDir = this.oppositeOf(exitDir)
-        const nextPending = pending.get(nextKey)
-        if (!nextPending?.connections.has(backDir)) {
-          pending.get(key)!.connections.add(exitDir)
-        }
-        // Always register the destination so it gets processed (even if the
-        // cursor never leaves it, i.e. it is the final tile in the drag).
+        const nextKey = this.tileKey(next.row, next.col)
         if (!pending.has(nextKey)) {
           pending.set(nextKey, {
             row: next.row,
@@ -294,6 +319,12 @@ export default class extends BaseLevel<LevelData> {
             connections: new Set() as DirectionSet,
           })
         }
+        // Bidirectional connection: curr exits toward next, and next connects
+        // back to curr. Both are needed for correct road tile classification
+        // (e.g. a middle tile needs both its entry and exit directions so it
+        // becomes a straight road rather than two dead ends).
+        pending.get(key)!.connections.add(exitDir)
+        pending.get(nextKey)!.connections.add(backDir)
       }
     }
 
