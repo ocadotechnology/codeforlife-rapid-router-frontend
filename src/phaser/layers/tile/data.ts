@@ -342,6 +342,34 @@ export type EnvironmentID =
   | typeof IDs.EMPTY
   | DeepNumbersOf<typeof IDs.Environment>
 
+export function decode(id: ID) {
+  const [h, v, d] = extract(id)
+  return d
+    ? // Anti-diagonal bit encodes (90°/270° rotation):
+      // D+H = 90° CW
+      // D+V = 270° CW.
+      {
+        index: (id & ~MASK) >>> 0,
+        flipX: false,
+        flipY: false,
+        rotation: h ? Math.PI / 2 : -Math.PI / 2,
+      }
+    : // No D bit (pure flips or 180° rotation).
+      // Avoid tile.flipY due to a Phaser 4 WebGL renderer bug: the y-offset
+      // compensation in TransformerTile incorrectly modifies x instead of y,
+      // shifting the tile by one tile-width. Work around it by representing all
+      // cases using only flipX and rotation:
+      // H only (horizontal flip) → flipX=true, rotation=0
+      // V only (vertical flip) → flipX=true, rotation=π (180° + flipX ≡ V flip)
+      // H+V (180° rotation) → flipX=false, rotation=π
+      {
+        index: (id & ~MASK) >>> 0,
+        flipX: !!(h ^ v),
+        flipY: false,
+        rotation: v ? Math.PI : 0,
+      }
+}
+
 // Define the structure of the tilemap data for our game, including the tilesets
 // and layers. This structure will be used to create the tilemap in Phaser and
 // ensure that all necessary information is provided in a type-safe manner.

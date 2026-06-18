@@ -344,6 +344,22 @@ export default class extends BaseLevel<LevelData> {
     }
   }
 
+  private putTileAt(
+    layer: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer,
+    id: layers.tile.data.ID,
+    col: number,
+    row: number,
+  ) {
+    const { index, flipX, flipY, rotation } = layers.tile.data.decode(id)
+
+    const tile = layer.putTileAt(index, col, row)
+    tile.flipX = flipX
+    tile.flipY = flipY
+    tile.rotation = rotation
+
+    return tile
+  }
+
   /**
    * Called whenever a tile's connections change. Classifies the tile based on
    * its full set of open sides and places the correct road tile.
@@ -354,37 +370,37 @@ export default class extends BaseLevel<LevelData> {
     // TODO: select asphalt or dirt tileset based on user selection in the HUD.
     const roadIDs = layers.tile.data.IDs.Road.Asphalt
 
-    const put = (id: layers.tile.data.RoadID) => {
-      this.layers.road.putTileAt(id, col, row)
-    }
-    const has = (dir: Direction) => directions.has(dir)
+    // Shorthands.
+    const putTile = (id: layers.tile.data.RoadID) =>
+      this.putTileAt(this.layers.road, id, col, row)
+    const hasDir = (dir: Direction) => directions.has(dir)
 
     // No connections, no road tile.
     if (directions.size === 0) return
     // Dead end
     else if (directions.size === 1)
-      if (has("top")) put(roadIDs.DeadEnd.TOP)
-      else if (has("bottom")) put(roadIDs.DeadEnd.BOTTOM)
-      else if (has("left")) put(roadIDs.DeadEnd.LEFT)
-      else put(roadIDs.DeadEnd.RIGHT)
+      if (hasDir("top")) putTile(roadIDs.DeadEnd.TOP)
+      else if (hasDir("bottom")) putTile(roadIDs.DeadEnd.BOTTOM)
+      else if (hasDir("left")) putTile(roadIDs.DeadEnd.LEFT)
+      else putTile(roadIDs.DeadEnd.RIGHT)
     // Straight or turn
     else if (directions.size === 2)
-      if (has("top"))
-        if (has("bottom")) put(roadIDs.Straight.VERTICAL)
-        else if (has("left")) put(roadIDs.Turn.TOP_LEFT)
-        else put(roadIDs.Turn.TOP_RIGHT)
-      else if (has("bottom"))
-        if (has("left")) put(roadIDs.Turn.BOTTOM_LEFT)
-        else put(roadIDs.Turn.BOTTOM_RIGHT)
-      else put(roadIDs.Straight.HORIZONTAL)
+      if (hasDir("top"))
+        if (hasDir("bottom")) putTile(roadIDs.Straight.VERTICAL)
+        else if (hasDir("left")) putTile(roadIDs.Turn.TOP_LEFT)
+        else putTile(roadIDs.Turn.TOP_RIGHT)
+      else if (hasDir("bottom"))
+        if (hasDir("left")) putTile(roadIDs.Turn.BOTTOM_LEFT)
+        else putTile(roadIDs.Turn.BOTTOM_RIGHT)
+      else putTile(roadIDs.Straight.HORIZONTAL)
     // T-junction
     else if (directions.size === 3)
-      if (!has("top")) put(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
-      else if (!has("bottom")) put(roadIDs.TJunction.TOP_LEFT_RIGHT)
-      else if (!has("left")) put(roadIDs.TJunction.TOP_RIGHT_BOTTOM)
-      else put(roadIDs.TJunction.TOP_LEFT_BOTTOM)
+      if (!hasDir("top")) putTile(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
+      else if (!hasDir("bottom")) putTile(roadIDs.TJunction.TOP_LEFT_RIGHT)
+      else if (!hasDir("left")) putTile(roadIDs.TJunction.TOP_RIGHT_BOTTOM)
+      else putTile(roadIDs.TJunction.TOP_LEFT_BOTTOM)
     // Crossroads
-    else put(roadIDs.CROSSROADS)
+    else putTile(roadIDs.CROSSROADS)
   }
 
   /**
