@@ -22,7 +22,7 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  lineGraphics!: Graphics
+  gridGraphics!: Graphics
 
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
@@ -53,26 +53,42 @@ export default class extends BaseLevel<LevelData> {
   private dragArrowDirs = new Map<string, DirectionSet>()
 
   create() {
+    // Create the tilemap, layers, and other essentials of the level scene.
     super.create()
 
-    this.lineGraphics = this.addGraphics().grid(
+    // Draw a grid over the tilemap to help visualize the tile boundaries.
+    this.gridGraphics = this.addGraphics().grid(
       this.tilemap.width,
       this.tilemap.height,
       this.tilemap.tileWidth,
       this.tilemap.tileHeight,
     )
-    this.initRoadTileGrid()
-    this.setupPointerEvents()
 
-    this.scene.launch(HUD.KEY)
-  }
-
-  private initRoadTileGrid() {
+    // Initialize the persistent road tile grid to match the tilemap dimensions.
     this.roadTileGrid = Array.from({ length: this.tilemap.height }, () =>
       Array<RoadTileData | null>(this.tilemap.width).fill(null),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
     this.dragHighlightGraphics = this.addGraphics().setDepth(1)
+
+    // Register pointer events.
+    this.input.on(
+      Phaser.Input.Events.POINTER_DOWN,
+      (pointer: Phaser.Input.Pointer) => this.onPointerDown(pointer),
+    )
+    this.input.on(
+      Phaser.Input.Events.POINTER_MOVE,
+      (pointer: Phaser.Input.Pointer) => this.onPointerMove(pointer),
+    )
+    this.input.on(Phaser.Input.Events.POINTER_UP, () => this.onPointerUp())
+    // Also handle the mouse being released outside the canvas so the
+    // highlights are always cleared even when the drag ends off-screen.
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, () =>
+      this.onPointerUpOutside(),
+    )
+
+    // Launch the HUD scene, providing the toolbox.
+    this.scene.launch(HUD.KEY)
   }
 
   private get hud(): HUD | null {
@@ -164,77 +180,6 @@ export default class extends BaseLevel<LevelData> {
     }
   }
 
-  private setupPointerEvents() {
-    this.input.on(
-      Phaser.Input.Events.POINTER_DOWN,
-      (pointer: Phaser.Input.Pointer) => {
-        if (this.hud?.activeTool !== "add-road") return
-        const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-        if (!tile) return
-
-        this.isDragging = true
-        this.dragSequence = [tile]
-        this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
-        this.dragArrowDirs.clear()
-        this.lastDragTile = tile
-        this.redrawHighlights()
-      },
-    )
-
-    this.input.on(
-      Phaser.Input.Events.POINTER_MOVE,
-      (pointer: Phaser.Input.Pointer) => {
-        if (!this.isDragging || this.hud?.activeTool !== "add-road") return
-        const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-        if (!tile || !this.lastDragTile) return
-        // Skip if still in the same tile.
-        if (
-          tile.row === this.lastDragTile.row &&
-          tile.col === this.lastDragTile.col
-        )
-          return
-
-        const dRow = tile.row - this.lastDragTile.row
-        const dCol = tile.col - this.lastDragTile.col
-
-        // Diagonal movement is not allowed: the user must drag along a single
-        // axis at a time.
-        if (dRow !== 0 && dCol !== 0) return
-
-        // Walk one step at a time so that fast drags fill every intermediate
-        // tile and connections always form a continuous path.
-        const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
-        const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
-        let current = this.lastDragTile
-        while (current.row !== tile.row || current.col !== tile.col) {
-          const next = {
-            row: current.row + stepRow,
-            col: current.col + stepCol,
-          }
-          this.advanceDragByOneStep(current, next)
-          current = next
-        }
-        this.lastDragTile = current
-        this.redrawHighlights()
-      },
-    )
-
-    const endDrag = () => {
-      if (!this.isDragging) return
-      this.isDragging = false
-      this.finalizeDrag()
-      this.dragSequence = []
-      this.dragTileSet.clear()
-      this.dragArrowDirs.clear()
-      this.lastDragTile = null
-      this.dragHighlightGraphics.clear()
-    }
-    this.input.on(Phaser.Input.Events.POINTER_UP, endDrag)
-    // Also handle the mouse being released outside the canvas so the
-    // highlights are always cleared even when the drag ends off-screen.
-    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, endDrag)
-  }
-
   private redrawHighlights() {
     // Draw a travel-direction arrow for each highlighted tile.
     const tiles = Array.from(this.dragArrowDirs.entries())
@@ -262,6 +207,67 @@ export default class extends BaseLevel<LevelData> {
         tiles,
       )
   }
+
+  private onPointerDown(pointer: Phaser.Input.Pointer) {
+    if (this.hud?.activeTool !== "add-road") return
+    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+    if (!tile) return
+
+    this.isDragging = true
+    this.dragSequence = [tile]
+    this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
+    this.dragArrowDirs.clear()
+    this.lastDragTile = tile
+    this.redrawHighlights()
+  }
+
+  private onPointerMove(pointer: Phaser.Input.Pointer) {
+    if (!this.isDragging || this.hud?.activeTool !== "add-road") return
+    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+    if (!tile || !this.lastDragTile) return
+    // Skip if still in the same tile.
+    if (
+      tile.row === this.lastDragTile.row &&
+      tile.col === this.lastDragTile.col
+    )
+      return
+
+    const dRow = tile.row - this.lastDragTile.row
+    const dCol = tile.col - this.lastDragTile.col
+
+    // Diagonal movement is not allowed: the user must drag along a single
+    // axis at a time.
+    if (dRow !== 0 && dCol !== 0) return
+
+    // Walk one step at a time so that fast drags fill every intermediate
+    // tile and connections always form a continuous path.
+    const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
+    const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
+    let current = this.lastDragTile
+    while (current.row !== tile.row || current.col !== tile.col) {
+      const next = {
+        row: current.row + stepRow,
+        col: current.col + stepCol,
+      }
+      this.advanceDragByOneStep(current, next)
+      current = next
+    }
+    this.lastDragTile = current
+    this.redrawHighlights()
+  }
+
+  private onPointerUp() {
+    if (!this.isDragging) return
+    this.isDragging = false
+    this.finalizeDrag()
+    this.dragSequence = []
+    this.dragTileSet.clear()
+    this.dragArrowDirs.clear()
+    this.lastDragTile = null
+    this.dragHighlightGraphics.clear()
+  }
+
+  private onPointerUpOutside = () => this.onPointerUp()
 
   /**
    * Derives the exit connections each visited tile gained from the drag, merges
