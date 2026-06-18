@@ -328,8 +328,9 @@ export default class extends BaseLevel<LevelData> {
     }
     const has = (dir: Direction) => directions.has(dir)
 
-    // Dead end
+    // No connections, no road tile.
     if (directions.size === 0) return
+    // Dead end
     else if (directions.size === 1)
       if (has("top")) put(roadIDs.DeadEnd.TOP)
       else if (has("bottom")) put(roadIDs.DeadEnd.BOTTOM)
