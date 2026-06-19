@@ -4,7 +4,7 @@ import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
 import type { Direction, DirectionSet } from "../../globals"
 import type Graphics from "../../graphics"
-import HUD from "./HUD"
+import Toolbox from "./Toolbox"
 
 export interface RoadTileData {
   connections: DirectionSet
@@ -87,12 +87,12 @@ export default class extends BaseLevel<LevelData> {
       this.onPointerUpOutside(),
     )
 
-    // Launch the HUD scene, providing the toolbox.
-    this.scene.launch(HUD.KEY)
+    // Launch the Toolbox scene, providing the toolbox.
+    this.scene.launch(Toolbox.KEY)
   }
 
-  private get hud(): HUD | null {
-    return (this.scene.get(HUD.KEY) as HUD) ?? null
+  private get toolbox(): Toolbox | null {
+    return (this.scene.get(Toolbox.KEY) as Toolbox) ?? null
   }
 
   /**
@@ -209,7 +209,7 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
-    if (this.hud?.activeTool !== "add-road") return
+    if (this.toolbox?.activeTool !== "add-road") return
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
@@ -222,7 +222,7 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    if (!this.isDragging || this.hud?.activeTool !== "add-road") return
+    if (!this.isDragging || this.toolbox?.activeTool !== "add-road") return
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile || !this.lastDragTile) return
     // Skip if still in the same tile.
@@ -356,7 +356,7 @@ export default class extends BaseLevel<LevelData> {
    * (e.g. turn → T-junction) by a subsequent drag.
    */
   private createRoad(row: number, col: number, directions: DirectionSet): void {
-    // TODO: select asphalt or dirt tileset based on user selection in the HUD.
+    // TODO: select asphalt or dirt tileset based in the Toolbox.
     const roadIDs = layers.tile.data.IDs.Road.Asphalt
 
     // Shorthands.

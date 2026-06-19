@@ -13,7 +13,7 @@ export interface BaseLevelData {
 export default class BaseLevel<
   Data extends BaseLevelData = BaseLevelData,
 > extends BaseScene<Data> {
-  static KEY = "Level"
+  static readonly KEY = "Level"
 
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTileSprite!: Phaser.GameObjects.TileSprite

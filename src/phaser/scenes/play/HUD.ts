@@ -8,7 +8,7 @@ import BaseScene from "../BaseScene"
  * essential information at a glance.
  */
 export default class extends BaseScene {
-  static KEY = "HUD"
+  static readonly KEY = "HUD"
 
   create() {
     // This text will stay glued to the bottom-right of the screen.

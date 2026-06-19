@@ -10,7 +10,7 @@ import type { OrthogonalTilemap } from "../tilemaps"
 export default class BasePreloader<
   Data extends object | undefined = undefined,
 > extends BaseScene<Data> {
-  static KEY = "Preloader"
+  static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
     background: "grass",
     tilesets: { road: [], environment: [], scenery: [] },
