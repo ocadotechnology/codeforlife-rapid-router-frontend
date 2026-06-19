@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 
-import type { Direction, DirectionSet } from "./globals"
 import type BaseScene from "./scenes/BaseScene"
 
 type LineStyle = Phaser.Types.GameObjects.Graphics.LineStyle & {
@@ -13,7 +12,6 @@ export default class extends Phaser.GameObjects.Graphics {
   defaultArrowShaftStyle: LineStyle = { width: 2, color: 0xffffff, alpha: 1 }
   defaultArrowHeadStyle: FillStyle = { color: 0xffffff, alpha: 1 }
   defaultGridStyle: LineStyle = { width: 1, color: 0x000000, alpha: 1 }
-  defaultHighlightStyle: FillStyle = { color: 0xffff00, alpha: 0.4 }
 
   constructor(scene: BaseScene) {
     super(scene)
@@ -131,47 +129,6 @@ export default class extends Phaser.GameObjects.Graphics {
 
     // Stroke the grid lines to render them on the scene.
     this.strokePath()
-
-    return this
-  }
-
-  path(
-    cellWidth: number,
-    cellHeight: number,
-    arrowHeadWidth: number,
-    arrowHeadHeight: number,
-    path: Array<{ col: number; row: number; dirs: DirectionSet }>,
-    highlightStyle: FillStyle = this.defaultHighlightStyle,
-    arrowShaftStyle: LineStyle = this.defaultArrowShaftStyle,
-    arrowHeadStyle: FillStyle = this.defaultArrowHeadStyle,
-  ) {
-    for (const { col, row, dirs } of path) {
-      this.fillStyle(highlightStyle).fillRect(col, row, cellWidth, cellHeight)
-
-      const x = col + cellWidth / 2
-      const y = row + cellHeight / 2
-
-      const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
-        top: { x, y: row },
-        bottom: { x, y: row + cellHeight },
-        left: { x: col, y },
-        right: { x: col + cellWidth, y },
-      }
-
-      for (const dir of dirs) {
-        const mid = edgeMidpoint[dir]
-        this.arrow(
-          x,
-          y,
-          mid.x,
-          mid.y,
-          arrowHeadWidth,
-          arrowHeadHeight,
-          arrowShaftStyle,
-          arrowHeadStyle,
-        )
-      }
-    }
 
     return this
   }

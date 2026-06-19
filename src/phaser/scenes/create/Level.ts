@@ -2,9 +2,11 @@ import Phaser from "phaser"
 
 import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
-import type { Direction, DirectionSet } from "../../globals"
 import type Graphics from "../../graphics"
 import Toolbox from "./Toolbox"
+
+type Direction = "top" | "bottom" | "left" | "right"
+type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
 
 export interface RoadTileData {
   connections: DirectionSet
@@ -36,14 +38,14 @@ export default class extends BaseLevel<LevelData> {
    * revisits. Revisits are necessary to accumulate all connections correctly
    * (e.g. a tile crossed twice in different directions gets both connections).
    */
-  private dragSequence: Array<{ row: number; col: number }> = []
+  private dragSequence: Phaser.Math.Vector2[] = []
   /**
    * Set of unique tile keys visited in the current drag, used to efficiently
    * render highlights without duplicates.
    */
   private dragTileSet = new Set<string>()
-  private dragHighlightGraphics!: Graphics
-  private lastDragTile: { row: number; col: number } | null = null
+  private dragGraphics!: Graphics
+  private lastDragTile: Phaser.Math.Vector2 | null = null
   /**
    * Maps a tile key to the direction of travel when the cursor last moved
    * through it. Both the source and destination tile of each step share the
@@ -51,6 +53,13 @@ export default class extends BaseLevel<LevelData> {
    * direction (e.g. all tiles in a left→right sweep show "right").
    */
   private dragArrowDirs = new Map<string, DirectionSet>()
+
+  private readonly directionOpposites: Record<Direction, Direction> = {
+    top: "bottom",
+    bottom: "top",
+    left: "right",
+    right: "left",
+  }
 
   create() {
     // Create the tilemap, layers, and other essentials of the level scene.
@@ -69,7 +78,7 @@ export default class extends BaseLevel<LevelData> {
       Array<RoadTileData | null>(this.tilemap.width).fill(null),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.dragHighlightGraphics = this.addGraphics().setDepth(1)
+    this.dragGraphics = this.addGraphics().setDepth(1)
 
     // Register pointer events.
     this.input.on(
@@ -96,61 +105,50 @@ export default class extends BaseLevel<LevelData> {
   }
 
   /**
-   * Converts world coordinates to a tile position, clamping to the nearest
-   * edge tile when the cursor is outside the tilemap bounds. Returns null only
-   * if the tilemap conversion itself fails.
+   * Converts world coordinates to a tile position, clamping to the nearest edge
+   * tile when the cursor is outside the tilemap bounds. Returns null only if
+   * the tilemap conversion itself fails.
    */
-  private worldToTile(
-    worldX: number,
-    worldY: number,
-  ): { row: number; col: number } | null {
+  private worldToTile(worldX: number, worldY: number) {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
     if (!tileXY) return null
-    const col = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
-    const row = Phaser.Math.Clamp(tileXY.y, 0, this.tilemap.height - 1)
-    return { row, col }
+    const x = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
+    const y = Phaser.Math.Clamp(tileXY.y, 0, this.tilemap.height - 1)
+    return new Phaser.Math.Vector2(x, y)
   }
 
   /**
-   * Returns the dominant direction of travel from one tile to another.
-   * When the cursor jumps diagonally (fast movement), the axis with the larger
-   * delta wins so we always produce a single cardinal direction.
+   * Returns the dominant direction of travel from one tile to another. When the
+   * cursor jumps diagonally (fast movement), the axis with the larger delta
+   * wins so we always produce a single cardinal direction.
    */
   private directionBetween(
-    from: { row: number; col: number },
-    to: { row: number; col: number },
+    from: Phaser.Math.Vector2,
+    to: Phaser.Math.Vector2,
   ): Direction {
-    const dRow = to.row - from.row
-    const dCol = to.col - from.col
-    if (Math.abs(dRow) >= Math.abs(dCol)) {
-      return dRow < 0 ? "top" : "bottom"
-    }
-    return dCol < 0 ? "left" : "right"
+    const dRow = to.y - from.y
+    const dCol = to.x - from.x
+    return Math.abs(dRow) >= Math.abs(dCol)
+      ? dRow < 0
+        ? "top"
+        : "bottom"
+      : dCol < 0
+        ? "left"
+        : "right"
   }
 
-  private tileKey(row: number, col: number): string {
-    return `${row},${col}`
-  }
-
-  private oppositeOf(dir: Direction): Direction {
-    const opposites: Record<Direction, Direction> = {
-      top: "bottom",
-      bottom: "top",
-      left: "right",
-      right: "left",
-    }
-    return opposites[dir]
-  }
+  /** Returns a unique key for the given tile position. */
+  private tileKey = (tile: Phaser.Math.Vector2) => `${tile.y},${tile.x}`
 
   /**
-   * Returns true if moving in `dir` from the given tile would leave the
-   * tilemap — i.e. the direction is not a valid exit for that tile.
+   * Returns true if moving in `dir` from the given tile would leave the tilemap
+   * — i.e. the direction is not a valid exit for that tile.
    */
-  private exitsMap(row: number, col: number, dir: Direction): boolean {
-    if (dir === "top" && row === 0) return true
-    if (dir === "bottom" && row === this.tilemap.height - 1) return true
-    if (dir === "left" && col === 0) return true
-    if (dir === "right" && col === this.tilemap.width - 1) return true
+  private exitsMap(y: number, x: number, dir: Direction) {
+    if (dir === "top" && y === 0) return true
+    if (dir === "bottom" && y === this.tilemap.height - 1) return true
+    if (dir === "left" && x === 0) return true
+    if (dir === "right" && x === this.tilemap.width - 1) return true
     return false
   }
 
@@ -160,52 +158,54 @@ export default class extends BaseLevel<LevelData> {
    * the exit arrow on `from` (unless a mutual-exit would result).
    */
   private advanceDragByOneStep(
-    from: { row: number; col: number },
-    to: { row: number; col: number },
+    from: Phaser.Math.Vector2,
+    to: Phaser.Math.Vector2,
   ) {
     this.dragSequence.push(to)
-    this.dragTileSet.add(this.tileKey(to.row, to.col))
+    this.dragTileSet.add(this.tileKey(to))
 
     // Only the tile being exited gets an exit arrow — the destination tile
     // has not been exited yet and will get its arrow when the cursor leaves it.
     // Also skip if the destination already exits back toward us (no mutual exits).
     const travelDir = this.directionBetween(from, to)
-    const fromKey = this.tileKey(from.row, from.col)
-    const toKey = this.tileKey(to.row, to.col)
-    const backDir = this.oppositeOf(travelDir)
+    const fromKey = this.tileKey(from)
+    const toKey = this.tileKey(to)
+    const backDir = this.directionOpposites[travelDir]
     if (!this.dragArrowDirs.get(toKey)?.has(backDir)) {
       if (!this.dragArrowDirs.has(fromKey))
         this.dragArrowDirs.set(fromKey, new Set() as DirectionSet)
-      this.dragArrowDirs.get(fromKey)!.add(travelDir)
+      const fromDirs = this.dragArrowDirs.get(fromKey)!
+      if (fromDirs.has(travelDir)) return null // already drawn, skip
+      fromDirs.add(travelDir)
+      return travelDir
     }
+    return null
   }
 
-  private redrawHighlights() {
-    // Draw a travel-direction arrow for each highlighted tile.
-    const tiles = Array.from(this.dragArrowDirs.entries())
-      .map(([key, dirs]) => {
-        const [row, col] = key.split(",").map(Number)
-        const worldXY = this.tilemap.tileToWorldXY(col, row)
-        if (!worldXY) return null
+  private drawStep(tile: Phaser.Math.Vector2, dir: Direction) {
+    if (this.exitsMap(tile.y, tile.x, dir)) return
+    const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
+    if (!worldXY) return
 
-        return {
-          col: worldXY.x,
-          row: worldXY.y,
-          dirs: new Set(
-            [...dirs].filter(dir => !this.exitsMap(row, col, dir)),
-          ) as DirectionSet,
-        }
-      })
-      .filter(v => v !== null)
-    this.dragHighlightGraphics
-      .clear() // Clear previous drawings before rendering the new path.
-      .path(
-        this.tilemap.tileWidth,
-        this.tilemap.tileHeight,
-        this.tilemap.tileWidth * 0.15,
-        this.tilemap.tileHeight * 0.2,
-        tiles,
-      )
+    const tw = this.tilemap.tileWidth
+    const th = this.tilemap.tileHeight
+
+    // Only draw the background rect when this is the first arrow for the tile.
+    if (this.dragArrowDirs.get(this.tileKey(tile))!.size === 1)
+      this.dragGraphics
+        .fillStyle(0xffff00, 0.4)
+        .fillRect(worldXY.x, worldXY.y, tw, th)
+
+    const cx = worldXY.x + tw / 2
+    const cy = worldXY.y + th / 2
+    const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
+      top: { x: cx, y: worldXY.y },
+      bottom: { x: cx, y: worldXY.y + th },
+      left: { x: worldXY.x, y: cy },
+      right: { x: worldXY.x + tw, y: cy },
+    }
+    const { x: ex, y: ey } = edgeMidpoint[dir]
+    this.dragGraphics.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
@@ -215,10 +215,9 @@ export default class extends BaseLevel<LevelData> {
 
     this.isDragging = true
     this.dragSequence = [tile]
-    this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
+    this.dragTileSet = new Set([this.tileKey(tile)])
     this.dragArrowDirs.clear()
     this.lastDragTile = tile
-    this.redrawHighlights()
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -226,14 +225,10 @@ export default class extends BaseLevel<LevelData> {
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile || !this.lastDragTile) return
     // Skip if still in the same tile.
-    if (
-      tile.row === this.lastDragTile.row &&
-      tile.col === this.lastDragTile.col
-    )
-      return
+    if (tile.y === this.lastDragTile.y && tile.x === this.lastDragTile.x) return
 
-    const dRow = tile.row - this.lastDragTile.row
-    const dCol = tile.col - this.lastDragTile.col
+    const dRow = tile.y - this.lastDragTile.y
+    const dCol = tile.x - this.lastDragTile.x
 
     // Diagonal movement is not allowed: the user must drag along a single
     // axis at a time.
@@ -244,16 +239,16 @@ export default class extends BaseLevel<LevelData> {
     const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
     const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
     let current = this.lastDragTile
-    while (current.row !== tile.row || current.col !== tile.col) {
-      const next = {
-        row: current.row + stepRow,
-        col: current.col + stepCol,
-      }
-      this.advanceDragByOneStep(current, next)
+    while (current.y !== tile.y || current.x !== tile.x) {
+      const next = new Phaser.Math.Vector2(
+        current.x + stepCol,
+        current.y + stepRow,
+      )
+      const newDir = this.advanceDragByOneStep(current, next)
+      if (newDir !== null) this.drawStep(current, newDir)
       current = next
     }
     this.lastDragTile = current
-    this.redrawHighlights()
   }
 
   private onPointerUp() {
@@ -264,7 +259,7 @@ export default class extends BaseLevel<LevelData> {
     this.dragTileSet.clear()
     this.dragArrowDirs.clear()
     this.lastDragTile = null
-    this.dragHighlightGraphics.clear()
+    this.dragGraphics.clear()
   }
 
   private onPointerUpOutside = () => this.onPointerUp()
@@ -286,12 +281,12 @@ export default class extends BaseLevel<LevelData> {
 
     for (let i = 0; i < this.dragSequence.length; i++) {
       const curr = this.dragSequence[i]
-      const key = this.tileKey(curr.row, curr.col)
+      const key = this.tileKey(curr)
 
       if (!pending.has(key)) {
         pending.set(key, {
-          row: curr.row,
-          col: curr.col,
+          row: curr.y,
+          col: curr.x,
           connections: new Set() as DirectionSet,
         })
       }
@@ -299,12 +294,12 @@ export default class extends BaseLevel<LevelData> {
       const next = this.dragSequence[i + 1]
       if (next) {
         const exitDir = this.directionBetween(curr, next)
-        const backDir = this.oppositeOf(exitDir)
-        const nextKey = this.tileKey(next.row, next.col)
+        const backDir = this.directionOpposites[exitDir]
+        const nextKey = this.tileKey(next)
         if (!pending.has(nextKey)) {
           pending.set(nextKey, {
-            row: next.row,
-            col: next.col,
+            row: next.y,
+            col: next.x,
             connections: new Set() as DirectionSet,
           })
         }
@@ -351,9 +346,9 @@ export default class extends BaseLevel<LevelData> {
 
   /**
    * Called whenever a tile's connections change. Classifies the tile based on
-   * its full set of open sides and places the correct road tile.
-   * Connections accumulate across drags, so a tile may be upgraded
-   * (e.g. turn → T-junction) by a subsequent drag.
+   * its full set of open sides and places the correct road tile. Connections
+   * accumulate across drags, so a tile may be upgraded (e.g. turn → T-junction)
+   * by a subsequent drag.
    */
   private createRoad(row: number, col: number, directions: DirectionSet): void {
     // TODO: select asphalt or dirt tileset based in the Toolbox.
