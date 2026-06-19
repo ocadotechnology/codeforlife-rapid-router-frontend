@@ -24,6 +24,13 @@ export default class Toolbox extends BaseScene {
   private static readonly BUTTON_GAP = 12
   private static readonly PANEL_PADDING = 16
 
+  private static readonly BUTTON_BG_DEFAULT_COLOR = 0x16213e
+  private static readonly BUTTON_BG_HOVER_COLOR = 0x0f3460
+  private static readonly BUTTON_BG_ACTIVE_COLOR = 0xe94560
+
+  private static readonly BUTTON_TEXT_COLOR = "#e0e0e0"
+  private static readonly BUTTON_TEXT_ACTIVE_COLOR = "#ffffff"
+
   activeTool: Tool | null = null
 
   private buttons: Button[] = []
@@ -58,16 +65,18 @@ export default class Toolbox extends BaseScene {
 
       // Create interactive background rectangle.
       const bg = this.add
-        .rectangle(x, y, width, height, 0x16213e)
+        .rectangle(x, y, width, height, Toolbox.BUTTON_BG_DEFAULT_COLOR)
         .setOrigin(0, 0)
         .setInteractive({ useHandCursor: true })
 
       // Add hover and click events to the background rectangle.
       bg.on(Phaser.Input.Events.POINTER_OVER, () => {
-        if (this.activeTool !== tool) bg.setFillStyle(0x0f3460)
+        if (this.activeTool !== tool)
+          bg.setFillStyle(Toolbox.BUTTON_BG_HOVER_COLOR)
       })
       bg.on(Phaser.Input.Events.POINTER_OUT, () => {
-        if (this.activeTool !== tool) bg.setFillStyle(0x16213e)
+        if (this.activeTool !== tool)
+          bg.setFillStyle(Toolbox.BUTTON_BG_DEFAULT_COLOR)
       })
       bg.on(Phaser.Input.Events.POINTER_DOWN, () => {
         this.setActiveTool(this.activeTool === tool ? null : tool)
@@ -77,7 +86,7 @@ export default class Toolbox extends BaseScene {
       const labelText = this.add
         .text(x + width / 2, y + height / 2, label, {
           fontSize: "14px",
-          color: "#e0e0e0",
+          color: Toolbox.BUTTON_TEXT_COLOR,
           align: "center",
           wordWrap: { width: width - 8 },
         })
@@ -94,11 +103,11 @@ export default class Toolbox extends BaseScene {
 
     for (const btn of this.buttons) {
       if (btn.tool === tool) {
-        btn.bg.setFillStyle(0xe94560)
-        btn.label.setColor("#ffffff")
+        btn.bg.setFillStyle(Toolbox.BUTTON_BG_ACTIVE_COLOR)
+        btn.label.setColor(Toolbox.BUTTON_TEXT_ACTIVE_COLOR)
       } else {
-        btn.bg.setFillStyle(0x16213e)
-        btn.label.setColor("#e0e0e0")
+        btn.bg.setFillStyle(Toolbox.BUTTON_BG_DEFAULT_COLOR)
+        btn.label.setColor(Toolbox.BUTTON_TEXT_COLOR)
       }
     }
   }
