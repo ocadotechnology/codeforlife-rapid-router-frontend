@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import Graphics from "../graphics"
+import "../gameObjects" // Register custom game objects.
 
 export default class BaseScene<
   Data extends object | undefined = undefined,
@@ -16,6 +16,4 @@ export default class BaseScene<
   init(data: Data) {
     this.initData = data
   }
-
-  addGraphics = () => this.add.existing(new Graphics(this))
 }

@@ -2,12 +2,10 @@ import Phaser from "phaser"
 
 import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
-import type Graphics from "../../graphics"
 import Toolbox from "./Toolbox"
 
 type Direction = "top" | "bottom" | "left" | "right"
 type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
-type RoadTileData = { connections: DirectionSet }
 
 export interface LevelData extends BaseLevelData {}
 
@@ -25,7 +23,7 @@ export default class extends BaseLevel<LevelData> {
    * Persistent 2D array [row][col] of all placed road tiles.
    * null means no road tile has been placed at that position.
    */
-  private roadTileGrid: (RoadTileData | null)[][] = []
+  private roadDirs: DirectionSet[][] = []
 
   private isDragging = false
   /**
@@ -39,7 +37,7 @@ export default class extends BaseLevel<LevelData> {
    * render highlights without duplicates.
    */
   private dragSet = new Set<string>()
-  private dragGraphics!: Graphics
+  private dragGraphics!: Phaser.GameObjects.CustomGraphics
   /**
    * Maps a tile key to the direction of travel when the cursor last moved
    * through it. Both the source and destination tile of each step share the
@@ -60,19 +58,24 @@ export default class extends BaseLevel<LevelData> {
     super.create()
 
     // Draw a grid over the tilemap to help visualize the tile boundaries.
-    this.addGraphics().grid(
-      this.tilemap.width,
-      this.tilemap.height,
-      this.tilemap.tileWidth,
-      this.tilemap.tileHeight,
-    )
+    this.add
+      .customGraphics()
+      .grid(
+        this.tilemap.width,
+        this.tilemap.height,
+        this.tilemap.tileWidth,
+        this.tilemap.tileHeight,
+      )
 
     // Initialize the persistent road tile grid to match the tilemap dimensions.
-    this.roadTileGrid = Array.from({ length: this.tilemap.height }, () =>
-      Array<RoadTileData | null>(this.tilemap.width).fill(null),
+    this.roadDirs = Array.from({ length: this.tilemap.height }, () =>
+      Array.from(
+        { length: this.tilemap.width },
+        () => new Set() as DirectionSet,
+      ),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.dragGraphics = this.addGraphics().setDepth(1)
+    this.dragGraphics = this.add.customGraphics().setDepth(1)
 
     // Register pointer events.
     this.input.on(
@@ -271,7 +274,7 @@ export default class extends BaseLevel<LevelData> {
   private finalizeDrag() {
     const pending = new Map<
       string,
-      { row: number; col: number; connections: DirectionSet }
+      { row: number; col: number; dirs: DirectionSet }
     >()
 
     for (let i = 0; i < this.dragSequence.length; i++) {
@@ -282,7 +285,7 @@ export default class extends BaseLevel<LevelData> {
         pending.set(key, {
           row: curr.y,
           col: curr.x,
-          connections: new Set() as DirectionSet,
+          dirs: new Set() as DirectionSet,
         })
       }
 
@@ -295,31 +298,29 @@ export default class extends BaseLevel<LevelData> {
           pending.set(nextKey, {
             row: next.y,
             col: next.x,
-            connections: new Set() as DirectionSet,
+            dirs: new Set() as DirectionSet,
           })
         }
         // Bidirectional connection: curr exits toward next, and next connects
         // back to curr. Both are needed for correct road tile classification
         // (e.g. a middle tile needs both its entry and exit directions so it
         // becomes a straight road rather than two dead ends).
-        pending.get(key)!.connections.add(exitDir)
-        pending.get(nextKey)!.connections.add(backDir)
+        pending.get(key)!.dirs.add(exitDir)
+        pending.get(nextKey)!.dirs.add(backDir)
       }
     }
 
     // Merge new connections into the persistent grid, then redraw each tile.
-    for (const { row, col, connections } of pending.values()) {
-      if (!this.roadTileGrid[row][col]) {
-        this.roadTileGrid[row][col] = { connections: new Set() as DirectionSet }
+    for (const { row, col, dirs } of pending.values()) {
+      if (!this.roadDirs[row][col].size) {
+        this.roadDirs[row][col] = new Set() as DirectionSet
       }
-      const tileData = this.roadTileGrid[row][col]
-      for (const dir of connections) {
+      const roadDirs = this.roadDirs[row][col]
+      for (const dir of dirs) {
         // Discard any connection that would exit off the edge of the tilemap.
-        if (!this.exitsMap(row, col, dir)) {
-          tileData.connections.add(dir)
-        }
+        if (!this.exitsMap(row, col, dir)) roadDirs.add(dir)
       }
-      this.createRoad(row, col, tileData.connections)
+      this.createRoad(row, col, roadDirs)
     }
   }
 
@@ -345,25 +346,25 @@ export default class extends BaseLevel<LevelData> {
    * accumulate across drags, so a tile may be upgraded (e.g. turn → T-junction)
    * by a subsequent drag.
    */
-  private createRoad(row: number, col: number, directions: DirectionSet): void {
+  private createRoad(row: number, col: number, dirs: DirectionSet) {
     // TODO: select asphalt or dirt tileset based in the Toolbox.
     const roadIDs = layers.tile.data.IDs.Road.Asphalt
 
     // Shorthands.
     const putTile = (id: layers.tile.data.RoadID) =>
       this.putTileAt(this.layers.road, id, col, row)
-    const hasDir = (dir: Direction) => directions.has(dir)
+    const hasDir = (dir: Direction) => dirs.has(dir)
 
     // No connections, no road tile.
-    if (directions.size === 0) return
+    if (dirs.size === 0) return
     // Dead end
-    else if (directions.size === 1)
+    else if (dirs.size === 1)
       if (hasDir("top")) putTile(roadIDs.DeadEnd.TOP)
       else if (hasDir("bottom")) putTile(roadIDs.DeadEnd.BOTTOM)
       else if (hasDir("left")) putTile(roadIDs.DeadEnd.LEFT)
       else putTile(roadIDs.DeadEnd.RIGHT)
     // Straight or turn
-    else if (directions.size === 2)
+    else if (dirs.size === 2)
       if (hasDir("top"))
         if (hasDir("bottom")) putTile(roadIDs.Straight.VERTICAL)
         else if (hasDir("left")) putTile(roadIDs.Turn.TOP_LEFT)
@@ -373,7 +374,7 @@ export default class extends BaseLevel<LevelData> {
         else putTile(roadIDs.Turn.BOTTOM_RIGHT)
       else putTile(roadIDs.Straight.HORIZONTAL)
     // T-junction
-    else if (directions.size === 3)
+    else if (dirs.size === 3)
       if (!hasDir("top")) putTile(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
       else if (!hasDir("bottom")) putTile(roadIDs.TJunction.TOP_LEFT_RIGHT)
       else if (!hasDir("left")) putTile(roadIDs.TJunction.TOP_RIGHT_BOTTOM)

@@ -4,12 +4,6 @@ import BaseScene from "../BaseScene"
 
 export type Tool = "add-road" | "delete-road"
 
-type Button = {
-  bg: Phaser.GameObjects.Rectangle
-  label: Phaser.GameObjects.Text
-  tool: Tool
-}
-
 /**
  * The Toolbox Scene for the Level Creator provides a toolbar on the left side
  * of the screen. It runs in parallel with the create Level scene and exposes
@@ -33,7 +27,7 @@ export default class Toolbox extends BaseScene {
 
   activeTool: Tool | null = null
 
-  private buttons: Button[] = []
+  private buttons = {} as Record<Tool, Phaser.GameObjects.Button>
 
   create() {
     const panelHeight = this.cameras.main.height
@@ -63,37 +57,36 @@ export default class Toolbox extends BaseScene {
       // Calculate y-offset.
       const y = Toolbox.PANEL_PADDING + i * gap
 
-      // Create interactive background rectangle.
-      const bg = this.add
-        .rectangle(x, y, width, height, Toolbox.BUTTON_BG_DEFAULT_COLOR)
-        .setOrigin(0, 0)
-        .setInteractive({ useHandCursor: true })
-
-      // Add hover and click events to the background rectangle.
-      bg.on(Phaser.Input.Events.POINTER_OVER, () => {
-        if (this.activeTool !== tool)
-          bg.setFillStyle(Toolbox.BUTTON_BG_HOVER_COLOR)
-      })
-      bg.on(Phaser.Input.Events.POINTER_OUT, () => {
-        if (this.activeTool !== tool)
-          bg.setFillStyle(Toolbox.BUTTON_BG_DEFAULT_COLOR)
-      })
-      bg.on(Phaser.Input.Events.POINTER_DOWN, () => {
-        this.setActiveTool(this.activeTool === tool ? null : tool)
-      })
-
-      // Create label text.
-      const labelText = this.add
-        .text(x + width / 2, y + height / 2, label, {
+      const button = this.add.button(
+        x,
+        y,
+        width,
+        height,
+        label,
+        {
           fontSize: "14px",
           color: Toolbox.BUTTON_TEXT_COLOR,
           align: "center",
           wordWrap: { width: width - 8 },
-        })
-        .setOrigin(0.5, 0.5)
+        },
+        { color: Toolbox.BUTTON_BG_DEFAULT_COLOR },
+      )
+
+      // Add hover and click events to the background rectangle.
+      button.bg.on(Phaser.Input.Events.POINTER_OVER, () => {
+        if (this.activeTool !== tool)
+          button.bg.setFillStyle(Toolbox.BUTTON_BG_HOVER_COLOR)
+      })
+      button.bg.on(Phaser.Input.Events.POINTER_OUT, () => {
+        if (this.activeTool !== tool)
+          button.bg.setFillStyle(Toolbox.BUTTON_BG_DEFAULT_COLOR)
+      })
+      button.bg.on(Phaser.Input.Events.POINTER_DOWN, () => {
+        this.setActiveTool(this.activeTool === tool ? null : tool)
+      })
 
       // Store the button in the buttons array for later reference.
-      this.buttons.push({ bg, label: labelText, tool })
+      this.buttons[tool] = button
     })
   }
 
@@ -101,8 +94,11 @@ export default class Toolbox extends BaseScene {
   private setActiveTool(tool: Tool | null) {
     this.activeTool = tool
 
-    for (const btn of this.buttons) {
-      if (btn.tool === tool) {
+    for (const [btnTool, btn] of Object.entries(this.buttons) as [
+      Tool,
+      Phaser.GameObjects.Button,
+    ][]) {
+      if (btnTool === tool) {
         btn.bg.setFillStyle(Toolbox.BUTTON_BG_ACTIVE_COLOR)
         btn.label.setColor(Toolbox.BUTTON_TEXT_ACTIVE_COLOR)
       } else {
