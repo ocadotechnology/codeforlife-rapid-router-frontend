@@ -7,10 +7,7 @@ import Toolbox from "./Toolbox"
 
 type Direction = "top" | "bottom" | "left" | "right"
 type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
-
-export interface RoadTileData {
-  connections: DirectionSet
-}
+type RoadTileData = { connections: DirectionSet }
 
 export interface LevelData extends BaseLevelData {}
 
@@ -24,13 +21,11 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  gridGraphics!: Graphics
-
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
    * null means no road tile has been placed at that position.
    */
-  roadTileGrid: (RoadTileData | null)[][] = []
+  private roadTileGrid: (RoadTileData | null)[][] = []
 
   private isDragging = false
   /**
@@ -43,16 +38,15 @@ export default class extends BaseLevel<LevelData> {
    * Set of unique tile keys visited in the current drag, used to efficiently
    * render highlights without duplicates.
    */
-  private dragTileSet = new Set<string>()
+  private dragSet = new Set<string>()
   private dragGraphics!: Graphics
-  private lastDragTile: Phaser.Math.Vector2 | null = null
   /**
    * Maps a tile key to the direction of travel when the cursor last moved
    * through it. Both the source and destination tile of each step share the
    * same travel direction, so the last tile in a drag always shows the correct
    * direction (e.g. all tiles in a left→right sweep show "right").
    */
-  private dragArrowDirs = new Map<string, DirectionSet>()
+  private dragDirs = new Map<string, DirectionSet>()
 
   private readonly directionOpposites: Record<Direction, Direction> = {
     top: "bottom",
@@ -66,7 +60,7 @@ export default class extends BaseLevel<LevelData> {
     super.create()
 
     // Draw a grid over the tilemap to help visualize the tile boundaries.
-    this.gridGraphics = this.addGraphics().grid(
+    this.addGraphics().grid(
       this.tilemap.width,
       this.tilemap.height,
       this.tilemap.tileWidth,
@@ -100,8 +94,12 @@ export default class extends BaseLevel<LevelData> {
     this.scene.launch(Toolbox.KEY)
   }
 
-  private get toolbox(): Toolbox | null {
+  private get toolbox() {
     return (this.scene.get(Toolbox.KEY) as Toolbox) ?? null
+  }
+
+  private get lastDragTile() {
+    return this.dragSequence.at(-1) ?? null
   }
 
   /**
@@ -162,7 +160,7 @@ export default class extends BaseLevel<LevelData> {
     to: Phaser.Math.Vector2,
   ) {
     this.dragSequence.push(to)
-    this.dragTileSet.add(this.tileKey(to))
+    this.dragSet.add(this.tileKey(to))
 
     // Only the tile being exited gets an exit arrow — the destination tile
     // has not been exited yet and will get its arrow when the cursor leaves it.
@@ -171,10 +169,10 @@ export default class extends BaseLevel<LevelData> {
     const fromKey = this.tileKey(from)
     const toKey = this.tileKey(to)
     const backDir = this.directionOpposites[travelDir]
-    if (!this.dragArrowDirs.get(toKey)?.has(backDir)) {
-      if (!this.dragArrowDirs.has(fromKey))
-        this.dragArrowDirs.set(fromKey, new Set() as DirectionSet)
-      const fromDirs = this.dragArrowDirs.get(fromKey)!
+    if (!this.dragDirs.get(toKey)?.has(backDir)) {
+      if (!this.dragDirs.has(fromKey))
+        this.dragDirs.set(fromKey, new Set() as DirectionSet)
+      const fromDirs = this.dragDirs.get(fromKey)!
       if (fromDirs.has(travelDir)) return null // already drawn, skip
       fromDirs.add(travelDir)
       return travelDir
@@ -191,7 +189,7 @@ export default class extends BaseLevel<LevelData> {
     const th = this.tilemap.tileHeight
 
     // Only draw the background rect when this is the first arrow for the tile.
-    if (this.dragArrowDirs.get(this.tileKey(tile))!.size === 1)
+    if (this.dragDirs.get(this.tileKey(tile))!.size === 1)
       this.dragGraphics
         .fillStyle(0xffff00, 0.4)
         .fillRect(worldXY.x, worldXY.y, tw, th)
@@ -215,9 +213,8 @@ export default class extends BaseLevel<LevelData> {
 
     this.isDragging = true
     this.dragSequence = [tile]
-    this.dragTileSet = new Set([this.tileKey(tile)])
-    this.dragArrowDirs.clear()
-    this.lastDragTile = tile
+    this.dragSet = new Set([this.tileKey(tile)])
+    this.dragDirs.clear()
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -248,7 +245,6 @@ export default class extends BaseLevel<LevelData> {
       if (newDir !== null) this.drawStep(current, newDir)
       current = next
     }
-    this.lastDragTile = current
   }
 
   private onPointerUp() {
@@ -256,9 +252,8 @@ export default class extends BaseLevel<LevelData> {
     this.isDragging = false
     this.finalizeDrag()
     this.dragSequence = []
-    this.dragTileSet.clear()
-    this.dragArrowDirs.clear()
-    this.lastDragTile = null
+    this.dragSet.clear()
+    this.dragDirs.clear()
     this.dragGraphics.clear()
   }
 
