@@ -1,10 +1,10 @@
 import Phaser from "phaser"
 
+import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
+import type { Direction, DirectionSet } from "../../globals"
+import type Graphics from "../../graphics"
 import HUD from "./HUD"
-
-export type Direction = "top" | "bottom" | "left" | "right"
-export type DirectionSet = Set<Direction> & { readonly size: 1 | 2 | 3 | 4 }
 
 export interface RoadTileData {
   connections: DirectionSet
@@ -22,7 +22,7 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  lineGraphics!: Phaser.GameObjects.Graphics
+  gridGraphics!: Graphics
 
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
@@ -42,7 +42,7 @@ export default class extends BaseLevel<LevelData> {
    * render highlights without duplicates.
    */
   private dragTileSet = new Set<string>()
-  private dragHighlightGraphics!: Phaser.GameObjects.Graphics
+  private dragHighlightGraphics!: Graphics
   private lastDragTile: { row: number; col: number } | null = null
   /**
    * Maps a tile key to the direction of travel when the cursor last moved
@@ -53,21 +53,42 @@ export default class extends BaseLevel<LevelData> {
   private dragArrowDirs = new Map<string, DirectionSet>()
 
   create() {
+    // Create the tilemap, layers, and other essentials of the level scene.
     super.create()
 
-    this.addLineGraphics()
-    this.initRoadTileGrid()
-    this.setupPointerEvents()
+    // Draw a grid over the tilemap to help visualize the tile boundaries.
+    this.gridGraphics = this.addGraphics().grid(
+      this.tilemap.width,
+      this.tilemap.height,
+      this.tilemap.tileWidth,
+      this.tilemap.tileHeight,
+    )
 
-    this.scene.launch(HUD.KEY)
-  }
-
-  private initRoadTileGrid() {
+    // Initialize the persistent road tile grid to match the tilemap dimensions.
     this.roadTileGrid = Array.from({ length: this.tilemap.height }, () =>
       Array<RoadTileData | null>(this.tilemap.width).fill(null),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.dragHighlightGraphics = this.add.graphics().setDepth(1)
+    this.dragHighlightGraphics = this.addGraphics().setDepth(1)
+
+    // Register pointer events.
+    this.input.on(
+      Phaser.Input.Events.POINTER_DOWN,
+      (pointer: Phaser.Input.Pointer) => this.onPointerDown(pointer),
+    )
+    this.input.on(
+      Phaser.Input.Events.POINTER_MOVE,
+      (pointer: Phaser.Input.Pointer) => this.onPointerMove(pointer),
+    )
+    this.input.on(Phaser.Input.Events.POINTER_UP, () => this.onPointerUp())
+    // Also handle the mouse being released outside the canvas so the
+    // highlights are always cleared even when the drag ends off-screen.
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, () =>
+      this.onPointerUpOutside(),
+    )
+
+    // Launch the HUD scene, providing the toolbox.
+    this.scene.launch(HUD.KEY)
   }
 
   private get hud(): HUD | null {
@@ -133,118 +154,120 @@ export default class extends BaseLevel<LevelData> {
     return false
   }
 
-  private setupPointerEvents() {
-    this.input.on(
-      Phaser.Input.Events.POINTER_DOWN,
-      (pointer: Phaser.Input.Pointer) => {
-        if (this.hud?.activeTool !== "add-road") return
-        const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-        if (!tile) return
+  /**
+   * Records a single cardinal step `from` → `to` (always exactly 1 tile apart)
+   * into the drag state: adds `to` to the sequence and tile set, and records
+   * the exit arrow on `from` (unless a mutual-exit would result).
+   */
+  private advanceDragByOneStep(
+    from: { row: number; col: number },
+    to: { row: number; col: number },
+  ) {
+    this.dragSequence.push(to)
+    this.dragTileSet.add(this.tileKey(to.row, to.col))
 
-        this.isDragging = true
-        this.dragSequence = [tile]
-        this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
-        this.dragArrowDirs.clear()
-        this.lastDragTile = tile
-        this.redrawHighlights()
-      },
-    )
-
-    this.input.on(
-      Phaser.Input.Events.POINTER_MOVE,
-      (pointer: Phaser.Input.Pointer) => {
-        if (!this.isDragging || this.hud?.activeTool !== "add-road") return
-        const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-        if (!tile || !this.lastDragTile) return
-        // Skip if still in the same tile.
-        if (
-          tile.row === this.lastDragTile.row &&
-          tile.col === this.lastDragTile.col
-        )
-          return
-
-        this.dragSequence.push(tile)
-        this.dragTileSet.add(this.tileKey(tile.row, tile.col))
-        // Only the tile being exited gets an exit arrow — the destination tile
-        // has not been exited yet and will get its arrow when the cursor leaves it.
-        // Also skip if the destination already exits back toward us (no mutual exits).
-        const travelDir = this.directionBetween(this.lastDragTile, tile)
-        const prevKey = this.tileKey(
-          this.lastDragTile.row,
-          this.lastDragTile.col,
-        )
-        const currKey = this.tileKey(tile.row, tile.col)
-        const backDir = this.oppositeOf(travelDir)
-        if (!this.dragArrowDirs.get(currKey)?.has(backDir)) {
-          if (!this.dragArrowDirs.has(prevKey))
-            this.dragArrowDirs.set(prevKey, new Set() as DirectionSet)
-          this.dragArrowDirs.get(prevKey)!.add(travelDir)
-        }
-        this.lastDragTile = tile
-        this.redrawHighlights()
-      },
-    )
-
-    this.input.on(Phaser.Input.Events.POINTER_UP, () => {
-      if (!this.isDragging) return
-      this.isDragging = false
-      this.finalizeDrag()
-      this.dragSequence = []
-      this.dragTileSet.clear()
-      this.dragArrowDirs.clear()
-      this.lastDragTile = null
-      this.dragHighlightGraphics.clear()
-    })
+    // Only the tile being exited gets an exit arrow — the destination tile
+    // has not been exited yet and will get its arrow when the cursor leaves it.
+    // Also skip if the destination already exits back toward us (no mutual exits).
+    const travelDir = this.directionBetween(from, to)
+    const fromKey = this.tileKey(from.row, from.col)
+    const toKey = this.tileKey(to.row, to.col)
+    const backDir = this.oppositeOf(travelDir)
+    if (!this.dragArrowDirs.get(toKey)?.has(backDir)) {
+      if (!this.dragArrowDirs.has(fromKey))
+        this.dragArrowDirs.set(fromKey, new Set() as DirectionSet)
+      this.dragArrowDirs.get(fromKey)!.add(travelDir)
+    }
   }
 
   private redrawHighlights() {
-    this.dragHighlightGraphics.clear().fillStyle(0xffff00, 0.4)
-    for (const key of this.dragTileSet) {
-      const [row, col] = key.split(",").map(Number)
-      const worldXY = this.tilemap.tileToWorldXY(col, row)
-      if (!worldXY) continue
-      this.dragHighlightGraphics.fillRect(
-        worldXY.x,
-        worldXY.y,
+    // Draw a travel-direction arrow for each highlighted tile.
+    const tiles = Array.from(this.dragArrowDirs.entries())
+      .map(([key, dirs]) => {
+        const [row, col] = key.split(",").map(Number)
+        const worldXY = this.tilemap.tileToWorldXY(col, row)
+        if (!worldXY) return null
+
+        return {
+          col: worldXY.x,
+          row: worldXY.y,
+          dirs: new Set(
+            [...dirs].filter(dir => !this.exitsMap(row, col, dir)),
+          ) as DirectionSet,
+        }
+      })
+      .filter(v => v !== null)
+    this.dragHighlightGraphics
+      .clear() // Clear previous drawings before rendering the new path.
+      .path(
         this.tilemap.tileWidth,
         this.tilemap.tileHeight,
+        this.tilemap.tileWidth * 0.15,
+        this.tilemap.tileHeight * 0.2,
+        tiles,
       )
-    }
-
-    // Draw a travel-direction arrow for each highlighted tile.
-    const tw = this.tilemap.tileWidth
-    const th = this.tilemap.tileHeight
-    const headWidth = tw * 0.15
-    const headHeight = th * 0.2
-    this.dragHighlightGraphics.lineStyle(2, 0xffffff, 1).fillStyle(0xffffff, 1)
-    for (const [key, dirs] of this.dragArrowDirs) {
-      const [row, col] = key.split(",").map(Number)
-      const worldXY = this.tilemap.tileToWorldXY(col, row)
-      if (!worldXY) continue
-      const cx = worldXY.x + tw / 2
-      const cy = worldXY.y + th / 2
-      const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
-        top: { x: cx, y: worldXY.y },
-        bottom: { x: cx, y: worldXY.y + th },
-        left: { x: worldXY.x, y: cy },
-        right: { x: worldXY.x + tw, y: cy },
-      }
-      for (const dir of dirs) {
-        // Don't draw an arrow that points off the edge of the tilemap.
-        if (this.exitsMap(row, col, dir)) continue
-        const { x: ex, y: ey } = edgeMidpoint[dir]
-        this.drawArrow(
-          this.dragHighlightGraphics,
-          cx,
-          cy,
-          ex,
-          ey,
-          headWidth,
-          headHeight,
-        )
-      }
-    }
   }
+
+  private onPointerDown(pointer: Phaser.Input.Pointer) {
+    if (this.hud?.activeTool !== "add-road") return
+    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+    if (!tile) return
+
+    this.isDragging = true
+    this.dragSequence = [tile]
+    this.dragTileSet = new Set([this.tileKey(tile.row, tile.col)])
+    this.dragArrowDirs.clear()
+    this.lastDragTile = tile
+    this.redrawHighlights()
+  }
+
+  private onPointerMove(pointer: Phaser.Input.Pointer) {
+    if (!this.isDragging || this.hud?.activeTool !== "add-road") return
+    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+    if (!tile || !this.lastDragTile) return
+    // Skip if still in the same tile.
+    if (
+      tile.row === this.lastDragTile.row &&
+      tile.col === this.lastDragTile.col
+    )
+      return
+
+    const dRow = tile.row - this.lastDragTile.row
+    const dCol = tile.col - this.lastDragTile.col
+
+    // Diagonal movement is not allowed: the user must drag along a single
+    // axis at a time.
+    if (dRow !== 0 && dCol !== 0) return
+
+    // Walk one step at a time so that fast drags fill every intermediate
+    // tile and connections always form a continuous path.
+    const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
+    const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
+    let current = this.lastDragTile
+    while (current.row !== tile.row || current.col !== tile.col) {
+      const next = {
+        row: current.row + stepRow,
+        col: current.col + stepCol,
+      }
+      this.advanceDragByOneStep(current, next)
+      current = next
+    }
+    this.lastDragTile = current
+    this.redrawHighlights()
+  }
+
+  private onPointerUp() {
+    if (!this.isDragging) return
+    this.isDragging = false
+    this.finalizeDrag()
+    this.dragSequence = []
+    this.dragTileSet.clear()
+    this.dragArrowDirs.clear()
+    this.lastDragTile = null
+    this.dragHighlightGraphics.clear()
+  }
+
+  private onPointerUpOutside = () => this.onPointerUp()
 
   /**
    * Derives the exit connections each visited tile gained from the drag, merges
@@ -276,16 +299,8 @@ export default class extends BaseLevel<LevelData> {
       const next = this.dragSequence[i + 1]
       if (next) {
         const exitDir = this.directionBetween(curr, next)
-        // Don't add this exit if the destination tile already exits back toward
-        // us — two tiles must not exit into each other.
-        const nextKey = this.tileKey(next.row, next.col)
         const backDir = this.oppositeOf(exitDir)
-        const nextPending = pending.get(nextKey)
-        if (!nextPending?.connections.has(backDir)) {
-          pending.get(key)!.connections.add(exitDir)
-        }
-        // Always register the destination so it gets processed (even if the
-        // cursor never leaves it, i.e. it is the final tile in the drag).
+        const nextKey = this.tileKey(next.row, next.col)
         if (!pending.has(nextKey)) {
           pending.set(nextKey, {
             row: next.row,
@@ -293,6 +308,12 @@ export default class extends BaseLevel<LevelData> {
             connections: new Set() as DirectionSet,
           })
         }
+        // Bidirectional connection: curr exits toward next, and next connects
+        // back to curr. Both are needed for correct road tile classification
+        // (e.g. a middle tile needs both its entry and exit directions so it
+        // becomes a straight road rather than two dead ends).
+        pending.get(key)!.connections.add(exitDir)
+        pending.get(nextKey)!.connections.add(backDir)
       }
     }
 
@@ -312,6 +333,22 @@ export default class extends BaseLevel<LevelData> {
     }
   }
 
+  private putTileAt(
+    layer: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer,
+    id: layers.tile.data.ID,
+    col: number,
+    row: number,
+  ) {
+    const { index, flipX, flipY, rotation } = layers.tile.data.decode(id)
+
+    const tile = layer.putTileAt(index, col, row)
+    tile.flipX = flipX
+    tile.flipY = flipY
+    tile.rotation = rotation
+
+    return tile
+  }
+
   /**
    * Called whenever a tile's connections change. Classifies the tile based on
    * its full set of open sides and places the correct road tile.
@@ -319,125 +356,39 @@ export default class extends BaseLevel<LevelData> {
    * (e.g. turn → T-junction) by a subsequent drag.
    */
   private createRoad(row: number, col: number, directions: DirectionSet): void {
-    // row and col will be used when placing the actual tileset tile.
-    void [row, col]
+    // TODO: select asphalt or dirt tileset based on user selection in the HUD.
+    const roadIDs = layers.tile.data.IDs.Road.Asphalt
 
-    const has = (dir: Direction) => directions.has(dir)
+    // Shorthands.
+    const putTile = (id: layers.tile.data.RoadID) =>
+      this.putTileAt(this.layers.road, id, col, row)
+    const hasDir = (dir: Direction) => directions.has(dir)
 
-    if (directions.size === 1) {
-      // ── Dead end ───────────────────────────────────────────────────────────
-      if (has("top")) {
-        /* TODO: place dead-end tile, open side: top    */
-      }
-      if (has("bottom")) {
-        /* TODO: place dead-end tile, open side: bottom */
-      }
-      if (has("left")) {
-        /* TODO: place dead-end tile, open side: left   */
-      }
-      if (has("right")) {
-        /* TODO: place dead-end tile, open side: right  */
-      }
-    } else if (directions.size === 2) {
-      if (has("top") && has("bottom")) {
-        // ── Straight (vertical) ──────────────────────────────────────────────
-        // TODO: place straight vertical road tile
-      } else if (has("left") && has("right")) {
-        // ── Straight (horizontal) ────────────────────────────────────────────
-        // TODO: place straight horizontal road tile
-      } else if (has("top") && has("right")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: top, right
-      } else if (has("top") && has("left")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: top, left
-      } else if (has("bottom") && has("right")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: bottom, right
-      } else if (has("bottom") && has("left")) {
-        // ── Turn ─────────────────────────────────────────────────────────────
-        // TODO: place turn tile, open sides: bottom, left
-      }
-    } else if (directions.size === 3) {
-      if (!has("top")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: bottom, left, right
-      } else if (!has("bottom")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, left, right
-      } else if (!has("left")) {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, bottom, right
-      } else {
-        // ── T-junction ───────────────────────────────────────────────────────
-        // TODO: place T-junction tile, open sides: top, bottom, left
-      }
-    } else {
-      // ── Crossroads ─────────────────────────────────────────────────────────
-      // TODO: place crossroads tile, open sides: top, bottom, left, right
-    }
-  }
-
-  /**
-   * Draws an arrow from (x1, y1) to (x2, y2) on the given Graphics object.
-   * The arrowhead is a filled isosceles triangle of the given width and height.
-   * The Graphics object must already have lineStyle and fillStyle set.
-   *
-   * Based on: https://phaser.discourse.group/t/graphics-arrow/15193
-   */
-  private drawArrow(
-    graphics: Phaser.GameObjects.Graphics,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    headWidth: number,
-    headHeight: number,
-  ): void {
-    graphics.lineBetween(x1, y1, x2, y2)
-
-    const dx = x2 - x1
-    const dy = y2 - y1
-    const len = Math.sqrt(dx * dx + dy * dy)
-
-    // Line unit vector.
-    const udx = dx / len
-    const udy = dy / len
-
-    // Perpendicular unit vector.
-    const pdx = -udy
-    const pdy = udx
-
-    // Arrowhead base vertices.
-    const x3 = x2 - headHeight * udx + headWidth * pdx
-    const y3 = y2 - headHeight * udy + headWidth * pdy
-    const x4 = x2 - headHeight * udx - headWidth * pdx
-    const y4 = y2 - headHeight * udy - headWidth * pdy
-
-    graphics.fillTriangle(x2, y2, x3, y3, x4, y4)
-  }
-
-  private addLineGraphics() {
-    // The tilemap has no built-in renderer, so draw grid lines explicitly.
-    this.lineGraphics = this.add.graphics().lineStyle(1, 0x000000, 1)
-
-    // Draw vertical lines.
-    const mapHeight = this.tilemap.height * this.tilemap.tileHeight
-    for (let col = 0; col <= this.tilemap.width; col++) {
-      const x = col * this.tilemap.tileWidth
-      this.lineGraphics.moveTo(x, 0)
-      this.lineGraphics.lineTo(x, mapHeight)
-    }
-
-    // Draw horizontal lines.
-    const mapWidth = this.tilemap.width * this.tilemap.tileWidth
-    for (let row = 0; row <= this.tilemap.height; row++) {
-      const y = row * this.tilemap.tileHeight
-      this.lineGraphics.moveTo(0, y)
-      this.lineGraphics.lineTo(mapWidth, y)
-    }
-
-    // Stroke the grid lines to render them on the scene.
-    this.lineGraphics.strokePath()
+    // No connections, no road tile.
+    if (directions.size === 0) return
+    // Dead end
+    else if (directions.size === 1)
+      if (hasDir("top")) putTile(roadIDs.DeadEnd.TOP)
+      else if (hasDir("bottom")) putTile(roadIDs.DeadEnd.BOTTOM)
+      else if (hasDir("left")) putTile(roadIDs.DeadEnd.LEFT)
+      else putTile(roadIDs.DeadEnd.RIGHT)
+    // Straight or turn
+    else if (directions.size === 2)
+      if (hasDir("top"))
+        if (hasDir("bottom")) putTile(roadIDs.Straight.VERTICAL)
+        else if (hasDir("left")) putTile(roadIDs.Turn.TOP_LEFT)
+        else putTile(roadIDs.Turn.TOP_RIGHT)
+      else if (hasDir("bottom"))
+        if (hasDir("left")) putTile(roadIDs.Turn.BOTTOM_LEFT)
+        else putTile(roadIDs.Turn.BOTTOM_RIGHT)
+      else putTile(roadIDs.Straight.HORIZONTAL)
+    // T-junction
+    else if (directions.size === 3)
+      if (!hasDir("top")) putTile(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
+      else if (!hasDir("bottom")) putTile(roadIDs.TJunction.TOP_LEFT_RIGHT)
+      else if (!hasDir("left")) putTile(roadIDs.TJunction.TOP_RIGHT_BOTTOM)
+      else putTile(roadIDs.TJunction.TOP_LEFT_BOTTOM)
+    // Crossroads
+    else putTile(roadIDs.CROSSROADS)
   }
 }

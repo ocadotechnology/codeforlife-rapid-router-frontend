@@ -46,8 +46,7 @@ export type MakeOrthogonalKwArgs<
       road: Omit<
         layers.tile.MakeKwArgs<
           "road",
-          // Road tiles can be empty.
-          typeof tilesets.IDs.EMPTY | tilesets.road.ID,
+          layers.tile.data.RoadID,
           NoInfer<COLS>,
           NoInfer<ROWS>
         >,
@@ -56,8 +55,7 @@ export type MakeOrthogonalKwArgs<
       environment: Omit<
         layers.tile.MakeKwArgs<
           "environment",
-          // Environment tiles can be empty.
-          typeof tilesets.IDs.EMPTY | tilesets.environment.ID,
+          layers.tile.data.EnvironmentID,
           NoInfer<COLS>,
           NoInfer<ROWS>
         >,

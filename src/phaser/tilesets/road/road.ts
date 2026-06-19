@@ -5,34 +5,9 @@ import * as tilesets from "../tilesets"
 export const IDs = flattenNumberValues(tilesets.IDs.Road)
 export type ID = (typeof IDs)[number]
 
-type Properties<
-  F extends boolean,
-  B extends boolean,
-  L extends boolean,
-  R extends boolean,
-> = [
-  { name: "canDriveForwards"; value: F; type: "bool" },
-  { name: "canDriveBackwards"; value: B; type: "bool" },
-  { name: "canTurnLeft"; value: L; type: "bool" },
-  { name: "canTurnRight"; value: R; type: "bool" },
-]
+type MakeKwArgs<GID extends ID> = Omit<tilesets.MakeKwArgs<GID>, "properties">
 
-export type MakeKwArgs<
-  GID extends ID,
-  F extends boolean,
-  B extends boolean,
-  L extends boolean,
-  R extends boolean,
-> = Omit<tilesets.MakeKwArgs<GID, Properties<F, B, L, R>>, "properties"> & {
-  properties: {
-    canDriveForwards: F
-    canDriveBackwards: B
-    canTurnLeft: L
-    canTurnRight: R
-  }
-}
-
-export const make = <
+const make = <
   GID extends ID,
   F extends boolean,
   B extends boolean,
@@ -48,7 +23,14 @@ export const make = <
       canTurnRight,
     },
     ...kwArgs
-  }: MakeKwArgs<GID, F, B, L, R>,
+  }: MakeKwArgs<GID> & {
+    properties: {
+      canDriveForwards: F
+      canDriveBackwards: B
+      canTurnLeft: L
+      canTurnRight: R
+    }
+  },
 ) =>
   tilesets.make(importMetaUrl, {
     properties: [
@@ -56,6 +38,99 @@ export const make = <
       { name: "canDriveBackwards", value: canDriveBackwards, type: "bool" },
       { name: "canTurnLeft", value: canTurnLeft, type: "bool" },
       { name: "canTurnRight", value: canTurnRight, type: "bool" },
-    ] as Properties<F, B, L, R>,
+    ] as const,
     ...kwArgs,
   })
+
+export const makeCrossroads = <GID extends ID>(
+  importMetaUrl: string,
+  kwArgs: MakeKwArgs<GID>,
+) =>
+  make(importMetaUrl, {
+    properties: {
+      canDriveForwards: true,
+      canDriveBackwards: true,
+      canTurnLeft: true,
+      canTurnRight: true,
+    },
+    ...kwArgs,
+  })
+
+export const makeDeadEnd = <GID extends ID>(
+  importMetaUrl: string,
+  kwArgs: MakeKwArgs<GID>,
+) =>
+  make(importMetaUrl, {
+    properties: {
+      canDriveForwards: false,
+      canDriveBackwards: true,
+      canTurnLeft: false,
+      canTurnRight: false,
+    },
+    ...kwArgs,
+  })
+
+export const makeStraight = <GID extends ID>(
+  importMetaUrl: string,
+  kwArgs: MakeKwArgs<GID>,
+) =>
+  make(importMetaUrl, {
+    properties: {
+      canDriveForwards: true,
+      canDriveBackwards: true,
+      canTurnLeft: false,
+      canTurnRight: false,
+    },
+    ...kwArgs,
+  })
+
+export const makeTJunction = <GID extends ID>(
+  importMetaUrl: string,
+  kwArgs: MakeKwArgs<GID>,
+) =>
+  make(importMetaUrl, {
+    properties: {
+      canDriveForwards: false,
+      canDriveBackwards: true,
+      canTurnLeft: true,
+      canTurnRight: true,
+    },
+    ...kwArgs,
+  })
+
+export const makeTurn = <GID extends ID>(
+  importMetaUrl: string,
+  kwArgs: MakeKwArgs<GID>,
+) =>
+  make(importMetaUrl, {
+    properties: {
+      canDriveForwards: false,
+      canDriveBackwards: false,
+      canTurnLeft: true,
+      canTurnRight: true,
+    },
+    ...kwArgs,
+  })
+
+export const makeAll = <GID extends ID>(
+  importMetaUrl: string,
+  {
+    crossroads,
+    deadEnd,
+    straight,
+    tJunction,
+    turn,
+  }: {
+    crossroads: MakeKwArgs<GID>
+    deadEnd: MakeKwArgs<GID>
+    straight: MakeKwArgs<GID>
+    tJunction: MakeKwArgs<GID>
+    turn: MakeKwArgs<GID>
+  },
+) => ({
+  crossroads: makeCrossroads(importMetaUrl, crossroads),
+  deadEnd: makeDeadEnd(importMetaUrl, deadEnd),
+  straight: makeStraight(importMetaUrl, straight),
+  tJunction: makeTJunction(importMetaUrl, tJunction),
+  turn: makeTurn(importMetaUrl, turn),
+})

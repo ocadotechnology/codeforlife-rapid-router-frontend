@@ -66,8 +66,8 @@ export default class extends BasePreloader {
         tilesets.scenery.snow.tree2,
       ],
       layers: {
-        road: { data: layers.tile.fillManyRows() },
-        environment: { data: layers.tile.fillManyRows() },
+        road: { data: layers.tile.data.fillManyRows() },
+        environment: { data: layers.tile.data.fillManyRows() },
         scenery: { objects: [] },
       },
     })
