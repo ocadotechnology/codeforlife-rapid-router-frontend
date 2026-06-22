@@ -28,6 +28,9 @@ export default class extends BaseLevel<LevelData> {
     type: "Asphalt" as keyof typeof layers.tile.data.IDs.Road,
   }
 
+  /** Graphics used to render the single-tile hover highlight for point tools (e.g. add-house). */
+  private graphics: Phaser.GameObjects.CustomGraphics | null = null
+
   private readonly drag = {
     /** The tool that was active when the current drag started. */
     tool: null as "add-road" | "delete-road" | null,
@@ -42,8 +45,6 @@ export default class extends BaseLevel<LevelData> {
      * render highlights without duplicates.
      */
     set: new Set<string>(),
-    /** Graphics object used to render the drag highlights. */
-    graphics: null as Phaser.GameObjects.CustomGraphics | null,
     /**
      * Maps a tile key to the direction of travel when the cursor last moved
      * through it. Both the source and destination tile of each step share the
@@ -90,7 +91,7 @@ export default class extends BaseLevel<LevelData> {
       ),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.drag.graphics = this.add.customGraphics().setDepth(1)
+    this.graphics = this.add.customGraphics().setDepth(1)
 
     // Register pointer events.
     this.input.on(
@@ -214,7 +215,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Only draw the background rect when this is the first arrow for the tile.
     if (this.drag.dirs.get(this.tileKey(tile))!.size === 1)
-      this.drawDragHighlight(worldXY, 0xffff00)
+      this.highlightTile(worldXY, 0xffff00)
 
     // Calculate the center of the tile in world coordinates.
     const cx = worldXY.x + tw / 2
@@ -230,11 +231,38 @@ export default class extends BaseLevel<LevelData> {
     const { x: ex, y: ey } = edgeMidpoint[dir]
 
     // Draw an arrow from the center of the tile to the midpoint of the edge.
-    this.drag.graphics!.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
+    this.graphics!.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
+  }
+
+  /**
+   * Returns the tile at the given world coordinates without clamping to the
+   * tilemap bounds. Returns null when the cursor is outside the tilemap.
+   */
+  private worldToTileExact(worldX: number, worldY: number) {
+    const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
+    if (!tileXY) return null
+    if (
+      tileXY.x < 0 ||
+      tileXY.x >= this.tilemap.width ||
+      tileXY.y < 0 ||
+      tileXY.y >= this.tilemap.height
+    )
+      return null
+    return new Phaser.Math.Vector2(Math.floor(tileXY.x), Math.floor(tileXY.y))
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     const tool = this.toolbox?.activeTool
+
+    if (tool === "add-house") {
+      const tile = this.worldToTileExact(pointer.worldX, pointer.worldY)
+      if (tile) {
+        this.addHouse(tile.y, tile.x)
+        this.graphics!.clear() // Clear any previous hover highlight.
+      }
+      return
+    }
+
     if (tool !== "add-road" && tool !== "delete-road") return
 
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
@@ -248,6 +276,15 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
+    // Update the hover highlight for point tools (no drag involved).
+    if (this.toolbox?.activeTool === "add-house" && !this.drag.tool) {
+      this.graphics!.clear()
+      const tile = this.worldToTileExact(pointer.worldX, pointer.worldY)
+      if (!tile || !this.canAddHouse(tile.y, tile.x)) return
+      const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
+      if (worldXY) this.highlightTile(worldXY, 0x00ff00)
+    }
+
     if (!this.drag.tool) return
 
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
@@ -302,10 +339,36 @@ export default class extends BaseLevel<LevelData> {
     this.drag.sequence = []
     this.drag.set.clear()
     this.drag.dirs.clear()
-    this.drag.graphics!.clear()
+
+    this.graphics!.clear()
   }
 
   private onPointerUpOutside = () => this.onPointerUp()
+
+  private canAddHouse(row: number, col: number) {
+    return (
+      this.road.dirs[row][col].size > 0 &&
+      !this.layers.environment.getTileAt(col, row)
+    )
+  }
+
+  /**
+   * Places a house on the environment layer at the given tile.
+   *
+   * The house orientation depends on the road directions on the tile.
+   */
+  private addHouse(row: number, col: number) {
+    // Require a road on this tile.
+    if (!this.canAddHouse(row, col)) return
+
+    // TODO: determine orientation from road directions.
+    this.putTileAt(
+      "environment",
+      layers.tile.data.IDs.Environment.City.House.LEFT,
+      col,
+      row,
+    )
+  }
 
   /**
    * Highlights a single tile with a transparent red overlay for the delete-road
@@ -313,22 +376,20 @@ export default class extends BaseLevel<LevelData> {
    */
   private drawDeleteHighlight(tile: Phaser.Math.Vector2) {
     const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
-    if (worldXY) this.drawDragHighlight(worldXY, 0xff0000)
+    if (worldXY) this.highlightTile(worldXY, 0xff0000)
   }
 
-  private drawDragHighlight(
+  private highlightTile(
     worldXY: Phaser.Math.Vector2,
     color: number,
     alpha = 0.4,
   ) {
-    this.drag
-      .graphics!.fillStyle(color, alpha)
-      .fillRect(
-        worldXY.x,
-        worldXY.y,
-        this.tilemap.tileWidth,
-        this.tilemap.tileHeight,
-      )
+    this.graphics!.fillStyle(color, alpha).fillRect(
+      worldXY.x,
+      worldXY.y,
+      this.tilemap.tileWidth,
+      this.tilemap.tileHeight,
+    )
   }
 
   /**
