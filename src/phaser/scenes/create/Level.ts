@@ -19,34 +19,41 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  /**
-   * Persistent 2D array [row][col] of all placed road tiles.
-   * null means no road tile has been placed at that position.
-   */
-  private roadDirs: DirectionSet[][] = []
+  private readonly road = {
+    /**
+     * Persistent 2D array [row][col] of all placed road tiles.
+     * null means no road tile has been placed at that position.
+     */
+    dirs: [] as DirectionSet[][],
+    type: "Asphalt" as keyof typeof layers.tile.data.IDs.Road,
+  }
 
-  private isDragging = false
-  /**
-   * Full ordered sequence of tiles visited during the current drag, including
-   * revisits. Revisits are necessary to accumulate all connections correctly
-   * (e.g. a tile crossed twice in different directions gets both connections).
-   */
-  private dragSequence: Phaser.Math.Vector2[] = []
-  /**
-   * Set of unique tile keys visited in the current drag, used to efficiently
-   * render highlights without duplicates.
-   */
-  private dragSet = new Set<string>()
-  private dragGraphics!: Phaser.GameObjects.CustomGraphics
-  /**
-   * Maps a tile key to the direction of travel when the cursor last moved
-   * through it. Both the source and destination tile of each step share the
-   * same travel direction, so the last tile in a drag always shows the correct
-   * direction (e.g. all tiles in a left→right sweep show "right").
-   */
-  private dragDirs = new Map<string, DirectionSet>()
+  private readonly drag = {
+    /** Indicates whether a drag operation is currently active. */
+    active: false,
+    /**
+     * Full ordered sequence of tiles visited during the current drag, including
+     * revisits. Revisits are necessary to accumulate all directions correctly
+     * (e.g. a tile crossed twice in different directions gets both directions).
+     */
+    sequence: [] as Phaser.Math.Vector2[],
+    /**
+     * Set of unique tile keys visited in the current drag, used to efficiently
+     * render highlights without duplicates.
+     */
+    set: new Set<string>(),
+    /** Graphics object used to render the drag highlights. */
+    graphics: null as Phaser.GameObjects.CustomGraphics | null,
+    /**
+     * Maps a tile key to the direction of travel when the cursor last moved
+     * through it. Both the source and destination tile of each step share the
+     * same travel direction, so the last tile in a drag always shows the
+     * correct direction (e.g. all tiles in a left→right sweep show "right").
+     */
+    dirs: new Map<string, DirectionSet>(),
+  }
 
-  private readonly directionOpposites: Record<Direction, Direction> = {
+  private readonly dirOpposites: Record<Direction, Direction> = {
     top: "bottom",
     bottom: "top",
     left: "right",
@@ -68,14 +75,14 @@ export default class extends BaseLevel<LevelData> {
       )
 
     // Initialize the persistent road tile grid to match the tilemap dimensions.
-    this.roadDirs = Array.from({ length: this.tilemap.height }, () =>
+    this.road.dirs = Array.from({ length: this.tilemap.height }, () =>
       Array.from(
         { length: this.tilemap.width },
         () => new Set() as DirectionSet,
       ),
     )
     // setDepth(1) ensures highlights render on top of the grid lines (depth 0).
-    this.dragGraphics = this.add.customGraphics().setDepth(1)
+    this.drag.graphics = this.add.customGraphics().setDepth(1)
 
     // Register pointer events.
     this.input.on(
@@ -102,7 +109,7 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private get lastDragTile() {
-    return this.dragSequence.at(-1) ?? null
+    return this.drag.sequence.at(-1) ?? null
   }
 
   /**
@@ -162,43 +169,52 @@ export default class extends BaseLevel<LevelData> {
     from: Phaser.Math.Vector2,
     to: Phaser.Math.Vector2,
   ) {
-    this.dragSequence.push(to)
-    this.dragSet.add(this.tileKey(to))
+    // Record the new tile in the drag state.
+    this.drag.sequence.push(to)
+    this.drag.set.add(this.tileKey(to))
 
-    // Only the tile being exited gets an exit arrow — the destination tile
-    // has not been exited yet and will get its arrow when the cursor leaves it.
-    // Also skip if the destination already exits back toward us (no mutual exits).
-    const travelDir = this.directionBetween(from, to)
+    const dir = this.directionBetween(from, to)
     const fromKey = this.tileKey(from)
     const toKey = this.tileKey(to)
-    const backDir = this.directionOpposites[travelDir]
-    if (!this.dragDirs.get(toKey)?.has(backDir)) {
-      if (!this.dragDirs.has(fromKey))
-        this.dragDirs.set(fromKey, new Set() as DirectionSet)
-      const fromDirs = this.dragDirs.get(fromKey)!
-      if (fromDirs.has(travelDir)) return null // already drawn, skip
-      fromDirs.add(travelDir)
-      return travelDir
-    }
-    return null
+
+    // If the destination tile already has an exit back to the source tile, skip
+    if (this.drag.dirs.get(toKey)?.has(this.dirOpposites[dir])) return null
+
+    // Ensure the source tile has a direction set in the map.
+    if (!this.drag.dirs.has(fromKey))
+      this.drag.dirs.set(fromKey, new Set() as DirectionSet)
+    // Get the direction set for the source tile.
+    const fromDirs = this.drag.dirs.get(fromKey)!
+
+    // If the source tile already has an exit in this direction, skip.
+    if (fromDirs.has(dir)) return null
+    // Otherwise, record the new exit direction for the source tile.
+    fromDirs.add(dir)
+
+    return dir // Return the new exit direction so the caller can render it.
   }
 
   private drawStep(tile: Phaser.Math.Vector2, dir: Direction) {
     if (this.exitsMap(tile.y, tile.x, dir)) return
+
     const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
     if (!worldXY) return
 
+    // Shorthands for readability.
     const tw = this.tilemap.tileWidth
     const th = this.tilemap.tileHeight
 
     // Only draw the background rect when this is the first arrow for the tile.
-    if (this.dragDirs.get(this.tileKey(tile))!.size === 1)
-      this.dragGraphics
-        .fillStyle(0xffff00, 0.4)
+    if (this.drag.dirs.get(this.tileKey(tile))!.size === 1)
+      this.drag
+        .graphics!.fillStyle(0xffff00, 0.4)
         .fillRect(worldXY.x, worldXY.y, tw, th)
 
+    // Calculate the center of the tile in world coordinates.
     const cx = worldXY.x + tw / 2
     const cy = worldXY.y + th / 2
+
+    // Calculate the midpoint of the edge in the direction of travel.
     const edgeMidpoint: Record<Direction, { x: number; y: number }> = {
       top: { x: cx, y: worldXY.y },
       bottom: { x: cx, y: worldXY.y + th },
@@ -206,27 +222,32 @@ export default class extends BaseLevel<LevelData> {
       right: { x: worldXY.x + tw, y: cy },
     }
     const { x: ex, y: ey } = edgeMidpoint[dir]
-    this.dragGraphics.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
+
+    // Draw an arrow from the center of the tile to the midpoint of the edge.
+    this.drag.graphics!.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     if (this.toolbox?.activeTool !== "add-road") return
+
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
-    this.isDragging = true
-    this.dragSequence = [tile]
-    this.dragSet = new Set([this.tileKey(tile)])
-    this.dragDirs.clear()
+    this.drag.active = true
+    this.drag.sequence = [tile]
+    this.drag.set = new Set([this.tileKey(tile)])
+    this.drag.dirs.clear()
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    if (!this.isDragging || this.toolbox?.activeTool !== "add-road") return
+    if (!this.drag.active || this.toolbox?.activeTool !== "add-road") return
+
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile || !this.lastDragTile) return
     // Skip if still in the same tile.
     if (tile.y === this.lastDragTile.y && tile.x === this.lastDragTile.x) return
 
+    // Calculate the delta from the last tile to the current tile.
     const dRow = tile.y - this.lastDragTile.y
     const dCol = tile.x - this.lastDragTile.x
 
@@ -234,37 +255,40 @@ export default class extends BaseLevel<LevelData> {
     // axis at a time.
     if (dRow !== 0 && dCol !== 0) return
 
-    // Walk one step at a time so that fast drags fill every intermediate
-    // tile and connections always form a continuous path.
+    // Walk one step at a time so that leaps forward (fast drags) fill
+    // intermediate tiles.
     const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
     const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
     let current = this.lastDragTile
     while (current.y !== tile.y || current.x !== tile.x) {
+      // Calculate the next tile along the drag path.
       const next = new Phaser.Math.Vector2(
         current.x + stepCol,
         current.y + stepRow,
       )
-      const newDir = this.advanceDragByOneStep(current, next)
-      if (newDir !== null) this.drawStep(current, newDir)
+
+      // Record the step and render the new exit direction, if any.
+      const dir = this.advanceDragByOneStep(current, next)
+      if (dir !== null) this.drawStep(current, dir)
       current = next
     }
   }
 
   private onPointerUp() {
-    if (!this.isDragging) return
-    this.isDragging = false
+    if (!this.drag.active) return
+    this.drag.active = false
     this.finalizeDrag()
-    this.dragSequence = []
-    this.dragSet.clear()
-    this.dragDirs.clear()
-    this.dragGraphics.clear()
+    this.drag.sequence = []
+    this.drag.set.clear()
+    this.drag.dirs.clear()
+    this.drag.graphics!.clear()
   }
 
   private onPointerUpOutside = () => this.onPointerUp()
 
   /**
    * Derives the exit connections each visited tile gained from the drag, merges
-   * them into roadTileGrid, then calls createRoad() for every affected tile.
+   * them into roadDirs, then calls createRoad() for every affected tile.
    *
    * Only exit connections are recorded: moving from tile A → tile B adds an
    * exit connection to A only. Tile B is only connected when the cursor leaves
@@ -277,22 +301,20 @@ export default class extends BaseLevel<LevelData> {
       { row: number; col: number; dirs: DirectionSet }
     >()
 
-    for (let i = 0; i < this.dragSequence.length; i++) {
-      const curr = this.dragSequence[i]
-      const key = this.tileKey(curr)
+    for (let i = 0; i < this.drag.sequence.length; i++) {
+      const current = this.drag.sequence[i]
+      const key = this.tileKey(current)
 
       if (!pending.has(key)) {
         pending.set(key, {
-          row: curr.y,
-          col: curr.x,
+          row: current.y,
+          col: current.x,
           dirs: new Set() as DirectionSet,
         })
       }
 
-      const next = this.dragSequence[i + 1]
+      const next = this.drag.sequence[i + 1]
       if (next) {
-        const exitDir = this.directionBetween(curr, next)
-        const backDir = this.directionOpposites[exitDir]
         const nextKey = this.tileKey(next)
         if (!pending.has(nextKey)) {
           pending.set(nextKey, {
@@ -301,43 +323,26 @@ export default class extends BaseLevel<LevelData> {
             dirs: new Set() as DirectionSet,
           })
         }
+
         // Bidirectional connection: curr exits toward next, and next connects
         // back to curr. Both are needed for correct road tile classification
         // (e.g. a middle tile needs both its entry and exit directions so it
         // becomes a straight road rather than two dead ends).
-        pending.get(key)!.dirs.add(exitDir)
-        pending.get(nextKey)!.dirs.add(backDir)
+        const dir = this.directionBetween(current, next)
+        if (!this.exitsMap(current.y, current.x, dir))
+          pending.get(key)!.dirs.add(dir)
+        const oppositeDir = this.dirOpposites[dir]
+        if (!this.exitsMap(next.y, next.x, oppositeDir))
+          pending.get(nextKey)!.dirs.add(oppositeDir)
       }
     }
 
     // Merge new connections into the persistent grid, then redraw each tile.
     for (const { row, col, dirs } of pending.values()) {
-      if (!this.roadDirs[row][col].size) {
-        this.roadDirs[row][col] = new Set() as DirectionSet
-      }
-      const roadDirs = this.roadDirs[row][col]
-      for (const dir of dirs) {
-        // Discard any connection that would exit off the edge of the tilemap.
-        if (!this.exitsMap(row, col, dir)) roadDirs.add(dir)
-      }
+      const roadDirs = this.road.dirs[row][col]
+      for (const dir of dirs) roadDirs.add(dir)
       this.createRoad(row, col, roadDirs)
     }
-  }
-
-  private putTileAt(
-    layer: Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer,
-    id: layers.tile.data.ID,
-    col: number,
-    row: number,
-  ) {
-    const { index, flipX, flipY, rotation } = layers.tile.data.decode(id)
-
-    const tile = layer.putTileAt(index, col, row)
-    tile.flipX = flipX
-    tile.flipY = flipY
-    tile.rotation = rotation
-
-    return tile
   }
 
   /**
@@ -347,12 +352,12 @@ export default class extends BaseLevel<LevelData> {
    * by a subsequent drag.
    */
   private createRoad(row: number, col: number, dirs: DirectionSet) {
-    // TODO: select asphalt or dirt tileset based in the Toolbox.
-    const roadIDs = layers.tile.data.IDs.Road.Asphalt
+    // Get the road tile IDs for the current road type (e.g. Asphalt).
+    const roadIDs = layers.tile.data.IDs.Road[this.road.type]
 
     // Shorthands.
     const putTile = (id: layers.tile.data.RoadID) =>
-      this.putTileAt(this.layers.road, id, col, row)
+      this.putTileAt("road", id, col, row)
     const hasDir = (dir: Direction) => dirs.has(dir)
 
     // No connections, no road tile.

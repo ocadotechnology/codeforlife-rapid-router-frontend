@@ -106,4 +106,20 @@ export default class BaseLevel<
     // 6. Center the camera on the tilemap.
     this.cameras.main.centerOn(centerX, centerY)
   }
+
+  putTileAt(
+    layerName: layers.tile.Name,
+    id: layers.tile.data.ID,
+    col: number,
+    row: number,
+  ) {
+    const { index, flipX, flipY, rotation } = layers.tile.data.decode(id)
+
+    const tile = this.layers[layerName].putTileAt(index, col, row)
+    tile.flipX = flipX
+    tile.flipY = flipY
+    tile.rotation = rotation
+
+    return tile
+  }
 }
