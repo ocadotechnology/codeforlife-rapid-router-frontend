@@ -260,72 +260,68 @@ export default class extends BaseLevel<LevelData> {
         this.addHouse(tile.y, tile.x)
         this.graphics!.clear() // Clear any previous hover highlight.
       }
-      return
+    } else if (tool === "add-road" || tool === "delete-road") {
+      const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+      if (!tile) return
+
+      this.drag.tool = tool
+      this.drag.sequence = [tile]
+      this.drag.set = new Set([this.tileKey(tile)])
+      this.drag.dirs.clear()
+      if (tool === "delete-road") this.drawDeleteHighlight(tile)
     }
-
-    if (tool !== "add-road" && tool !== "delete-road") return
-
-    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-    if (!tile) return
-
-    this.drag.tool = tool
-    this.drag.sequence = [tile]
-    this.drag.set = new Set([this.tileKey(tile)])
-    this.drag.dirs.clear()
-    if (tool === "delete-road") this.drawDeleteHighlight(tile)
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    // Update the hover highlight for point tools (no drag involved).
     if (this.toolbox?.activeTool === "add-house" && !this.drag.tool) {
+      // Update the hover highlight for point tools (no drag involved).
       this.graphics!.clear()
       const tile = this.worldToTileExact(pointer.worldX, pointer.worldY)
       if (!tile || !this.canAddHouse(tile.y, tile.x)) return
       const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
       if (worldXY) this.highlightTile(worldXY, 0x00ff00)
-    }
+    } else if (this.drag.tool) {
+      const tile = this.worldToTile(pointer.worldX, pointer.worldY)
+      if (!tile || !this.lastDragTile) return
+      // Skip if still in the same tile.
+      if (tile.y === this.lastDragTile.y && tile.x === this.lastDragTile.x)
+        return
 
-    if (!this.drag.tool) return
+      // Calculate the delta from the last tile to the current tile.
+      const dRow = tile.y - this.lastDragTile.y
+      const dCol = tile.x - this.lastDragTile.x
 
-    const tile = this.worldToTile(pointer.worldX, pointer.worldY)
-    if (!tile || !this.lastDragTile) return
-    // Skip if still in the same tile.
-    if (tile.y === this.lastDragTile.y && tile.x === this.lastDragTile.x) return
+      // Diagonal movement is not allowed: the user must drag along a single
+      // axis at a time.
+      if (dRow !== 0 && dCol !== 0) return
 
-    // Calculate the delta from the last tile to the current tile.
-    const dRow = tile.y - this.lastDragTile.y
-    const dCol = tile.x - this.lastDragTile.x
+      // Walk one step at a time so that leaps forward (fast drags) fill
+      // intermediate tiles.
+      const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
+      const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
+      let current = this.lastDragTile
+      while (current.y !== tile.y || current.x !== tile.x) {
+        // Calculate the next tile along the drag path.
+        const next = new Phaser.Math.Vector2(
+          current.x + stepCol,
+          current.y + stepRow,
+        )
 
-    // Diagonal movement is not allowed: the user must drag along a single
-    // axis at a time.
-    if (dRow !== 0 && dCol !== 0) return
-
-    // Walk one step at a time so that leaps forward (fast drags) fill
-    // intermediate tiles.
-    const stepRow = dRow === 0 ? 0 : dRow > 0 ? 1 : -1
-    const stepCol = dCol === 0 ? 0 : dCol > 0 ? 1 : -1
-    let current = this.lastDragTile
-    while (current.y !== tile.y || current.x !== tile.x) {
-      // Calculate the next tile along the drag path.
-      const next = new Phaser.Math.Vector2(
-        current.x + stepCol,
-        current.y + stepRow,
-      )
-
-      if (this.drag.tool === "add-road") {
-        // Record the step and render the new exit direction, if any.
-        const dir = this.advanceDragByOneStep(current, next)
-        if (dir !== null) this.drawStep(current, dir)
-      } else {
-        // Highlight each new tile entered during a delete-road drag.
-        const nextKey = this.tileKey(next)
-        if (!this.drag.set.has(nextKey)) {
-          this.drag.set.add(nextKey)
-          this.drawDeleteHighlight(next)
+        if (this.drag.tool === "add-road") {
+          // Record the step and render the new exit direction, if any.
+          const dir = this.advanceDragByOneStep(current, next)
+          if (dir !== null) this.drawStep(current, dir)
+        } else {
+          // Highlight each new tile entered during a delete-road drag.
+          const nextKey = this.tileKey(next)
+          if (!this.drag.set.has(nextKey)) {
+            this.drag.set.add(nextKey)
+            this.drawDeleteHighlight(next)
+          }
+          this.drag.sequence.push(next)
         }
-        this.drag.sequence.push(next)
+        current = next
       }
-      current = next
     }
   }
 
