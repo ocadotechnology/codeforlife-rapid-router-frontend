@@ -129,7 +129,7 @@ const createRoads = <
  * rotated versions of the base tilesets.IDs.
  */
 export const IDs = {
-  EMPTY: 0, // 0 is reserved by Phaser as a special "empty" tile.
+  EMPTY: 0, // 0 is reserved as a special "empty" tile.
   Road: {
     Asphalt: createRoads({
       Straight: [

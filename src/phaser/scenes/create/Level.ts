@@ -373,7 +373,9 @@ export default class extends BaseLevel<LevelData> {
     for (const key of toRedraw) {
       const [row, col] = key.split(",").map(Number)
       const dirs = this.road.dirs[row][col]
+      // If the tile has no connections, remove the road tile entirely.
       if (dirs.size === 0) this.layers.road.putTileAt(-1, col, row)
+      // Otherwise, redraw the road tile based on its current connections.
       else this.addRoad(row, col, dirs)
     }
   }
