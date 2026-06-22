@@ -29,8 +29,8 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private readonly drag = {
-    /** Indicates whether a drag operation is currently active. */
-    active: false,
+    /** The tool that was active when the current drag started. */
+    tool: null as "add-road" | "delete-road" | null,
     /**
      * Full ordered sequence of tiles visited during the current drag, including
      * revisits. Revisits are necessary to accumulate all directions correctly
@@ -206,9 +206,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Only draw the background rect when this is the first arrow for the tile.
     if (this.drag.dirs.get(this.tileKey(tile))!.size === 1)
-      this.drag
-        .graphics!.fillStyle(0xffff00, 0.4)
-        .fillRect(worldXY.x, worldXY.y, tw, th)
+      this.drawDragHighlight(worldXY, 0xffff00)
 
     // Calculate the center of the tile in world coordinates.
     const cx = worldXY.x + tw / 2
@@ -228,19 +226,21 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
-    if (this.toolbox?.activeTool !== "add-road") return
+    const tool = this.toolbox?.activeTool
+    if (tool !== "add-road" && tool !== "delete-road") return
 
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
-    this.drag.active = true
+    this.drag.tool = tool
     this.drag.sequence = [tile]
     this.drag.set = new Set([this.tileKey(tile)])
     this.drag.dirs.clear()
+    if (tool === "delete-road") this.drawDeleteHighlight(tile)
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    if (!this.drag.active || this.toolbox?.activeTool !== "add-road") return
+    if (!this.drag.tool) return
 
     const tile = this.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile || !this.lastDragTile) return
@@ -267,17 +267,30 @@ export default class extends BaseLevel<LevelData> {
         current.y + stepRow,
       )
 
-      // Record the step and render the new exit direction, if any.
-      const dir = this.advanceDragByOneStep(current, next)
-      if (dir !== null) this.drawStep(current, dir)
+      if (this.drag.tool === "add-road") {
+        // Record the step and render the new exit direction, if any.
+        const dir = this.advanceDragByOneStep(current, next)
+        if (dir !== null) this.drawStep(current, dir)
+      } else {
+        // Highlight each new tile entered during a delete-road drag.
+        const nextKey = this.tileKey(next)
+        if (!this.drag.set.has(nextKey)) {
+          this.drag.set.add(nextKey)
+          this.drawDeleteHighlight(next)
+        }
+        this.drag.sequence.push(next)
+      }
       current = next
     }
   }
 
   private onPointerUp() {
-    if (!this.drag.active) return
-    this.drag.active = false
-    this.finalizeDrag()
+    if (!this.drag.tool) return
+
+    if (this.drag.tool === "add-road") this.finalizeAddRoadDrag()
+    else if (this.drag.tool === "delete-road") this.finalizeDeleteRoadDrag()
+
+    this.drag.tool = null
     this.drag.sequence = []
     this.drag.set.clear()
     this.drag.dirs.clear()
@@ -287,15 +300,55 @@ export default class extends BaseLevel<LevelData> {
   private onPointerUpOutside = () => this.onPointerUp()
 
   /**
+   * Highlights a single tile with a transparent red overlay for the delete-road
+   * tool.
+   */
+  private drawDeleteHighlight(tile: Phaser.Math.Vector2) {
+    const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
+    if (worldXY) this.drawDragHighlight(worldXY, 0xff0000)
+  }
+
+  private drawDragHighlight(
+    worldXY: Phaser.Math.Vector2,
+    color: number,
+    alpha = 0.4,
+  ) {
+    this.drag
+      .graphics!.fillStyle(color, alpha)
+      .fillRect(
+        worldXY.x,
+        worldXY.y,
+        this.tilemap.tileWidth,
+        this.tilemap.tileHeight,
+      )
+  }
+
+  /**
+   * Clears the road tile data and visual for every tile highlighted during a
+   * delete-road drag.
+   */
+  private finalizeDeleteRoadDrag() {
+    for (const key of this.drag.set) {
+      const [row, col] = key.split(",").map(Number)
+      this.road.dirs[row][col].clear()
+    }
+
+    // Redraw the entire road layer to reflect the deletions. This is simpler
+    // than trying to selectively redraw only the affected tiles, and the
+    // performance impact is negligible for typical level sizes.
+    // TODO
+  }
+
+  /**
    * Derives the exit connections each visited tile gained from the drag, merges
-   * them into roadDirs, then calls createRoad() for every affected tile.
+   * them into roadDirs, then calls addRoad() for every affected tile.
    *
    * Only exit connections are recorded: moving from tile A → tile B adds an
    * exit connection to A only. Tile B is only connected when the cursor leaves
    * it. This means two adjacent tiles never force a shared connection on each
    * other.
    */
-  private finalizeDrag() {
+  private finalizeAddRoadDrag() {
     const pending = new Map<
       string,
       { row: number; col: number; dirs: DirectionSet }
@@ -341,7 +394,7 @@ export default class extends BaseLevel<LevelData> {
     for (const { row, col, dirs } of pending.values()) {
       const roadDirs = this.road.dirs[row][col]
       for (const dir of dirs) roadDirs.add(dir)
-      this.createRoad(row, col, roadDirs)
+      this.addRoad(row, col, roadDirs)
     }
   }
 
@@ -351,7 +404,7 @@ export default class extends BaseLevel<LevelData> {
    * accumulate across drags, so a tile may be upgraded (e.g. turn → T-junction)
    * by a subsequent drag.
    */
-  private createRoad(row: number, col: number, dirs: DirectionSet) {
+  private addRoad(row: number, col: number, dirs: DirectionSet) {
     // Get the road tile IDs for the current road type (e.g. Asphalt).
     const roadIDs = layers.tile.data.IDs.Road[this.road.type]
 
