@@ -53,11 +53,19 @@ export default class extends BaseLevel<LevelData> {
     dirs: new Map<string, DirectionSet>(),
   }
 
-  private readonly dirOpposites: Record<Direction, Direction> = {
-    top: "bottom",
-    bottom: "top",
-    left: "right",
-    right: "left",
+  private readonly dir = {
+    opposites: {
+      top: "bottom",
+      bottom: "top",
+      left: "right",
+      right: "left",
+    } as Record<Direction, Direction>,
+    offsets: {
+      top: [-1, 0],
+      bottom: [1, 0],
+      left: [0, -1],
+      right: [0, 1],
+    } as Record<Direction, [number, number]>,
   }
 
   create() {
@@ -178,7 +186,7 @@ export default class extends BaseLevel<LevelData> {
     const toKey = this.tileKey(to)
 
     // If the destination tile already has an exit back to the source tile, skip
-    if (this.drag.dirs.get(toKey)?.has(this.dirOpposites[dir])) return null
+    if (this.drag.dirs.get(toKey)?.has(this.dir.opposites[dir])) return null
 
     // Ensure the source tile has a direction set in the map.
     if (!this.drag.dirs.has(fromKey))
@@ -325,18 +333,49 @@ export default class extends BaseLevel<LevelData> {
 
   /**
    * Clears the road tile data and visual for every tile highlighted during a
-   * delete-road drag.
+   * delete-road drag. Neighbours of deleted tiles that had a connection into
+   * the deleted tile also have that connection removed — so deleting a
+   * crossroads turns the four previously-connected straights into dead ends
+   * pointing away from where the crossroads was.
    */
   private finalizeDeleteRoadDrag() {
+    // Collect every tile that needs to be redrawn (deleted tiles + affected
+    // neighbours) so we only touch the minimum set.
+    const toRedraw = new Set(this.drag.set)
+
     for (const key of this.drag.set) {
       const [row, col] = key.split(",").map(Number)
+      const deletedDirs = this.road.dirs[row][col]
+
+      // For each direction the deleted tile had, remove the back-connection
+      // from the neighbouring tile and queue it for redraw.
+      for (const dir of deletedDirs) {
+        const [dRow, dCol] = this.dir.offsets[dir]
+        const nRow = row + dRow
+        const nCol = col + dCol
+
+        if (
+          nRow >= 0 &&
+          nRow < this.tilemap.height &&
+          nCol >= 0 &&
+          nCol < this.tilemap.width
+        ) {
+          this.road.dirs[nRow][nCol].delete(this.dir.opposites[dir])
+          toRedraw.add(`${nRow},${nCol}`)
+        }
+      }
+
+      // Clear the deleted tile's own directions.
       this.road.dirs[row][col].clear()
     }
 
-    // Redraw the entire road layer to reflect the deletions. This is simpler
-    // than trying to selectively redraw only the affected tiles, and the
-    // performance impact is negligible for typical level sizes.
-    // TODO
+    // Redraw only the affected tiles.
+    for (const key of toRedraw) {
+      const [row, col] = key.split(",").map(Number)
+      const dirs = this.road.dirs[row][col]
+      if (dirs.size === 0) this.layers.road.putTileAt(-1, col, row)
+      else this.addRoad(row, col, dirs)
+    }
   }
 
   /**
@@ -384,7 +423,7 @@ export default class extends BaseLevel<LevelData> {
         const dir = this.directionBetween(current, next)
         if (!this.exitsMap(current.y, current.x, dir))
           pending.get(key)!.dirs.add(dir)
-        const oppositeDir = this.dirOpposites[dir]
+        const oppositeDir = this.dir.opposites[dir]
         if (!this.exitsMap(next.y, next.x, oppositeDir))
           pending.get(nextKey)!.dirs.add(oppositeDir)
       }
