@@ -27,3 +27,8 @@ export const pigeon = make({
   image: "./pigeon.svg",
   firstgid: _IDs.PIGEON,
 })
+
+export const cow = make({
+  image: "./cow.svg",
+  firstgid: _IDs.COW,
+})
