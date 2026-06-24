@@ -9,124 +9,104 @@ const _Names = objects.Names.Endpoints.House
 export const Names = flattenStringValues(_Names)
 export type Name = (typeof Names)[number]
 
-const makeBaseRotations = <
-  N extends Name,
-  GID extends tilesets.endpoints.house.ID,
-  R0 extends string,
-  R45 extends string,
-  R90 extends string,
-  R135 extends string,
-  R180 extends string,
-  R225 extends string,
-  R270 extends string,
-  R315 extends string,
->(
-  kwArgs: endpoints.MakeBaseKwArgs<N, GID>,
-  rotations: {
-    0: R0
-    45: R45
-    90: R90
-    135: R135
-    180: R180
-    225: R225
-    270: R270
-    315: R315
-  },
-) => endpoints.makeBaseRotations(kwArgs, rotations)
+const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
+  kwArgs: endpoints.FactoryKwArgs<N, GID>,
+  variants: endpoints.FactoryVariants,
+) => endpoints.factory(kwArgs, variants)
 
 export const common = {
-  blue: makeBaseRotations(
+  blue: factory(
     { gid: _IDs.Common.BLUE, name: _Names.Common.BLUE },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
-  orange: makeBaseRotations(
+  orange: factory(
     { gid: _IDs.Common.ORANGE, name: _Names.Common.ORANGE },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
-  straw: makeBaseRotations(
+  straw: factory(
     { gid: _IDs.Common.STRAW, name: _Names.Common.STRAW },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
-  wood: makeBaseRotations(
+  wood: factory(
     { gid: _IDs.Common.WOOD, name: _Names.Common.WOOD },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
 } as const
 
 export const snow = {
-  blue: makeBaseRotations(
+  blue: factory(
     { gid: _IDs.Snow.BLUE, name: _Names.Snow.BLUE },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
-  orange: makeBaseRotations(
+  orange: factory(
     { gid: _IDs.Snow.ORANGE, name: _Names.Snow.ORANGE },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
-  straw: makeBaseRotations(
+  straw: factory(
     { gid: _IDs.Snow.STRAW, name: _Names.Snow.STRAW },
     {
-      0: "LEFT",
-      45: "TOP_LEFT",
-      90: "TOP",
-      135: "TOP_RIGHT",
-      180: "RIGHT",
-      225: "BOTTOM_RIGHT",
-      270: "BOTTOM",
-      315: "BOTTOM_LEFT",
+      left: { rotation: 0 },
+      topLeft: { rotation: 45 },
+      top: { rotation: 90 },
+      topRight: { rotation: 135 },
+      right: { rotation: 180 },
+      bottomRight: { rotation: 225 },
+      bottom: { rotation: 270 },
+      bottomLeft: { rotation: 315 },
     },
   ),
 } as const

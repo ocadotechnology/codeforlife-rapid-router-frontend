@@ -1,8 +1,5 @@
 import { type DeepStringsOf, createPathStrings } from "codeforlife/utils/object"
-import type {
-  TiledProperty as Property,
-  TiledObject as _Object,
-} from "tiled-types"
+import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
@@ -28,65 +25,94 @@ export const Names = createPathStrings({
 } as const)
 export type Name = DeepStringsOf<typeof Names>
 
-export type ObjectBase<N extends Name, GID extends ID> = {
-  type: N
+export type Object<N extends Name, GID extends ID> = Omit<
+  _Object,
+  "type" | "name" | "gid"
+> & { type: N; name: N; gid: GID }
+export type FactoryObject<N extends Name, GID extends ID> = Omit<
+  Object<N, GID>,
+  "id"
+>
+
+export type FactoryBaseKwArgs<N extends Name, GID extends ID> = Partial<
+  Omit<Object<N, GID>, "id" | "type" | "name" | "gid">
+>
+type FactoryBase<N extends Name, GID extends ID> = (
+  kwArgs: FactoryBaseKwArgs<N, GID>,
+) => FactoryObject<N, GID>
+
+type FactoryVariantSpecs<N extends Name, GID extends ID> = Record<
+  string,
+  FactoryBaseKwArgs<N, GID>
+>
+type FactoryVariants<
+  N extends Name,
+  GID extends ID,
+  V extends FactoryVariantSpecs<N, GID>,
+> = {
+  [K in keyof V]: (
+    kwArgs: Omit<FactoryBaseKwArgs<N, GID>, keyof V[K]>,
+  ) => FactoryObject<N, GID> & V[K]
+}
+
+export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
   gid: GID
-  properties: Property[]
-}
-export type Object<N extends Name, GID extends ID> = ObjectBase<N, GID> &
-  Omit<_Object, "type" | "name" | "gid">
+} & FactoryBaseKwArgs<N, GID>
+export type Factory<
+  N extends Name,
+  GID extends ID,
+  V extends FactoryVariantSpecs<N, GID> = {},
+> = FactoryBase<N, GID> & FactoryVariants<N, GID, V>
 
-type MakeBasePartials = "properties"
-export type MakeBaseKwArgs<N extends Name, GID extends ID> = Omit<
-  ObjectBase<N, GID>,
-  "type" | MakeBasePartials
-> &
-  Partial<Pick<ObjectBase<N, GID>, MakeBasePartials>>
-
-export const makeBase = <N extends Name, GID extends ID>({
-  name,
-  properties = [],
-  ...obj
-}: MakeBaseKwArgs<N, GID>): ObjectBase<N, GID> => ({
-  type: name,
-  name,
-  properties,
-  ...obj,
-})
-
-export const makeRotations = <
-  const O extends Omit<object, "rotation">,
-  const R extends Record<number, string>,
+export const factory = <
+  N extends Name,
+  GID extends ID,
+  const V extends FactoryVariantSpecs<N, GID> = {},
 >(
-  obj: O,
-  rotations: R,
-) =>
-  Object.entries(rotations).reduce(
-    (objects, [rotation, name]) => ({
-      ...objects,
-      [name]: { ...obj, rotation: Number(rotation) },
-    }),
-    {} as { [K in keyof R as R[K] & PropertyKey]: O & { rotation: K } },
-  )
+  {
+    name,
+    x: baseX = 0,
+    y: baseY = 0,
+    width: baseWidth = TILE_WIDTH,
+    height: baseHeight = TILE_HEIGHT,
+    properties: baseProperties = [],
+    visible: baseVisible = true,
+    rotation: baseRotation = 0,
+    ...objBase
+  }: FactoryKwArgs<N, GID>,
+  variants: V = {} as V,
+): Factory<N, GID, V> => {
+  const base: FactoryBase<N, GID> = ({
+    x = baseX,
+    y = baseY,
+    width = baseWidth,
+    height = baseHeight,
+    properties = baseProperties,
+    visible = baseVisible,
+    rotation = baseRotation,
+    ...obj
+  }) => ({
+    type: name,
+    name,
+    x,
+    y,
+    width,
+    height,
+    properties,
+    visible,
+    rotation,
+    ...objBase,
+    ...obj,
+  })
 
-type MakePartials = "visible" | "width" | "height" | "rotation"
-export type MakeKwArgs<N extends Name = Name, GID extends ID = ID> = Omit<
-  Object<N, GID>,
-  MakePartials
-> &
-  Partial<Pick<Object<N, GID>, MakePartials>>
+  return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
+    (f, [variantName, variantKwArgs]) => {
+      ;(f as unknown as FactoryVariants<N, GID, V>)[variantName] = kwArgs =>
+        f({ ...variantKwArgs, ...kwArgs }) as FactoryObject<N, GID> & V[keyof V]
 
-export const make = <N extends Name, GID extends ID>({
-  visible = true,
-  width = TILE_WIDTH,
-  height = TILE_HEIGHT,
-  rotation = 0,
-  ...obj
-}: MakeKwArgs<N, GID>): Object<N, GID> => ({
-  visible,
-  width,
-  height,
-  rotation,
-  ...obj,
-})
+      return f
+    },
+    base,
+  ) as Factory<N, GID, V>
+}

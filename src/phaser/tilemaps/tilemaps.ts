@@ -17,7 +17,7 @@ type MakeObjectGroupLayerKwArgs<
   ON extends layers.objectGroup.objects.Name,
   OID extends layers.objectGroup.objects.ID,
 > = Omit<layers.objectGroup.MakeKwArgs<OGN, ON, OID>, "name" | "objects"> & {
-  objects: Omit<layers.objectGroup.objects.MakeKwArgs<ON, OID>, "id">[]
+  objects: layers.objectGroup.objects.FactoryObject<ON, OID>[]
 }
 
 export type OrthogonalTilemap = Omit<

@@ -1,8 +1,7 @@
 export * as endpoints from "./endpoints"
 export * as scenery from "./scenery"
 export {
-  type MakeKwArgs,
-  make,
+  type FactoryObject,
   type Object,
   type Name,
   Names,

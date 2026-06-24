@@ -37,20 +37,17 @@ export default tilemaps.makeOrthogonal({
     objectGroup: {
       endpoints: {
         objects: [
-          {
-            ...layers.objectGroup.objects.endpoints.cfc.warehouse.default.RIGHT,
-            x: 0,
+          layers.objectGroup.objects.endpoints.cfc.warehouse.default.right({
             y: TILE_HEIGHT * 2,
-          },
+          }),
         ],
       },
       scenery: {
         objects: [
-          {
-            ...layers.objectGroup.objects.scenery.common.tree1,
+          layers.objectGroup.objects.scenery.common.tree1({
             x: TILE_WIDTH * 1,
             y: TILE_HEIGHT * 4,
-          },
+          }),
         ],
       },
     },
