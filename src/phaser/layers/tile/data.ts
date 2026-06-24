@@ -193,11 +193,6 @@ export const IDs = {
         "TOP",
         { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
       ),
-      House: createCRotations(tilesets.IDs.Environment.City.HOUSE, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
       School: createCRotations(tilesets.IDs.Environment.City.SCHOOL, "BOTTOM", {
         90: "LEFT",
         180: "TOP",
@@ -234,31 +229,11 @@ export const IDs = {
       },
     },
     Farm: {
-      CFCBlack: createCRotations(
-        tilesets.IDs.Environment.Farm.CFC_BLACK,
-        "TOP",
-        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
-      ),
-      CFC: createCRotations(tilesets.IDs.Environment.Farm.CFC, "TOP", {
-        90: "RIGHT",
-        180: "BOTTOM",
-        270: "LEFT",
-      }),
       Crops: createCRotations(
         tilesets.IDs.Environment.Farm.CROPS,
         "HORIZONTAL",
         { 90: "VERTICAL" },
       ),
-      House1: createCRotations(tilesets.IDs.Environment.Farm.HOUSE1, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
-      House2: createCRotations(tilesets.IDs.Environment.Farm.HOUSE2, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
       SolarPanel: createCRotations(
         tilesets.IDs.Environment.Farm.SOLAR_PANEL,
         "VERTICAL",
@@ -266,16 +241,6 @@ export const IDs = {
       ),
     },
     Grass: {
-      CFC: createCRotations(tilesets.IDs.Environment.Grass.CFC, "TOP", {
-        90: "RIGHT",
-        180: "BOTTOM",
-        270: "LEFT",
-      }),
-      House: createCRotations(tilesets.IDs.Environment.Grass.HOUSE, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
       SolarPanel: createCRotations(
         tilesets.IDs.Environment.Grass.SOLAR_PANEL,
         "VERTICAL",
@@ -284,11 +249,6 @@ export const IDs = {
     },
     Snow: {
       Barn: createCRotations(tilesets.IDs.Environment.Snow.BARN, "TOP", {
-        90: "RIGHT",
-        180: "BOTTOM",
-        270: "LEFT",
-      }),
-      CFC: createCRotations(tilesets.IDs.Environment.Snow.CFC, "TOP", {
         90: "RIGHT",
         180: "BOTTOM",
         270: "LEFT",
@@ -303,21 +263,6 @@ export const IDs = {
         "TOP",
         { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
       ),
-      House1: createCRotations(tilesets.IDs.Environment.Snow.HOUSE1, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
-      House2: createCRotations(tilesets.IDs.Environment.Snow.HOUSE2, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
-      House3: createCRotations(tilesets.IDs.Environment.Snow.HOUSE3, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
       School: createCRotations(tilesets.IDs.Environment.Snow.SCHOOL, "BOTTOM", {
         90: "LEFT",
         180: "TOP",

@@ -1,3 +1,4 @@
+export * as endpoints from "./endpoints"
 export * as environment from "./environment"
 export * as road from "./road"
 export * as scenery from "./scenery"

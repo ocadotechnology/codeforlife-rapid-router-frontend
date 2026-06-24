@@ -18,19 +18,20 @@ export default class BaseLevel<
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTileSprite!: Phaser.GameObjects.TileSprite
   tilesets: Record<layers.Name, Phaser.Tilemaps.Tileset[]> = {
-    road: [],
-    environment: [],
-    scenery: [],
+    "Tile.ROAD": [],
+    "Tile.ENVIRONMENT": [],
+    "ObjectGroup.SCENERY": [],
+    "ObjectGroup.ENDPOINTS": [],
   }
   layers: Record<
     layers.tile.Name,
     Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
-  > = {
-    road: null as unknown as Phaser.Tilemaps.TilemapLayer,
-    environment: null as unknown as Phaser.Tilemaps.TilemapLayer,
-  }
-  objects: Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
-    scenery: null as unknown as Phaser.GameObjects.GameObject[],
+  > &
+    Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
+    "Tile.ROAD": null as unknown as Phaser.Tilemaps.TilemapLayer,
+    "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
+    "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.GameObject[],
+    "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.GameObject[],
   }
 
   create() {
@@ -76,31 +77,33 @@ export default class BaseLevel<
       .setDepth(-1) // Render behind everything
 
     // 3. The road layer is created, on top of the background layer.
-    this.tilesets.road = this.initData.tilesets.road.map(
+    this.tilesets["Tile.ROAD"] = this.initData.tilesets["Tile.ROAD"].map(
       ({ name }) => this.tilemap.addTilesetImage(name)!,
     )
-    this.layers.road = this.tilemap.createLayer(
+    this.layers["Tile.ROAD"] = this.tilemap.createLayer(
       layers.Names.Tile.ROAD,
-      this.tilesets.road,
+      this.tilesets["Tile.ROAD"],
     )
 
     // 4. The environment layer is created, on top of the road layer.
-    this.tilesets.environment = this.initData.tilesets.environment.map(
-      ({ name }) => this.tilemap.addTilesetImage(name)!,
-    )
-    this.layers.environment = this.tilemap.createLayer(
+    this.tilesets["Tile.ENVIRONMENT"] = this.initData.tilesets[
+      "Tile.ENVIRONMENT"
+    ].map(({ name }) => this.tilemap.addTilesetImage(name)!)
+    this.layers["Tile.ENVIRONMENT"] = this.tilemap.createLayer(
       layers.Names.Tile.ENVIRONMENT,
-      this.tilesets.environment,
+      this.tilesets["Tile.ENVIRONMENT"],
     )
 
     // 5. The scenery objects are created, on top of all layers.
-    this.objects.scenery = this.tilemap.createFromObjects(
+    this.layers["ObjectGroup.SCENERY"] = this.tilemap.createFromObjects(
       layers.Names.ObjectGroup.SCENERY,
-      this.initData.tilesets.scenery.map(({ name: key, gid }) => ({
-        key,
-        gid,
-        classType: Phaser.GameObjects.Image,
-      })),
+      this.initData.tilesets["ObjectGroup.SCENERY"].map(
+        ({ name: key, gid }) => ({
+          key,
+          gid,
+          classType: Phaser.GameObjects.Image,
+        }),
+      ),
     )
 
     // 6. Center the camera on the tilemap.

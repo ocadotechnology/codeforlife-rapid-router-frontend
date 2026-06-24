@@ -5,6 +5,21 @@ import type * as tilesets from "../tilesets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../globals"
 import type { Background } from "../backgrounds"
 
+type MakeTileLayerKwArgs<
+  N extends layers.tile.Name,
+  ID extends layers.tile.data.ID,
+  COLS extends number,
+  ROWS extends number,
+> = Omit<layers.tile.MakeKwArgs<N, ID, NoInfer<COLS>, NoInfer<ROWS>>, "name">
+
+type MakeObjectGroupLayerKwArgs<
+  OGN extends layers.objectGroup.Name,
+  ON extends layers.objectGroup.objects.Name,
+  OID extends layers.objectGroup.objects.ID,
+> = Omit<layers.objectGroup.MakeKwArgs<OGN, ON, OID>, "name" | "objects"> & {
+  objects: Omit<layers.objectGroup.objects.MakeKwArgs<ON, OID>, "id">[]
+}
+
 export type OrthogonalTilemap = Omit<
   _OrthogonalTilemap,
   "layers" | "tilesets" | "properties"
@@ -43,28 +58,32 @@ export type MakeOrthogonalKwArgs<
     height?: ROWS
     properties: { background: Background }
     layers: {
-      road: Omit<
-        layers.tile.MakeKwArgs<
-          "road",
+      tile: {
+        road: MakeTileLayerKwArgs<
+          "Tile.ROAD",
           layers.tile.data.RoadID,
           NoInfer<COLS>,
           NoInfer<ROWS>
-        >,
-        "name"
-      >
-      environment: Omit<
-        layers.tile.MakeKwArgs<
-          "environment",
+        >
+        environment?: MakeTileLayerKwArgs<
+          "Tile.ENVIRONMENT",
           layers.tile.data.EnvironmentID,
           NoInfer<COLS>,
           NoInfer<ROWS>
-        >,
-        "name"
-      >
-      scenery: Omit<
-        layers.objectGroup.MakeKwArgs<"scenery", tilesets.scenery.ID>,
-        "name"
-      >
+        >
+      }
+      objectGroup: {
+        endpoints: MakeObjectGroupLayerKwArgs<
+          "ObjectGroup.ENDPOINTS",
+          layers.objectGroup.objects.endpoints.Name,
+          tilesets.endpoints.ID
+        >
+        scenery?: MakeObjectGroupLayerKwArgs<
+          "ObjectGroup.SCENERY",
+          layers.objectGroup.objects.scenery.Name,
+          tilesets.scenery.ID
+        >
+      }
     }
   }
 
@@ -84,26 +103,54 @@ export const makeOrthogonal = <
   layers: _layers,
   ...tilemap
 }: MakeOrthogonalKwArgs<COLS, ROWS>): OrthogonalTilemap => {
-  // Provide default values for layer dimensions based on the tilemap
-  // dimensions. This ensures that if any layer is missing width or height, it
-  // will default to the tilemap's width and height, maintaining consistency
-  // across the map.
-  const {
-    width: roadWidth = mapWidth,
-    height: roadHeight = mapHeight,
-    ...roadLayer
-  } = _layers.road
-  const {
-    width: environmentWidth = mapWidth,
-    height: environmentHeight = mapHeight,
-    ...environmentLayer
-  } = _layers.environment
-  const {
-    width: sceneryWidth = mapWidth,
-    height: sceneryHeight = mapHeight,
-    objects: sceneryObjects,
-    ...sceneryLayer
-  } = _layers.scenery
+  const makeTileLayer = <
+    Name extends layers.tile.Name,
+    ID extends layers.tile.data.ID,
+  >(
+    name: Name,
+    {
+      // Provide default values for width and height based on the tilemap.
+      width = mapWidth,
+      height = mapHeight,
+      ...layer
+    }: MakeTileLayerKwArgs<Name, ID, NoInfer<COLS>, NoInfer<ROWS>> = {
+      data: layers.tile.data.fillManyRows({
+        rows: mapHeight,
+        cols: mapWidth,
+      }) as (ID[] & { length: COLS })[] & { length: ROWS },
+    },
+  ) => layers.tile.make({ name, width, height, ...layer })
+
+  let objectIdCounter = 1
+  const makeObjectGroupLayer = <
+    OGN extends layers.objectGroup.Name,
+    ON extends layers.objectGroup.objects.Name,
+    OID extends layers.objectGroup.objects.ID,
+  >(
+    name: OGN,
+    {
+      // Provide default values for width and height based on the tilemap.
+      width = mapWidth,
+      height = mapHeight,
+      objects: _objects,
+      ...layer
+    }: MakeObjectGroupLayerKwArgs<OGN, ON, OID> = { objects: [] },
+  ) =>
+    layers.objectGroup.make({
+      name,
+      width,
+      height,
+      objects: _objects.map(
+        // Provide default values for width and height based on the tilemap.
+        ({ width = mapTileWidth, height = mapTileHeight, ...obj }) => ({
+          id: objectIdCounter++,
+          width,
+          height,
+          ...obj,
+        }),
+      ),
+      ...layer,
+    })
 
   return {
     orientation: "orthogonal",
@@ -119,8 +166,7 @@ export const makeOrthogonal = <
     ],
     tilesets: _tilesets.map(
       ({
-        // Provide default values for width and height based on the tilewidth
-        // and tileheight of the tilemap.
+        // Provide default values for width and height based on the tilemap.
         imagewidth = mapTileWidth,
         imageheight = mapTileHeight,
         tilewidth = mapTileWidth,
@@ -135,33 +181,16 @@ export const makeOrthogonal = <
       }),
     ),
     layers: [
-      layers.tile.make({
-        name: layers.Names.Tile.ROAD,
-        width: roadWidth,
-        height: roadHeight,
-        ...roadLayer,
-      }),
-      layers.tile.make({
-        name: layers.Names.Tile.ENVIRONMENT,
-        width: environmentWidth,
-        height: environmentHeight,
-        ...environmentLayer,
-      }),
-      layers.objectGroup.make({
-        name: layers.Names.ObjectGroup.SCENERY,
-        width: sceneryWidth,
-        height: sceneryHeight,
-        objects: sceneryObjects.map(
-          // Provide default values for width and height based on the tilewidth
-          // and tileheight of the tilemap.
-          ({ width = mapTileWidth, height = mapTileHeight, ...obj }) => ({
-            width,
-            height,
-            ...obj,
-          }),
-        ),
-        ...sceneryLayer,
-      }),
+      makeTileLayer(layers.Names.Tile.ROAD, _layers.tile.road),
+      makeTileLayer(layers.Names.Tile.ENVIRONMENT, _layers.tile.environment),
+      makeObjectGroupLayer(
+        layers.Names.ObjectGroup.ENDPOINTS,
+        _layers.objectGroup.endpoints,
+      ),
+      makeObjectGroupLayer(
+        layers.Names.ObjectGroup.SCENERY,
+        _layers.objectGroup.scenery,
+      ),
     ],
     ...tilemap,
   }
