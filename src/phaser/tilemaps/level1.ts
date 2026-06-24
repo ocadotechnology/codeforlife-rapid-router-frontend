@@ -39,8 +39,8 @@ export default tilemaps.makeOrthogonal({
         objects: [
           {
             ...layers.objectGroup.objects.endpoints.cfc.warehouse.default.RIGHT,
-            x: TILE_WIDTH * 1,
-            y: TILE_HEIGHT * 3,
+            x: 0,
+            y: TILE_HEIGHT * 2,
           },
         ],
       },

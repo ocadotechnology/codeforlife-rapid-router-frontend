@@ -94,7 +94,19 @@ export default class BaseLevel<
       this.tilesets["Tile.ENVIRONMENT"],
     )
 
-    // 5. The scenery objects are created, on top of all layers.
+    // 5. The endpoint objects are created, on top of the environment layer.
+    this.layers["ObjectGroup.ENDPOINTS"] = this.tilemap.createFromObjects(
+      layers.Names.ObjectGroup.ENDPOINTS,
+      this.initData.tilesets["ObjectGroup.ENDPOINTS"].map(
+        ({ name: key, gid }) => ({
+          key,
+          gid,
+          classType: Phaser.GameObjects.Image,
+        }),
+      ),
+    )
+
+    // 6. The scenery objects are created, on top of all layers.
     this.layers["ObjectGroup.SCENERY"] = this.tilemap.createFromObjects(
       layers.Names.ObjectGroup.SCENERY,
       this.initData.tilesets["ObjectGroup.SCENERY"].map(
@@ -106,7 +118,7 @@ export default class BaseLevel<
       ),
     )
 
-    // 6. Center the camera on the tilemap.
+    // 7. Center the camera on the tilemap.
     this.cameras.main.centerOn(centerX, centerY)
   }
 
