@@ -16,11 +16,6 @@ export const barn = make({
   firstgid: _IDs.BARN,
 })
 
-export const cfc = make({
-  image: "./cfc.svg",
-  firstgid: _IDs.CFC,
-})
-
 export const crops = make({
   image: "./crops.svg",
   firstgid: _IDs.CROPS,
@@ -29,21 +24,6 @@ export const crops = make({
 export const hospital = make({
   image: "./hospital.svg",
   firstgid: _IDs.HOSPITAL,
-})
-
-export const house1 = make({
-  image: "./house1.svg",
-  firstgid: _IDs.HOUSE1,
-})
-
-export const house2 = make({
-  image: "./house2.svg",
-  firstgid: _IDs.HOUSE2,
-})
-
-export const house3 = make({
-  image: "./house3.svg",
-  firstgid: _IDs.HOUSE3,
 })
 
 export const school = make({

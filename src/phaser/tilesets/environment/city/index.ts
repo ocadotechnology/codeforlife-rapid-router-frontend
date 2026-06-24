@@ -16,11 +16,6 @@ export const hospital = make({
   firstgid: _IDs.HOSPITAL,
 })
 
-export const house = make({
-  image: "./house.svg",
-  firstgid: _IDs.HOUSE,
-})
-
 export const school = make({
   image: "./school.svg",
   firstgid: _IDs.SCHOOL,

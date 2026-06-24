@@ -8,7 +8,7 @@ export default tilemaps.makeOrthogonal({
   tilesets: [
     tilesets.road.asphalt.straight,
     tilesets.road.asphalt.deadEnd,
-    tilesets.environment.grass.cfc,
+    tilesets.endpoints.cfc.warehouse.default,
     tilesets.scenery.common.tree1,
   ],
   layers: {

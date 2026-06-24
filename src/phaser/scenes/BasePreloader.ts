@@ -13,7 +13,12 @@ export default class BasePreloader<
   static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
     background: "grass",
-    tilesets: { road: [], environment: [], scenery: [] },
+    tilesets: {
+      "Tile.ROAD": [],
+      "Tile.ENVIRONMENT": [],
+      "ObjectGroup.ENDPOINTS": [],
+      "ObjectGroup.SCENERY": [],
+    },
   }
 
   init() {
@@ -79,13 +84,15 @@ export default class BasePreloader<
     } of tilemap.tilesets) {
       // Track each layer's tilesets.
       if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
-        this.levelData.tilesets.road.push({ name })
+        this.levelData.tilesets["Tile.ROAD"].push({ name })
       } else if (
         tilesets.environment.IDs.includes(id as tilesets.environment.ID)
       ) {
-        this.levelData.tilesets.environment.push({ name })
+        this.levelData.tilesets["Tile.ENVIRONMENT"].push({ name })
+      } else if (tilesets.endpoints.IDs.includes(id as tilesets.endpoints.ID)) {
+        this.levelData.tilesets["ObjectGroup.ENDPOINTS"].push({ name, gid: id })
       } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
-        this.levelData.tilesets.scenery.push({ name, gid: id })
+        this.levelData.tilesets["ObjectGroup.SCENERY"].push({ name, gid: id })
       } else {
         throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)
       }
