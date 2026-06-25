@@ -11,20 +11,16 @@ export type FactoryKwArgs<
   GID extends tilesets.endpoints.ID,
 > = objects.FactoryKwArgs<N, GID>
 
-type FactoryVariant = { rotation: number; x: number; y: number }
+export type FactoryVariantSpecs<
+  N extends Name,
+  GID extends tilesets.endpoints.ID,
+> = objects.FactoryVariantSpecs<N, GID>
 
-export type FactoryVariants = {
-  top: FactoryVariant
-  topRight: FactoryVariant
-  right: FactoryVariant
-  bottomRight: FactoryVariant
-  bottom: FactoryVariant
-  bottomLeft: FactoryVariant
-  left: FactoryVariant
-  topLeft: FactoryVariant
-}
-
-export const factory = <N extends Name, GID extends tilesets.endpoints.ID>(
+export const factory = <
+  N extends Name,
+  GID extends tilesets.endpoints.ID,
+  const V extends FactoryVariantSpecs<N, GID>,
+>(
   kwArgs: FactoryKwArgs<N, GID>,
-  variants: FactoryVariants,
+  variants: V,
 ) => objects.factory(kwArgs, variants)

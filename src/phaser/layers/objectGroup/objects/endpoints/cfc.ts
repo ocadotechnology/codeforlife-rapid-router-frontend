@@ -11,34 +11,32 @@ export type Name = (typeof Names)[number]
 
 const factory = <N extends Name, GID extends tilesets.endpoints.cfc.ID>(
   kwArgs: endpoints.FactoryKwArgs<N, GID>,
-  variants: endpoints.FactoryVariants,
-) => endpoints.factory(kwArgs, variants)
+  variants: objects.StraightRotationVariants,
+) =>
+  endpoints.factory(
+    kwArgs,
+    objects.makeRotationVariants({
+      straight: { offset: { x: -0.1, y: -0.03125 }, ...variants },
+    }),
+  )
 
 export const barn = {
   black: factory(
     { gid: _IDs.Barn.BLACK, name: _Names.Barn.BLACK },
     {
       top: { rotation: 0 },
-      topRight: { rotation: 45 },
       right: { rotation: 90 },
-      bottomRight: { rotation: 135 },
       bottom: { rotation: 180 },
-      bottomLeft: { rotation: 225 },
       left: { rotation: 270 },
-      topLeft: { rotation: 315 },
     },
   ),
   red: factory(
     { gid: _IDs.Barn.RED, name: _Names.Barn.RED },
     {
       top: { rotation: 0 },
-      topRight: { rotation: 45 },
       right: { rotation: 90 },
-      bottomRight: { rotation: 135 },
       bottom: { rotation: 180 },
-      bottomLeft: { rotation: 225 },
       left: { rotation: 270 },
-      topLeft: { rotation: 315 },
     },
   ),
 } as const
@@ -48,26 +46,18 @@ export const warehouse = {
     { gid: _IDs.Warehouse.DEFAULT, name: _Names.Warehouse.DEFAULT },
     {
       top: { rotation: 0 },
-      topRight: { rotation: 45 },
       right: { rotation: 90 },
-      bottomRight: { rotation: 135 },
       bottom: { rotation: 180 },
-      bottomLeft: { rotation: 225 },
       left: { rotation: 270 },
-      topLeft: { rotation: 315 },
     },
   ),
   snow: factory(
     { gid: _IDs.Warehouse.SNOW, name: _Names.Warehouse.SNOW },
     {
       top: { rotation: 0 },
-      topRight: { rotation: 45 },
       right: { rotation: 90 },
-      bottomRight: { rotation: 135 },
       bottom: { rotation: 180 },
-      bottomLeft: { rotation: 225 },
       left: { rotation: 270 },
-      topLeft: { rotation: 315 },
     },
   ),
 } as const

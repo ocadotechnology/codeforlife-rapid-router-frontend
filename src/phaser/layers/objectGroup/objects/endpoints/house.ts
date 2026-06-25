@@ -12,64 +12,36 @@ export type Name = (typeof Names)[number]
 
 const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   kwArgs: Omit<endpoints.FactoryKwArgs<N, GID>, "width" | "height">,
-  variants: endpoints.FactoryVariants & {
-    topLeft: endpoints.FactoryVariant
-    topRight: endpoints.FactoryVariant
-    bottomRight: endpoints.FactoryVariant
-    bottomLeft: endpoints.FactoryVariant
-  },
-) => {
-  const straightOffset = { x: 0.25, y: 0.25 }
-  const diagonalOffset = { x: 0.35, y: 0.7 }
-
-  return endpoints.factory(
+  {
+    top,
+    bottom,
+    left,
+    right,
+    topLeft,
+    topRight,
+    bottomRight,
+    bottomLeft,
+  }: objects.StraightRotationVariants & objects.DiagonalRotationVariants,
+) =>
+  endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
-    {
-      // Straight offsets.
-      top: {
-        x: TILE_WIDTH * straightOffset.y,
-        y: TILE_HEIGHT * (1 - straightOffset.x),
-        ...variants.top,
+    objects.makeRotationVariants({
+      straight: {
+        offset: { x: 0.25, y: 0.25 },
+        top,
+        bottom,
+        left,
+        right,
       },
-      bottom: {
-        x: TILE_WIDTH * (1 - straightOffset.y),
-        y: TILE_HEIGHT * straightOffset.x,
-        ...variants.bottom,
+      diagonal: {
+        offset: { x: 0.35, y: 0.7 },
+        topLeft,
+        topRight,
+        bottomRight,
+        bottomLeft,
       },
-      left: {
-        x: TILE_WIDTH * (1 - straightOffset.x),
-        y: TILE_HEIGHT * (1 - straightOffset.y),
-        ...variants.left,
-      },
-      right: {
-        x: TILE_WIDTH * straightOffset.x,
-        y: TILE_HEIGHT * straightOffset.y,
-        ...variants.right,
-      },
-      // Diagonal offsets.
-      topLeft: {
-        x: TILE_WIDTH * diagonalOffset.x,
-        y: TILE_HEIGHT * diagonalOffset.y,
-        ...variants.topLeft,
-      },
-      bottomRight: {
-        x: TILE_WIDTH * (1 - diagonalOffset.x),
-        y: TILE_HEIGHT * (1 - diagonalOffset.y),
-        ...variants.bottomRight,
-      },
-      bottomLeft: {
-        x: TILE_WIDTH * diagonalOffset.y,
-        y: TILE_HEIGHT * (1 - diagonalOffset.x),
-        ...variants.bottomLeft,
-      },
-      topRight: {
-        x: TILE_WIDTH * (1 - diagonalOffset.y),
-        y: TILE_HEIGHT * diagonalOffset.x,
-        ...variants.topRight,
-      },
-    },
+    }),
   )
-}
 
 export const common = {
   blue: factory(
