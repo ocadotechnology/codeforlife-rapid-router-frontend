@@ -19,20 +19,54 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
     >
   },
 ) => {
-  const qw = TILE_WIDTH * 0.25
-  const qh = TILE_HEIGHT * 0.25
+  const straightOffset = { x: 0.25, y: 0.25 }
+  const diagonalOffset = { x: 0.35, y: 0.7 }
 
   return endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
     {
-      left: { x: TILE_WIDTH - qw, y: TILE_HEIGHT - qh, ...variants.left },
-      topLeft: { x: TILE_WIDTH - qw, y: TILE_HEIGHT - qh, ...variants.topLeft },
-      top: { x: qw, y: TILE_HEIGHT - qh, ...variants.top },
-      topRight: { x: qw, y: TILE_HEIGHT - qh, ...variants.topRight },
-      right: { x: qw, y: qh, ...variants.right },
-      bottomRight: { x: qw, y: qh, ...variants.bottomRight },
-      bottom: { x: TILE_WIDTH - qw, y: qh, ...variants.bottom },
-      bottomLeft: { x: TILE_WIDTH - qw, y: qh, ...variants.bottomLeft },
+      // Straight offsets.
+      top: {
+        x: TILE_WIDTH * straightOffset.x,
+        y: TILE_HEIGHT * (1 - straightOffset.y),
+        ...variants.top,
+      },
+      bottom: {
+        x: TILE_WIDTH * (1 - straightOffset.x),
+        y: TILE_HEIGHT * straightOffset.y,
+        ...variants.bottom,
+      },
+      left: {
+        x: TILE_WIDTH * (1 - straightOffset.x),
+        y: TILE_HEIGHT * (1 - straightOffset.y),
+        ...variants.left,
+      },
+      right: {
+        x: TILE_WIDTH * straightOffset.x,
+        y: TILE_HEIGHT * straightOffset.y,
+        ...variants.right,
+      },
+      // Diagonal offsets.
+      topLeft: {
+        x: TILE_WIDTH * diagonalOffset.x,
+        y: TILE_HEIGHT * diagonalOffset.y,
+        ...variants.topLeft,
+      },
+      bottomRight: {
+        x: TILE_WIDTH * (1 - diagonalOffset.x),
+        y: TILE_HEIGHT * (1 - diagonalOffset.y),
+        ...variants.bottomRight,
+      },
+      bottomLeft: {
+        x: TILE_WIDTH * diagonalOffset.y,
+        y: TILE_HEIGHT * (1 - diagonalOffset.x),
+        ...variants.bottomLeft,
+      },
+      topRight: {
+        x: TILE_WIDTH * (1 - diagonalOffset.y),
+        y: TILE_HEIGHT * diagonalOffset.x,
+        ...variants.topRight,
+      },
     },
   )
 }
