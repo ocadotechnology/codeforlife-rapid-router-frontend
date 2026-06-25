@@ -9,6 +9,7 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.straight,
     tilesets.road.asphalt.deadEnd,
     tilesets.endpoints.cfc.warehouse.default,
+    tilesets.endpoints.house.common.orange,
     tilesets.scenery.common.tree1,
   ],
   layers: {
@@ -38,7 +39,11 @@ export default tilemaps.makeOrthogonal({
       endpoints: {
         objects: [
           layers.objectGroup.objects.endpoints.cfc.warehouse.default.right({
-            y: TILE_HEIGHT * 2,
+            row: 3,
+          }),
+          layers.objectGroup.objects.endpoints.house.common.orange.top({
+            col: 3,
+            row: 3,
           }),
         ],
       },

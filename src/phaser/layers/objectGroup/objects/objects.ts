@@ -35,8 +35,8 @@ export type FactoryObject<N extends Name, GID extends ID> = Omit<
 >
 
 export type FactoryBaseKwArgs<N extends Name, GID extends ID> = Partial<
-  Omit<Object<N, GID>, "id" | "type" | "name" | "gid">
->
+  Omit<FactoryObject<N, GID>, "type" | "name" | "gid">
+> & { col?: number; row?: number }
 type FactoryBase<N extends Name, GID extends ID> = (
   kwArgs: FactoryBaseKwArgs<N, GID>,
 ) => FactoryObject<N, GID>
@@ -74,6 +74,8 @@ export const factory = <
     name,
     x: baseX = 0,
     y: baseY = 0,
+    col: baseCol = 1,
+    row: baseRow = 1,
     width: baseWidth = TILE_WIDTH,
     height: baseHeight = TILE_HEIGHT,
     properties: baseProperties = [],
@@ -83,25 +85,32 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
+  baseX += (baseCol - 1) * TILE_WIDTH
+  baseY += (baseRow - 1) * TILE_HEIGHT
+
   const base: FactoryBase<N, GID> = ({
-    x = baseX,
-    y = baseY,
-    width = baseWidth,
-    height = baseHeight,
-    properties = baseProperties,
+    x,
+    y,
+    col,
+    row,
+    width,
+    height,
+    properties,
     visible = baseVisible,
-    rotation = baseRotation,
+    rotation,
     ...obj
   }) => ({
     type: name,
     name,
-    x,
-    y,
-    width,
-    height,
-    properties,
+    x: (x ? baseX + x : baseX) + (col ? (col - 1) * TILE_WIDTH : 0),
+    y: (y ? baseY + y : baseY) + (row ? (row - 1) * TILE_HEIGHT : 0),
+    width: width ? baseWidth + width : baseWidth,
+    height: height ? baseHeight + height : baseHeight,
+    properties: properties
+      ? [...baseProperties, ...properties]
+      : baseProperties,
     visible,
-    rotation,
+    rotation: rotation ? baseRotation + rotation : baseRotation,
     ...objBase,
     ...obj,
   })
