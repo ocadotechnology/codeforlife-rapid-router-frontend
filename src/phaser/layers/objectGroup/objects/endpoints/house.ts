@@ -12,11 +12,11 @@ export type Name = (typeof Names)[number]
 
 const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   kwArgs: Omit<endpoints.FactoryKwArgs<N, GID>, "width" | "height">,
-  variants: {
-    [K in keyof endpoints.FactoryVariants]: Omit<
-      endpoints.FactoryVariants[K],
-      "x" | "y"
-    >
+  variants: endpoints.FactoryVariants & {
+    topLeft: endpoints.FactoryVariant
+    topRight: endpoints.FactoryVariant
+    bottomRight: endpoints.FactoryVariant
+    bottomLeft: endpoints.FactoryVariant
   },
 ) => {
   const straightOffset = { x: 0.25, y: 0.25 }
@@ -27,13 +27,13 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
     {
       // Straight offsets.
       top: {
-        x: TILE_WIDTH * straightOffset.x,
-        y: TILE_HEIGHT * (1 - straightOffset.y),
+        x: TILE_WIDTH * straightOffset.y,
+        y: TILE_HEIGHT * (1 - straightOffset.x),
         ...variants.top,
       },
       bottom: {
-        x: TILE_WIDTH * (1 - straightOffset.x),
-        y: TILE_HEIGHT * straightOffset.y,
+        x: TILE_WIDTH * (1 - straightOffset.y),
+        y: TILE_HEIGHT * straightOffset.x,
         ...variants.bottom,
       },
       left: {
