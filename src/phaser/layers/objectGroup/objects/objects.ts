@@ -34,9 +34,11 @@ export type FactoryObject<N extends Name, GID extends ID> = Omit<
   "id"
 >
 
+type TileOffset = { col: number; row: number }
+
 export type FactoryBaseKwArgs<N extends Name, GID extends ID> = Partial<
-  Omit<FactoryObject<N, GID>, "type" | "name" | "gid">
-> & { col?: number; row?: number }
+  Omit<FactoryObject<N, GID>, "type" | "name" | "gid"> & TileOffset
+>
 type FactoryBase<N extends Name, GID extends ID> = (
   kwArgs: FactoryBaseKwArgs<N, GID>,
 ) => FactoryObject<N, GID>
@@ -126,7 +128,6 @@ export const factory = <
   ) as Factory<N, GID, V>
 }
 
-type TileOffset = { col: number; row: number }
 type RotationVariant<R extends number> = { rotation: R }
 
 type StraightRotationVariant = RotationVariant<0 | 90 | 180 | 270>

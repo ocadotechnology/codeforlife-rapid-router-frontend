@@ -49,10 +49,7 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          layers.objectGroup.objects.scenery.common.tree1({
-            x: TILE_WIDTH * 1,
-            y: TILE_HEIGHT * 4,
-          }),
+          layers.objectGroup.objects.scenery.common.tree1({ col: 2, row: 4 }),
         ],
       },
     },
