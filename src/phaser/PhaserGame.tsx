@@ -32,9 +32,9 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       // Dynamically import Phaser and our scenes.
       // NOTE: This makes Phaser a browser-only dependency.
       const Phaser = await import("phaser")
-      const { default: scene } = (await import(`./scenes/${mode}`)) as {
-        default: Scene[]
-      }
+      const { default: scene } = (await import(
+        `./scenes/${mode}/index.ts`
+      )) as { default: Scene[] }
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.

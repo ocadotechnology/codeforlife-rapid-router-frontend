@@ -10,31 +10,61 @@ const _Names = objects.Names.Endpoints.House
 export const Names = flattenStringValues(_Names)
 export type Name = (typeof Names)[number]
 
+export type DiagonalRotationVariants = {
+  inTopLeft: objects.DiagonalRotationVariant
+  inTopRight: objects.DiagonalRotationVariant
+  inBottomRight: objects.DiagonalRotationVariant
+  inBottomLeft: objects.DiagonalRotationVariant
+  outTopLeft: objects.DiagonalRotationVariant
+  outTopRight: objects.DiagonalRotationVariant
+  outBottomRight: objects.DiagonalRotationVariant
+  outBottomLeft: objects.DiagonalRotationVariant
+}
+
 const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   kwArgs: Omit<endpoints.FactoryKwArgs<N, GID>, "width" | "height">,
   {
-    topLeft,
-    topRight,
-    bottomRight,
-    bottomLeft,
-    ...straight
+    left,
+    top,
+    right,
+    bottom,
+    ...diagonal
   }: objects.BaseStraightRotationVariants &
     objects.BaseDiagonalRotationVariants,
-) =>
-  endpoints.factory(
+) => {
+  // The inside of a turn is further from the tile's center; bigger offset.
+  const inside = objects.makeDiagonalRotationVariants({
+    tileOffset: { col: 0.65, row: 1 },
+    ...diagonal,
+  })
+  // The outside of a turn is closer to the tile's center; smaller offset.
+  const outside = objects.makeDiagonalRotationVariants({
+    tileOffset: { col: 0.35, row: 0.7 },
+    ...diagonal,
+  })
+  const diagonalRotationVariants: DiagonalRotationVariants = {
+    inTopLeft: inside.topLeft,
+    inTopRight: inside.topRight,
+    inBottomRight: inside.bottomRight,
+    inBottomLeft: inside.bottomLeft,
+    outTopLeft: outside.topLeft,
+    outTopRight: outside.topRight,
+    outBottomRight: outside.bottomRight,
+    outBottomLeft: outside.bottomLeft,
+  }
+
+  return endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
     {
       tileOffset: { col: 0.25, row: 0.25 },
-      ...straight,
-      ...objects.makeDiagonalRotationVariants({
-        tileOffset: { col: 0.35, row: 0.7 },
-        topLeft,
-        topRight,
-        bottomRight,
-        bottomLeft,
-      }),
+      left,
+      top,
+      right,
+      bottom,
+      ...diagonalRotationVariants,
     },
   )
+}
 
 export const common = {
   blue: factory(

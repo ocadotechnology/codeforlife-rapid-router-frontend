@@ -131,22 +131,25 @@ export const factory = <
   ) as Factory<N, GID, V>
 }
 
-type RotationVariant<R extends number> = { rotation: R }
+type BaseRotationVariant<R extends number> = { rotation: R }
+type RotationVariant<R extends number> = BaseRotationVariant<R> & {
+  x: number
+  y: number
+}
 
-type StraightRotationVariant = RotationVariant<0 | 90 | 180 | 270>
+type StraightRotation = 0 | 90 | 180 | 270
+export type BaseStraightRotationVariant = BaseRotationVariant<StraightRotation>
 export type BaseStraightRotationVariants = {
-  top: StraightRotationVariant
-  right: StraightRotationVariant
-  bottom: StraightRotationVariant
-  left: StraightRotationVariant
+  top: BaseStraightRotationVariant
+  right: BaseStraightRotationVariant
+  bottom: BaseStraightRotationVariant
+  left: BaseStraightRotationVariant
 }
 export type MakeStraightRotationVariantsKwArgs =
   BaseStraightRotationVariants & { tileOffset?: Partial<TileOffset> }
+export type StraightRotationVariant = RotationVariant<StraightRotation>
 export type StraightRotationVariants = {
-  [K in keyof BaseStraightRotationVariants]: BaseStraightRotationVariants[K] & {
-    x: number
-    y: number
-  }
+  [K in keyof BaseStraightRotationVariants]: StraightRotationVariant
 }
 
 export const makeStraightRotationVariants = ({
@@ -162,20 +165,19 @@ export const makeStraightRotationVariants = ({
   right: { x: TILE_WIDTH * col, y: TILE_HEIGHT * row, ...r },
 })
 
-type DiagonalRotationVariant = RotationVariant<45 | 135 | 225 | 315>
+type DiagonalRotation = 45 | 135 | 225 | 315
+export type BaseDiagonalRotationVariant = BaseRotationVariant<DiagonalRotation>
 export type BaseDiagonalRotationVariants = {
-  topLeft: DiagonalRotationVariant
-  topRight: DiagonalRotationVariant
-  bottomRight: DiagonalRotationVariant
-  bottomLeft: DiagonalRotationVariant
+  topLeft: BaseDiagonalRotationVariant
+  topRight: BaseDiagonalRotationVariant
+  bottomRight: BaseDiagonalRotationVariant
+  bottomLeft: BaseDiagonalRotationVariant
 }
 export type MakeDiagonalRotationVariantsKwArgs =
   BaseDiagonalRotationVariants & { tileOffset?: Partial<TileOffset> }
+export type DiagonalRotationVariant = RotationVariant<DiagonalRotation>
 export type DiagonalRotationVariants = {
-  [K in keyof BaseDiagonalRotationVariants]: BaseDiagonalRotationVariants[K] & {
-    x: number
-    y: number
-  }
+  [K in keyof BaseDiagonalRotationVariants]: DiagonalRotationVariant
 }
 
 export const makeDiagonalRotationVariants = ({
