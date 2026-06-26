@@ -149,11 +149,14 @@ export default class BaseLevel<
 
     const image = this.add
       .image(
-        // Place at center because Tiled tile object x,y is bottom-left.
-        obj.x + obj.width / 2,
-        obj.y - obj.height / 2,
+        // Tiled tile object x,y is the bottom-left corner; origin (0,1)
+        // matches createFromObjects so rotation pivots around the same point.
+        obj.x,
+        obj.y,
         tileset.name,
       )
+      .setOrigin(0, 1)
+      .setDisplaySize(obj.width, obj.height)
       .setAngle(obj.rotation)
 
     this.layers[layerName].push(image)

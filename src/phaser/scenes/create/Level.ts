@@ -371,7 +371,7 @@ export default class extends BaseLevel<LevelData> {
     const roadId = this.getRoadIdFromDirs(this.road.dirs[row][col])
     let variants: (typeof this.house)[
       | keyof layers.objectGroup.objects.StraightRotationVariants
-      | keyof layers.objectGroup.objects.DiagonalRotationVariants][]
+      | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants][]
 
     // No road tile means no house can be placed, so skip.
     if (roadId === layers.tile.data.IDs.EMPTY) return
@@ -390,39 +390,57 @@ export default class extends BaseLevel<LevelData> {
     else if (roadId === this.roadIds.DeadEnd.RIGHT)
       variants = [this.house.top, this.house.right, this.house.bottom]
     // Turn
-    else if (
-      roadId === this.roadIds.Turn.TOP_LEFT ||
-      roadId === this.roadIds.Turn.BOTTOM_RIGHT
-    )
-      variants = [this.house.bottomRight, this.house.topLeft]
-    else if (
-      roadId === this.roadIds.Turn.TOP_RIGHT ||
-      roadId === this.roadIds.Turn.BOTTOM_LEFT
-    )
-      variants = [this.house.bottomLeft, this.house.topRight]
+    else if (roadId === this.roadIds.Turn.TOP_LEFT)
+      variants = [this.house.inBottomRight, this.house.outTopLeft]
+    else if (roadId === this.roadIds.Turn.TOP_RIGHT)
+      variants = [this.house.inBottomLeft, this.house.outTopRight]
+    else if (roadId === this.roadIds.Turn.BOTTOM_LEFT)
+      variants = [this.house.inTopRight, this.house.outBottomLeft]
+    else if (roadId === this.roadIds.Turn.BOTTOM_RIGHT)
+      variants = [this.house.inTopLeft, this.house.outBottomRight]
     // T-junction
     else if (roadId === this.roadIds.TJunction.TOP_LEFT_RIGHT)
-      variants = [this.house.top, this.house.bottomLeft, this.house.bottomRight]
+      variants = [
+        this.house.top,
+        this.house.inBottomLeft,
+        this.house.inBottomRight,
+      ]
     else if (roadId === this.roadIds.TJunction.LEFT_RIGHT_BOTTOM)
-      variants = [this.house.bottom, this.house.topLeft, this.house.topRight]
+      variants = [
+        this.house.bottom,
+        this.house.inTopLeft,
+        this.house.inTopRight,
+      ]
     else if (roadId === this.roadIds.TJunction.TOP_RIGHT_BOTTOM)
-      variants = [this.house.right, this.house.bottomLeft, this.house.topLeft]
+      variants = [
+        this.house.right,
+        this.house.inBottomLeft,
+        this.house.inTopLeft,
+      ]
     else if (roadId === this.roadIds.TJunction.TOP_LEFT_BOTTOM)
-      variants = [this.house.left, this.house.bottomRight, this.house.topRight]
+      variants = [
+        this.house.left,
+        this.house.inBottomRight,
+        this.house.inTopRight,
+      ]
     // Crossroads
     else if (roadId === this.roadIds.CROSSROADS)
       variants = [
-        this.house.topLeft,
-        this.house.topRight,
-        this.house.bottomLeft,
-        this.house.bottomRight,
+        this.house.inTopLeft,
+        this.house.inTopRight,
+        this.house.inBottomLeft,
+        this.house.inBottomRight,
       ]
 
     // TODO: choose the correct house variant based on whether other houses are
     // currently present on the tile.
     const house = variants![0]
 
-    this.addObject("ObjectGroup.ENDPOINTS", house({ col, row }))
+    this.addObject(
+      "ObjectGroup.ENDPOINTS",
+      // TODO: fix the +1 offset so the house is centered on the tile.
+      house({ col: col + 1, row: row + 1 }),
+    )
   }
 
   /**
