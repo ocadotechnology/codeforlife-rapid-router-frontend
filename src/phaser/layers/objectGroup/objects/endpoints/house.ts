@@ -13,34 +13,26 @@ export type Name = (typeof Names)[number]
 const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   kwArgs: Omit<endpoints.FactoryKwArgs<N, GID>, "width" | "height">,
   {
-    top,
-    bottom,
-    left,
-    right,
     topLeft,
     topRight,
     bottomRight,
     bottomLeft,
+    ...straight
   }: objects.StraightRotationVariants & objects.DiagonalRotationVariants,
 ) =>
   endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
-    objects.makeRotationVariants({
-      straight: {
-        offset: { x: 0.25, y: 0.25 },
-        top,
-        bottom,
-        left,
-        right,
-      },
-      diagonal: {
+    {
+      offset: { x: 0.25, y: 0.25 },
+      ...straight,
+      ...objects.makeDiagonalRotationVariants({
         offset: { x: 0.35, y: 0.7 },
         topLeft,
         topRight,
         bottomRight,
         bottomLeft,
-      },
-    }),
+      }),
+    },
   )
 
 export const common = {

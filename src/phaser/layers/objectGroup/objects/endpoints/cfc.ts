@@ -13,12 +13,7 @@ const factory = <N extends Name, GID extends tilesets.endpoints.cfc.ID>(
   kwArgs: endpoints.FactoryKwArgs<N, GID>,
   variants: objects.StraightRotationVariants,
 ) =>
-  endpoints.factory(
-    kwArgs,
-    objects.makeRotationVariants({
-      straight: { offset: { x: -0.1, y: -0.03125 }, ...variants },
-    }),
-  )
+  endpoints.factory(kwArgs, { offset: { x: -0.1, y: -0.03125 }, ...variants })
 
 export const barn = {
   black: factory(

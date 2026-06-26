@@ -126,107 +126,57 @@ export const factory = <
   ) as Factory<N, GID, V>
 }
 
+type Offset = { x: number; y: number }
 type RotationVariant<R extends number> = { rotation: R }
+
 type StraightRotationVariant = RotationVariant<0 | 90 | 180 | 270>
-type DiagonalRotationVariant = RotationVariant<45 | 135 | 225 | 315>
 export type StraightRotationVariants = {
   top: StraightRotationVariant
   right: StraightRotationVariant
   bottom: StraightRotationVariant
   left: StraightRotationVariant
 }
+export type MakeStraightRotationVariantsKwArgs = StraightRotationVariants & {
+  offset?: Partial<Offset>
+}
+
+export const makeStraightRotationVariants = ({
+  offset: { x = 0, y = 0 } = {},
+  top: t,
+  right: r,
+  bottom: b,
+  left: l,
+}: MakeStraightRotationVariantsKwArgs): {
+  [K in keyof StraightRotationVariants]: StraightRotationVariants[K] & Offset
+} => ({
+  top: { x: TILE_WIDTH * y, y: TILE_HEIGHT * (1 - x), ...t },
+  bottom: { x: TILE_WIDTH * (1 - y), y: TILE_HEIGHT * x, ...b },
+  left: { x: TILE_WIDTH * (1 - x), y: TILE_HEIGHT * (1 - y), ...l },
+  right: { x: TILE_WIDTH * x, y: TILE_HEIGHT * y, ...r },
+})
+
+type DiagonalRotationVariant = RotationVariant<45 | 135 | 225 | 315>
 export type DiagonalRotationVariants = {
   topLeft: DiagonalRotationVariant
   topRight: DiagonalRotationVariant
   bottomRight: DiagonalRotationVariant
   bottomLeft: DiagonalRotationVariant
 }
-type Offset = { x: number; y: number }
-type StraightRotationVariantsWithOffset = {
-  [K in keyof StraightRotationVariants]: StraightRotationVariants[K] & Offset
+export type MakeDiagonalRotationVariantsKwArgs = DiagonalRotationVariants & {
+  offset?: Partial<Offset>
 }
-type DiagonalRotationVariantsWithOffset = {
+
+export const makeDiagonalRotationVariants = ({
+  offset: { x = 0, y = 0 } = {},
+  topLeft: tl,
+  topRight: tr,
+  bottomRight: br,
+  bottomLeft: bl,
+}: MakeDiagonalRotationVariantsKwArgs): {
   [K in keyof DiagonalRotationVariants]: DiagonalRotationVariants[K] & Offset
-}
-export type MakeRotationVariantsKwArgs<D extends boolean> = {
-  straight: StraightRotationVariants & { offset?: Offset }
-} & (D extends true
-  ? { diagonal?: DiagonalRotationVariants & { offset?: Offset } }
-  : {})
-
-export function makeRotationVariants(
-  kwArgs: MakeRotationVariantsKwArgs<false>,
-): StraightRotationVariantsWithOffset
-export function makeRotationVariants(
-  kwArgs: MakeRotationVariantsKwArgs<true>,
-): StraightRotationVariantsWithOffset & DiagonalRotationVariantsWithOffset
-export function makeRotationVariants({
-  straight: {
-    offset: straightOffset = { x: 0, y: 0 },
-    top,
-    right,
-    bottom,
-    left,
-  },
-  diagonal,
-}: MakeRotationVariantsKwArgs<true>):
-  | StraightRotationVariantsWithOffset
-  | (StraightRotationVariantsWithOffset & DiagonalRotationVariantsWithOffset) {
-  const straightVariants: StraightRotationVariantsWithOffset = {
-    top: {
-      x: TILE_WIDTH * straightOffset.y,
-      y: TILE_HEIGHT * (1 - straightOffset.x),
-      ...top,
-    },
-    bottom: {
-      x: TILE_WIDTH * (1 - straightOffset.y),
-      y: TILE_HEIGHT * straightOffset.x,
-      ...bottom,
-    },
-    left: {
-      x: TILE_WIDTH * (1 - straightOffset.x),
-      y: TILE_HEIGHT * (1 - straightOffset.y),
-      ...left,
-    },
-    right: {
-      x: TILE_WIDTH * straightOffset.x,
-      y: TILE_HEIGHT * straightOffset.y,
-      ...right,
-    },
-  }
-
-  if (!diagonal) return straightVariants
-
-  const {
-    offset: diagonalOffset = { x: 0, y: 0 },
-    topLeft,
-    topRight,
-    bottomRight,
-    bottomLeft,
-  } = diagonal
-
-  const diagonalVariants: DiagonalRotationVariantsWithOffset = {
-    topLeft: {
-      x: TILE_WIDTH * diagonalOffset.x,
-      y: TILE_HEIGHT * diagonalOffset.y,
-      ...topLeft,
-    },
-    bottomRight: {
-      x: TILE_WIDTH * (1 - diagonalOffset.x),
-      y: TILE_HEIGHT * (1 - diagonalOffset.y),
-      ...bottomRight,
-    },
-    bottomLeft: {
-      x: TILE_WIDTH * diagonalOffset.y,
-      y: TILE_HEIGHT * (1 - diagonalOffset.x),
-      ...bottomLeft,
-    },
-    topRight: {
-      x: TILE_WIDTH * (1 - diagonalOffset.y),
-      y: TILE_HEIGHT * diagonalOffset.x,
-      ...topRight,
-    },
-  }
-
-  return { ...straightVariants, ...diagonalVariants }
-}
+} => ({
+  topLeft: { x: TILE_WIDTH * x, y: TILE_HEIGHT * y, ...tl },
+  bottomRight: { x: TILE_WIDTH * (1 - x), y: TILE_HEIGHT * (1 - y), ...br },
+  bottomLeft: { x: TILE_WIDTH * y, y: TILE_HEIGHT * (1 - x), ...bl },
+  topRight: { x: TILE_WIDTH * (1 - y), y: TILE_HEIGHT * x, ...tr },
+})
