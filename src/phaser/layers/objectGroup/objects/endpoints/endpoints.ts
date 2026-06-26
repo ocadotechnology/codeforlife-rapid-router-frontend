@@ -19,7 +19,7 @@ export const factory = <
   const V extends FactoryVariants,
 >(
   kwArgs: FactoryKwArgs<N, GID>,
-  { top, bottom, left, right, offset, ...variants }: V,
+  { top, bottom, left, right, tileOffset, ...variants }: V,
 ) =>
   objects.factory(kwArgs, {
     ...objects.makeStraightRotationVariants({
@@ -27,7 +27,7 @@ export const factory = <
       bottom,
       left,
       right,
-      offset,
+      tileOffset,
     }),
     ...variants,
   })

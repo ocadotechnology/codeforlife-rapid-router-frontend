@@ -23,10 +23,10 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
     {
-      offset: { x: 0.25, y: 0.25 },
+      tileOffset: { col: 0.25, row: 0.25 },
       ...straight,
       ...objects.makeDiagonalRotationVariants({
-        offset: { x: 0.35, y: 0.7 },
+        tileOffset: { col: 0.35, row: 0.7 },
         topLeft,
         topRight,
         bottomRight,

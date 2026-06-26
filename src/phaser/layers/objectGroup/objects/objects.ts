@@ -126,7 +126,7 @@ export const factory = <
   ) as Factory<N, GID, V>
 }
 
-type Offset = { x: number; y: number }
+type TileOffset = { col: number; row: number }
 type RotationVariant<R extends number> = { rotation: R }
 
 type StraightRotationVariant = RotationVariant<0 | 90 | 180 | 270>
@@ -137,22 +137,25 @@ export type StraightRotationVariants = {
   left: StraightRotationVariant
 }
 export type MakeStraightRotationVariantsKwArgs = StraightRotationVariants & {
-  offset?: Partial<Offset>
+  tileOffset?: Partial<TileOffset>
 }
 
 export const makeStraightRotationVariants = ({
-  offset: { x = 0, y = 0 } = {},
+  tileOffset: { col = 0, row = 0 } = {},
   top: t,
   right: r,
   bottom: b,
   left: l,
 }: MakeStraightRotationVariantsKwArgs): {
-  [K in keyof StraightRotationVariants]: StraightRotationVariants[K] & Offset
+  [K in keyof StraightRotationVariants]: StraightRotationVariants[K] & {
+    x: number
+    y: number
+  }
 } => ({
-  top: { x: TILE_WIDTH * y, y: TILE_HEIGHT * (1 - x), ...t },
-  bottom: { x: TILE_WIDTH * (1 - y), y: TILE_HEIGHT * x, ...b },
-  left: { x: TILE_WIDTH * (1 - x), y: TILE_HEIGHT * (1 - y), ...l },
-  right: { x: TILE_WIDTH * x, y: TILE_HEIGHT * y, ...r },
+  top: { x: TILE_WIDTH * row, y: TILE_HEIGHT * (1 - col), ...t },
+  bottom: { x: TILE_WIDTH * (1 - row), y: TILE_HEIGHT * col, ...b },
+  left: { x: TILE_WIDTH * (1 - col), y: TILE_HEIGHT * (1 - row), ...l },
+  right: { x: TILE_WIDTH * col, y: TILE_HEIGHT * row, ...r },
 })
 
 type DiagonalRotationVariant = RotationVariant<45 | 135 | 225 | 315>
@@ -163,20 +166,23 @@ export type DiagonalRotationVariants = {
   bottomLeft: DiagonalRotationVariant
 }
 export type MakeDiagonalRotationVariantsKwArgs = DiagonalRotationVariants & {
-  offset?: Partial<Offset>
+  tileOffset?: Partial<TileOffset>
 }
 
 export const makeDiagonalRotationVariants = ({
-  offset: { x = 0, y = 0 } = {},
+  tileOffset: { col = 0, row = 0 } = {},
   topLeft: tl,
   topRight: tr,
   bottomRight: br,
   bottomLeft: bl,
 }: MakeDiagonalRotationVariantsKwArgs): {
-  [K in keyof DiagonalRotationVariants]: DiagonalRotationVariants[K] & Offset
+  [K in keyof DiagonalRotationVariants]: DiagonalRotationVariants[K] & {
+    x: number
+    y: number
+  }
 } => ({
-  topLeft: { x: TILE_WIDTH * x, y: TILE_HEIGHT * y, ...tl },
-  bottomRight: { x: TILE_WIDTH * (1 - x), y: TILE_HEIGHT * (1 - y), ...br },
-  bottomLeft: { x: TILE_WIDTH * y, y: TILE_HEIGHT * (1 - x), ...bl },
-  topRight: { x: TILE_WIDTH * (1 - y), y: TILE_HEIGHT * x, ...tr },
+  topLeft: { x: TILE_WIDTH * col, y: TILE_HEIGHT * row, ...tl },
+  bottomRight: { x: TILE_WIDTH * (1 - col), y: TILE_HEIGHT * (1 - row), ...br },
+  bottomLeft: { x: TILE_WIDTH * row, y: TILE_HEIGHT * (1 - col), ...bl },
+  topRight: { x: TILE_WIDTH * (1 - row), y: TILE_HEIGHT * col, ...tr },
 })
