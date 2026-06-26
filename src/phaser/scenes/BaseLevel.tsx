@@ -137,4 +137,26 @@ export default class BaseLevel<
 
     return tile
   }
+
+  addObject(
+    layerName: layers.objectGroup.Name,
+    obj: Omit<layers.objectGroup.objects.Object<any, any>, "id">,
+  ): Phaser.GameObjects.Image {
+    const tileset = this.initData.tilesets[layerName].find(
+      ({ gid }) => gid === obj.gid,
+    )
+    if (!tileset) throw new Error(`No tileset found for GID ${obj.gid}`)
+
+    const image = this.add
+      .image(
+        // Place at center because Tiled tile object x,y is bottom-left.
+        obj.x + obj.width / 2,
+        obj.y - obj.height / 2,
+        tileset.name,
+      )
+      .setAngle(obj.rotation)
+
+    this.layers[layerName].push(image)
+    return image
+  }
 }

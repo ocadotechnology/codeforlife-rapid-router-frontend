@@ -121,6 +121,16 @@ export default class extends BaseLevel<LevelData> {
     return this.drag.sequence.at(-1) ?? null
   }
 
+  private get roadIds() {
+    // TODO: select the road type from the toolbox.
+    return layers.tile.data.IDs.Road[this.road.type]
+  }
+
+  private get house() {
+    // TODO: select the house type from the toolbox.
+    return layers.objectGroup.objects.endpoints.house.common.orange
+  }
+
   /**
    * Converts world coordinates to a tile position, clamping to the nearest edge
    * tile when the cursor is outside the tilemap bounds. Returns null only if
@@ -343,8 +353,9 @@ export default class extends BaseLevel<LevelData> {
 
   private canAddHouse(row: number, col: number) {
     return (
-      this.road.dirs[row][col].size > 0 &&
-      !this.layers.environment.getTileAt(col, row)
+      this.road.dirs[row][col].size > 0
+      // TODO: Check if collides with existing house.
+      // && !this.layers.environment.getTileAt(col, row)
     )
   }
 
@@ -357,13 +368,61 @@ export default class extends BaseLevel<LevelData> {
     // Require a road on this tile.
     if (!this.canAddHouse(row, col)) return
 
-    // TODO: determine orientation from road directions.
-    this.putTileAt(
-      "environment",
-      layers.tile.data.IDs.Environment.City.House.LEFT,
-      col,
-      row,
+    const roadId = this.getRoadIdFromDirs(this.road.dirs[row][col])
+    let variants: (typeof this.house)[
+      | keyof layers.objectGroup.objects.StraightRotationVariants
+      | keyof layers.objectGroup.objects.DiagonalRotationVariants][]
+
+    // No road tile means no house can be placed, so skip.
+    if (roadId === layers.tile.data.IDs.EMPTY) return
+    // Straight
+    if (roadId === this.roadIds.Straight.HORIZONTAL)
+      variants = [this.house.top, this.house.bottom]
+    else if (roadId === this.roadIds.Straight.VERTICAL)
+      variants = [this.house.left, this.house.right]
+    // Dead end
+    else if (roadId === this.roadIds.DeadEnd.TOP)
+      variants = [this.house.left, this.house.top, this.house.right]
+    else if (roadId === this.roadIds.DeadEnd.BOTTOM)
+      variants = [this.house.left, this.house.bottom, this.house.right]
+    else if (roadId === this.roadIds.DeadEnd.LEFT)
+      variants = [this.house.top, this.house.left, this.house.bottom]
+    else if (roadId === this.roadIds.DeadEnd.RIGHT)
+      variants = [this.house.top, this.house.right, this.house.bottom]
+    // Turn
+    else if (
+      roadId === this.roadIds.Turn.TOP_LEFT ||
+      roadId === this.roadIds.Turn.BOTTOM_RIGHT
     )
+      variants = [this.house.bottomRight, this.house.topLeft]
+    else if (
+      roadId === this.roadIds.Turn.TOP_RIGHT ||
+      roadId === this.roadIds.Turn.BOTTOM_LEFT
+    )
+      variants = [this.house.bottomLeft, this.house.topRight]
+    // T-junction
+    else if (roadId === this.roadIds.TJunction.TOP_LEFT_RIGHT)
+      variants = [this.house.top, this.house.bottomLeft, this.house.bottomRight]
+    else if (roadId === this.roadIds.TJunction.LEFT_RIGHT_BOTTOM)
+      variants = [this.house.bottom, this.house.topLeft, this.house.topRight]
+    else if (roadId === this.roadIds.TJunction.TOP_RIGHT_BOTTOM)
+      variants = [this.house.right, this.house.bottomLeft, this.house.topLeft]
+    else if (roadId === this.roadIds.TJunction.TOP_LEFT_BOTTOM)
+      variants = [this.house.left, this.house.bottomRight, this.house.topRight]
+    // Crossroads
+    else if (roadId === this.roadIds.CROSSROADS)
+      variants = [
+        this.house.topLeft,
+        this.house.topRight,
+        this.house.bottomLeft,
+        this.house.bottomRight,
+      ]
+
+    // TODO: choose the correct house variant based on whether other houses are
+    // currently present on the tile.
+    const house = variants![0]
+
+    this.addObject("ObjectGroup.ENDPOINTS", house({ col, row }))
   }
 
   /**
@@ -431,7 +490,7 @@ export default class extends BaseLevel<LevelData> {
       const [row, col] = key.split(",").map(Number)
       const dirs = this.road.dirs[row][col]
       // If the tile has no connections, remove the road tile entirely.
-      if (dirs.size === 0) this.layers.road.putTileAt(-1, col, row)
+      if (dirs.size === 0) this.layers["Tile.ROAD"].putTileAt(-1, col, row)
       // Otherwise, redraw the road tile based on its current connections.
       else this.addRoad(row, col, dirs)
     }
@@ -503,39 +562,36 @@ export default class extends BaseLevel<LevelData> {
    * by a subsequent drag.
    */
   private addRoad(row: number, col: number, dirs: DirectionSet) {
-    // Get the road tile IDs for the current road type (e.g. Asphalt).
-    const roadIDs = layers.tile.data.IDs.Road[this.road.type]
+    const roadId = this.getRoadIdFromDirs(dirs)
+    this.putTileAt("Tile.ROAD", roadId, col, row)
+  }
 
-    // Shorthands.
-    const putTile = (id: layers.tile.data.RoadID) =>
-      this.putTileAt("road", id, col, row)
-    const hasDir = (dir: Direction) => dirs.has(dir)
-
+  private getRoadIdFromDirs(dirs: DirectionSet): layers.tile.data.RoadID {
     // No connections, no road tile.
-    if (dirs.size === 0) return
+    if (dirs.size === 0) return layers.tile.data.IDs.EMPTY
     // Dead end
     else if (dirs.size === 1)
-      if (hasDir("top")) putTile(roadIDs.DeadEnd.TOP)
-      else if (hasDir("bottom")) putTile(roadIDs.DeadEnd.BOTTOM)
-      else if (hasDir("left")) putTile(roadIDs.DeadEnd.LEFT)
-      else putTile(roadIDs.DeadEnd.RIGHT)
+      if (dirs.has("top")) return this.roadIds.DeadEnd.TOP
+      else if (dirs.has("bottom")) return this.roadIds.DeadEnd.BOTTOM
+      else if (dirs.has("left")) return this.roadIds.DeadEnd.LEFT
+      else return this.roadIds.DeadEnd.RIGHT
     // Straight or turn
     else if (dirs.size === 2)
-      if (hasDir("top"))
-        if (hasDir("bottom")) putTile(roadIDs.Straight.VERTICAL)
-        else if (hasDir("left")) putTile(roadIDs.Turn.TOP_LEFT)
-        else putTile(roadIDs.Turn.TOP_RIGHT)
-      else if (hasDir("bottom"))
-        if (hasDir("left")) putTile(roadIDs.Turn.BOTTOM_LEFT)
-        else putTile(roadIDs.Turn.BOTTOM_RIGHT)
-      else putTile(roadIDs.Straight.HORIZONTAL)
+      if (dirs.has("top"))
+        if (dirs.has("bottom")) return this.roadIds.Straight.VERTICAL
+        else if (dirs.has("left")) return this.roadIds.Turn.TOP_LEFT
+        else return this.roadIds.Turn.TOP_RIGHT
+      else if (dirs.has("bottom"))
+        if (dirs.has("left")) return this.roadIds.Turn.BOTTOM_LEFT
+        else return this.roadIds.Turn.BOTTOM_RIGHT
+      else return this.roadIds.Straight.HORIZONTAL
     // T-junction
     else if (dirs.size === 3)
-      if (!hasDir("top")) putTile(roadIDs.TJunction.LEFT_RIGHT_BOTTOM)
-      else if (!hasDir("bottom")) putTile(roadIDs.TJunction.TOP_LEFT_RIGHT)
-      else if (!hasDir("left")) putTile(roadIDs.TJunction.TOP_RIGHT_BOTTOM)
-      else putTile(roadIDs.TJunction.TOP_LEFT_BOTTOM)
+      if (!dirs.has("top")) return this.roadIds.TJunction.LEFT_RIGHT_BOTTOM
+      else if (!dirs.has("bottom")) return this.roadIds.TJunction.TOP_LEFT_RIGHT
+      else if (!dirs.has("left")) return this.roadIds.TJunction.TOP_RIGHT_BOTTOM
+      else return this.roadIds.TJunction.TOP_LEFT_BOTTOM
     // Crossroads
-    else putTile(roadIDs.CROSSROADS)
+    else return this.roadIds.CROSSROADS
   }
 }
