@@ -407,13 +407,13 @@ export default class extends BaseLevel<LevelData> {
       return [this.house.top, this.house.right, this.house.bottom]
     // Turn
     if (roadId === this.roadIds.Turn.TOP_LEFT)
-      return [this.house.inBottomRight, this.house.outTopLeft]
+      return [this.house.outTopLeft, this.house.inBottomRight]
     if (roadId === this.roadIds.Turn.TOP_RIGHT)
-      return [this.house.inBottomLeft, this.house.outTopRight]
+      return [this.house.outTopRight, this.house.inBottomLeft]
     if (roadId === this.roadIds.Turn.BOTTOM_LEFT)
-      return [this.house.inTopRight, this.house.outBottomLeft]
+      return [this.house.outBottomLeft, this.house.inTopRight]
     if (roadId === this.roadIds.Turn.BOTTOM_RIGHT)
-      return [this.house.inTopLeft, this.house.outBottomRight]
+      return [this.house.outBottomRight, this.house.inTopLeft]
     // T-junction
     if (roadId === this.roadIds.TJunction.TOP_LEFT_RIGHT)
       return [this.house.top, this.house.inBottomLeft, this.house.inBottomRight]
