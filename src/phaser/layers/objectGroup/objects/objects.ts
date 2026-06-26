@@ -47,15 +47,18 @@ export type FactoryVariantSpecs<N extends Name, GID extends ID> = Record<
   string,
   FactoryBaseKwArgs<N, GID>
 >
+export type FactoryVariant<
+  N extends Name,
+  GID extends ID,
+  B extends FactoryBaseKwArgs<N, GID>,
+> = (
+  kwArgs: Omit<FactoryBaseKwArgs<N, GID>, keyof B>,
+) => FactoryObject<N, GID> & B
 type FactoryVariants<
   N extends Name,
   GID extends ID,
   V extends FactoryVariantSpecs<N, GID>,
-> = {
-  [K in keyof V]: (
-    kwArgs: Omit<FactoryBaseKwArgs<N, GID>, keyof V[K]>,
-  ) => FactoryObject<N, GID> & V[K]
-}
+> = { [K in keyof V]: FactoryVariant<N, GID, V[K]> }
 
 export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
@@ -131,14 +134,19 @@ export const factory = <
 type RotationVariant<R extends number> = { rotation: R }
 
 type StraightRotationVariant = RotationVariant<0 | 90 | 180 | 270>
-export type StraightRotationVariants = {
+export type BaseStraightRotationVariants = {
   top: StraightRotationVariant
   right: StraightRotationVariant
   bottom: StraightRotationVariant
   left: StraightRotationVariant
 }
-export type MakeStraightRotationVariantsKwArgs = StraightRotationVariants & {
-  tileOffset?: Partial<TileOffset>
+export type MakeStraightRotationVariantsKwArgs =
+  BaseStraightRotationVariants & { tileOffset?: Partial<TileOffset> }
+export type StraightRotationVariants = {
+  [K in keyof BaseStraightRotationVariants]: BaseStraightRotationVariants[K] & {
+    x: number
+    y: number
+  }
 }
 
 export const makeStraightRotationVariants = ({
@@ -147,12 +155,7 @@ export const makeStraightRotationVariants = ({
   right: r,
   bottom: b,
   left: l,
-}: MakeStraightRotationVariantsKwArgs): {
-  [K in keyof StraightRotationVariants]: StraightRotationVariants[K] & {
-    x: number
-    y: number
-  }
-} => ({
+}: MakeStraightRotationVariantsKwArgs): StraightRotationVariants => ({
   top: { x: TILE_WIDTH * row, y: TILE_HEIGHT * (1 - col), ...t },
   bottom: { x: TILE_WIDTH * (1 - row), y: TILE_HEIGHT * col, ...b },
   left: { x: TILE_WIDTH * (1 - col), y: TILE_HEIGHT * (1 - row), ...l },
@@ -160,14 +163,19 @@ export const makeStraightRotationVariants = ({
 })
 
 type DiagonalRotationVariant = RotationVariant<45 | 135 | 225 | 315>
-export type DiagonalRotationVariants = {
+export type BaseDiagonalRotationVariants = {
   topLeft: DiagonalRotationVariant
   topRight: DiagonalRotationVariant
   bottomRight: DiagonalRotationVariant
   bottomLeft: DiagonalRotationVariant
 }
-export type MakeDiagonalRotationVariantsKwArgs = DiagonalRotationVariants & {
-  tileOffset?: Partial<TileOffset>
+export type MakeDiagonalRotationVariantsKwArgs =
+  BaseDiagonalRotationVariants & { tileOffset?: Partial<TileOffset> }
+export type DiagonalRotationVariants = {
+  [K in keyof BaseDiagonalRotationVariants]: BaseDiagonalRotationVariants[K] & {
+    x: number
+    y: number
+  }
 }
 
 export const makeDiagonalRotationVariants = ({
@@ -176,12 +184,7 @@ export const makeDiagonalRotationVariants = ({
   topRight: tr,
   bottomRight: br,
   bottomLeft: bl,
-}: MakeDiagonalRotationVariantsKwArgs): {
-  [K in keyof DiagonalRotationVariants]: DiagonalRotationVariants[K] & {
-    x: number
-    y: number
-  }
-} => ({
+}: MakeDiagonalRotationVariantsKwArgs): DiagonalRotationVariants => ({
   topLeft: { x: TILE_WIDTH * col, y: TILE_HEIGHT * row, ...tl },
   bottomRight: { x: TILE_WIDTH * (1 - col), y: TILE_HEIGHT * (1 - row), ...br },
   bottomLeft: { x: TILE_WIDTH * row, y: TILE_HEIGHT * (1 - col), ...bl },

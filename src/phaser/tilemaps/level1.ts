@@ -1,7 +1,6 @@
 import * as layers from "../layers"
 import * as tilemaps from "./tilemaps"
 import * as tilesets from "../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 export default tilemaps.makeOrthogonal({
   properties: { background: "grass" },

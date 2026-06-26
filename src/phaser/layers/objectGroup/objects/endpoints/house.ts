@@ -18,7 +18,8 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
     bottomRight,
     bottomLeft,
     ...straight
-  }: objects.StraightRotationVariants & objects.DiagonalRotationVariants,
+  }: objects.BaseStraightRotationVariants &
+    objects.BaseDiagonalRotationVariants,
 ) =>
   endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },

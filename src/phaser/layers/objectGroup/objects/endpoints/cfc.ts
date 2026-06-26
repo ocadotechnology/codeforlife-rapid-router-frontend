@@ -11,7 +11,7 @@ export type Name = (typeof Names)[number]
 
 const factory = <N extends Name, GID extends tilesets.endpoints.cfc.ID>(
   kwArgs: endpoints.FactoryKwArgs<N, GID>,
-  variants: objects.StraightRotationVariants,
+  variants: objects.BaseStraightRotationVariants,
 ) =>
   endpoints.factory(kwArgs, {
     tileOffset: { col: -0.1, row: -0.03125 },
