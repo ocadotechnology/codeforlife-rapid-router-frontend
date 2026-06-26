@@ -56,7 +56,7 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
   return endpoints.factory(
     { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
     {
-      tileOffset: { col: 0.25, row: 0.25 },
+      tileOffset: { col: 0.275, row: 0.275 },
       left,
       top,
       right,

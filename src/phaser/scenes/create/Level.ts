@@ -4,6 +4,7 @@ import * as layers from "../../layers"
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
 import Toolbox from "./Toolbox"
 
+type Tile = { col: number; row: number }
 type Direction = "top" | "bottom" | "left" | "right"
 type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
 
@@ -26,6 +27,10 @@ export default class extends BaseLevel<LevelData> {
      */
     dirs: [] as DirectionSet[][],
     type: "Asphalt" as keyof typeof layers.tile.data.IDs.Road,
+    /** Persistent 2D array [row][col] indicating whether a house is present at
+     * each position.
+     */
+    hasHouse: [] as boolean[][],
   }
 
   /** Graphics used to render the single-tile hover highlight for point tools (e.g. add-house). */
@@ -171,13 +176,12 @@ export default class extends BaseLevel<LevelData> {
    * Returns true if moving in `dir` from the given tile would leave the tilemap
    * — i.e. the direction is not a valid exit for that tile.
    */
-  private exitsMap(y: number, x: number, dir: Direction) {
-    if (dir === "top" && y === 0) return true
-    if (dir === "bottom" && y === this.tilemap.height - 1) return true
-    if (dir === "left" && x === 0) return true
-    if (dir === "right" && x === this.tilemap.width - 1) return true
-    return false
-  }
+  private exitsMap = (row: number, col: number) => ({
+    left: col === 0,
+    right: col === this.tilemap.width - 1,
+    top: row === 0,
+    bottom: row === this.tilemap.height - 1,
+  })
 
   /**
    * Records a single cardinal step `from` → `to` (always exactly 1 tile apart)
@@ -214,7 +218,7 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private drawStep(tile: Phaser.Math.Vector2, dir: Direction) {
-    if (this.exitsMap(tile.y, tile.x, dir)) return
+    if (this.exitsMap(tile.y, tile.x)[dir]) return
 
     const worldXY = this.tilemap.tileToWorldXY(tile.x, tile.y)
     if (!worldXY) return
@@ -351,12 +355,10 @@ export default class extends BaseLevel<LevelData> {
 
   private onPointerUpOutside = () => this.onPointerUp()
 
+  /** Checks if a house can be added at the given tile. */
   private canAddHouse(row: number, col: number) {
-    return (
-      this.road.dirs[row][col].size > 0
-      // TODO: Check if collides with existing house.
-      // && !this.layers.environment.getTileAt(col, row)
-    )
+    return this.road.dirs[row][col].size > 0
+    //&& !this.road.hasHouse[row][col]
   }
 
   /**
@@ -376,8 +378,11 @@ export default class extends BaseLevel<LevelData> {
     // TODO: choose the correct house variant based on whether other houses are
     // currently present on the tile.
     const house = variants[0]
-
     if (!house) return
+
+    this.road.hasHouse[row][col] = true
+    for (const tile of this.getCrossoverTilesFromHouseVariant(row, col, house))
+      this.road.hasHouse[tile.row][tile.col] = true
 
     this.addObject(
       "ObjectGroup.ENDPOINTS",
@@ -386,6 +391,7 @@ export default class extends BaseLevel<LevelData> {
     )
   }
 
+  /** Returns the house variants for a given road ID. */
   private getHouseVariantsFromRoadId(
     roadId: layers.tile.data.RoadID,
   ): (typeof this.house)[
@@ -433,6 +439,56 @@ export default class extends BaseLevel<LevelData> {
       ]
     // No road tile means no house can be placed, so skip.
     return []
+  }
+
+  /** Returns the tiles that a house variant crosses over into. */
+  private getCrossoverTilesFromHouseVariant(
+    row: number,
+    col: number,
+    house: (typeof this.house)[
+      | keyof layers.objectGroup.objects.StraightRotationVariants
+      | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants],
+  ): Tile[] {
+    const exitsMap = this.exitsMap(row, col)
+
+    // Create a mapping of the four cardinal directions.
+    const step = {
+      left: { col: col - 1 },
+      right: { col: col + 1 },
+      top: { row: row - 1 },
+      bottom: { row: row + 1 },
+    }
+
+    // Precompute the adjacent tiles in each diagonal direction.
+    const left = exitsMap.left ? [] : [{ ...step.left, row }]
+    const right = exitsMap.right ? [] : [{ ...step.right, row }]
+    const top = exitsMap.top ? [] : [{ col, ...step.top }]
+    const bottom = exitsMap.bottom ? [] : [{ col, ...step.bottom }]
+    const topRight =
+      exitsMap.right || exitsMap.top ? [] : [{ ...step.right, ...step.top }]
+    const topLeft =
+      exitsMap.left || exitsMap.top ? [] : [{ ...step.left, ...step.top }]
+    const bottomRight =
+      exitsMap.right || exitsMap.bottom
+        ? []
+        : [{ ...step.right, ...step.bottom }]
+    const bottomLeft =
+      exitsMap.left || exitsMap.bottom ? [] : [{ ...step.left, ...step.bottom }]
+
+    // Return the crossover tiles based on the house variant.
+    if (house === this.house.top) return bottom
+    if (house === this.house.bottom) return top
+    if (house === this.house.left) return right
+    if (house === this.house.right) return left
+    if (house === this.house.inTopLeft)
+      return [...bottom, ...right, ...bottomRight]
+    if (house === this.house.inTopRight)
+      return [...bottom, ...left, ...bottomLeft]
+    if (house === this.house.inBottomLeft)
+      return [...top, ...right, ...topRight]
+    if (house === this.house.inBottomRight) return [...top, ...left, ...topLeft]
+
+    return [] // No crossover tiles for variant.
   }
 
   /**
@@ -549,10 +605,10 @@ export default class extends BaseLevel<LevelData> {
         // (e.g. a middle tile needs both its entry and exit directions so it
         // becomes a straight road rather than two dead ends).
         const dir = this.directionBetween(current, next)
-        if (!this.exitsMap(current.y, current.x, dir))
+        if (!this.exitsMap(current.y, current.x)[dir])
           pending.get(key)!.dirs.add(dir)
         const oppositeDir = this.dir.opposites[dir]
-        if (!this.exitsMap(next.y, next.x, oppositeDir))
+        if (!this.exitsMap(next.y, next.x)[oppositeDir])
           pending.get(nextKey)!.dirs.add(oppositeDir)
       }
     }
