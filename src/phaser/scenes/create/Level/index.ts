@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import DragManager from "./DragManager"
 import HouseManager from "./HouseManager"
 import RoadManager from "./RoadManager"
 import Toolbox from "../Toolbox"
@@ -21,6 +22,9 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
+  /** Drag manager responsible for handling drag operations. */
+  drag!: DragManager
+
   /** Road manager responsible for handling road tiles and their connections. */
   road!: RoadManager
 
@@ -29,6 +33,14 @@ export default class extends BaseLevel<LevelData> {
 
   /** Graphics used to render tile highlights for tools. */
   graphics!: Phaser.GameObjects.CustomGraphics
+
+  /** A mapping of each direction to its opposite direction. */
+  readonly dirOpposites: Record<Direction, Direction> = {
+    top: "bottom",
+    bottom: "top",
+    left: "right",
+    right: "left",
+  }
 
   create() {
     // Create the tilemap, layers, and other essentials of the level scene.
@@ -66,6 +78,10 @@ export default class extends BaseLevel<LevelData> {
     this.scene.launch(Toolbox.KEY)
 
     // Initialize the managers.
+    this.drag = new DragManager(this, {
+      "add-road": { drawDirs: true, highlight: { color: 0x00ff00 } },
+      "delete-road": { drawDirs: false, highlight: { color: 0xff0000 } },
+    })
     this.road = new RoadManager(this)
     this.house = new HouseManager(this)
   }
@@ -76,17 +92,18 @@ export default class extends BaseLevel<LevelData> {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
-    this.road.onPointerDown(pointer)
+    this.drag.onPointerDown(pointer)
     this.house.onPointerDown(pointer)
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    this.road.onPointerMove(pointer)
+    this.drag.onPointerMove(pointer)
     this.house.onPointerMove(pointer)
   }
 
   private onPointerUp() {
     this.road.onPointerUp()
+    this.drag.onPointerUp()
     this.graphics.clear()
   }
 
@@ -97,43 +114,97 @@ export default class extends BaseLevel<LevelData> {
    * tile when the cursor is outside the tilemap bounds. Returns null only if
    * the tilemap conversion itself fails.
    */
-  worldToNearestTile(worldX: number, worldY: number) {
+  worldToNearestTile(worldX: number, worldY: number): Tile | null {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
     if (!tileXY) return null
-    const x = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
-    const y = Phaser.Math.Clamp(tileXY.y, 0, this.tilemap.height - 1)
-    return new Phaser.Math.Vector2(x, y)
+    const col = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
+    const row = Phaser.Math.Clamp(tileXY.y, 0, this.tilemap.height - 1)
+    return { col, row }
   }
 
   /**
    * Returns the tile at the given world coordinates without clamping to the
    * tilemap bounds. Returns null when the cursor is outside the tilemap.
    */
-  worldToTile(worldX: number, worldY: number) {
+  worldToTile(worldX: number, worldY: number): Tile | null {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
-    if (!tileXY) return null
-    if (
-      tileXY.x < 0 ||
-      tileXY.x >= this.tilemap.width ||
-      tileXY.y < 0 ||
-      tileXY.y >= this.tilemap.height
-    )
+    if (!tileXY || !this.tileInMap({ col: tileXY.x, row: tileXY.y }))
       return null
-    return new Phaser.Math.Vector2(Math.floor(tileXY.x), Math.floor(tileXY.y))
+    return { col: Math.floor(tileXY.x), row: Math.floor(tileXY.y) }
+  }
+
+  /** Converts a tile position to world coordinates. */
+  tileToWorld = ({ col, row }: Tile) => this.tilemap.tileToWorldXY(col, row)
+
+  /** Returns a unique key for the given tile position. */
+  tileToKey = ({ col, row }: Tile) => `${row},${col}`
+
+  /** Returns the tile position for the given key. */
+  keyToTile(key: string): Tile {
+    const [row, col] = key.split(",").map(Number)
+    return { row, col }
+  }
+
+  /** Checks if the given tile is within the bounds of the tilemap. */
+  tileInMap = ({ col, row }: Tile): boolean =>
+    row >= 0 &&
+    row < this.tilemap.height &&
+    col >= 0 &&
+    col < this.tilemap.width
+
+  /**
+   * Returns the dominant direction of travel from one tile to another. When the
+   * cursor jumps diagonally (fast movement), the axis with the larger delta
+   * wins so we always produce a single cardinal direction.
+   */
+  dirBetweenTiles(from: Tile, to: Tile): Direction {
+    const dRow = to.row - from.row
+    const dCol = to.col - from.col
+    return Math.abs(dRow) >= Math.abs(dCol)
+      ? dRow < 0
+        ? "top"
+        : "bottom"
+      : dCol < 0
+        ? "left"
+        : "right"
   }
 
   /**
-   * Returns true if moving in `dir` from the given tile would leave the tilemap
-   * — i.e. the direction is not a valid exit for that tile.
+   * Returns a map of valid directions for the given tile. A direction is
+   * considered valid if it does not lead outside the tilemap bounds.
    */
-  exitsMap = (row: number, col: number): Record<Direction, boolean> => ({
-    left: col === 0,
-    right: col === this.tilemap.width - 1,
-    top: row === 0,
-    bottom: row === this.tilemap.height - 1,
+  validTileDirs = ({ col, row }: Tile): Record<Direction, boolean> => ({
+    left: col > 0,
+    right: col < this.tilemap.width - 1,
+    top: row > 0,
+    bottom: row < this.tilemap.height - 1,
   })
 
-  highlightTile(worldXY: Phaser.Math.Vector2, color: number, alpha = 0.4) {
+  /**
+   * Returns the tile after moving in the given directions.
+   * Returns null if the resulting tile is outside the tilemap bounds.
+   */
+  moveFromTile(tile: Tile, dirs: Direction[]): Tile | null {
+    for (const dir of dirs) {
+      if (dir === "left") tile.col--
+      else if (dir === "right") tile.col++
+      else if (dir === "top") tile.row--
+      else tile.row++
+    }
+
+    return this.tileInMap(tile) ? tile : null
+  }
+
+  /** Highlights a single tile with a transparent overlay. */
+  highlightTile(
+    tileOrWorld: Tile | Phaser.Math.Vector2,
+    color: number,
+    alpha = 0.4,
+  ) {
+    const worldXY =
+      "col" in tileOrWorld ? this.tileToWorld(tileOrWorld) : tileOrWorld
+    if (!worldXY) return
+
     this.graphics
       .fillStyle(color, alpha)
       .fillRect(

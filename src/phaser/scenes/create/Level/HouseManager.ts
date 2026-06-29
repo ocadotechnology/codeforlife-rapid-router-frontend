@@ -1,7 +1,7 @@
 import type Phaser from "phaser"
 
 import * as layers from "../../../layers"
-import type { default as Level, Tile } from "."
+import type { Direction, default as Level, Tile } from "."
 import BaseManager from "./BaseManager"
 
 export default class extends BaseManager {
@@ -9,14 +9,21 @@ export default class extends BaseManager {
    * Persistent 2D array [row][col] indicating whether each tile is occupied by
    * a house.
    */
-  readonly occupied: boolean[][]
+  private readonly _occupied: boolean[][]
 
   constructor(level: Level) {
     super(level)
 
-    this.occupied = Array.from({ length: this.level.tilemap.height }, () =>
+    this._occupied = Array.from({ length: this.level.tilemap.height }, () =>
       Array.from({ length: this.level.tilemap.width }, () => false),
     )
+  }
+
+  occupied(tile: Tile): boolean
+  occupied(tile: Tile, value: boolean): void
+  occupied(tile: Tile, value?: boolean) {
+    if (value !== undefined) this._occupied[tile.row][tile.col] = value
+    else return this._occupied[tile.row][tile.col]
   }
 
   get type() {
@@ -25,9 +32,9 @@ export default class extends BaseManager {
   }
 
   /** Checks if a house can be added at the given tile. */
-  private canAdd(row: number, col: number) {
-    return this.level.road.dirs[row][col].size > 0
-    //&& !this.road.hasHouse[row][col]
+  private canAdd(tile: Tile) {
+    return this.level.road.dirs(tile).size > 0
+    //&& !this.road.hasHouse[tile.row][tile.col]
   }
 
   /**
@@ -35,11 +42,11 @@ export default class extends BaseManager {
    *
    * The house orientation depends on the road directions on the tile.
    */
-  add(row: number, col: number) {
+  private add(tile: Tile) {
     // Require a road on this tile.
-    if (!this.canAdd(row, col)) return
+    if (!this.canAdd(tile)) return
 
-    const roadId = this.level.road.getIdFromDirs(this.level.road.dirs[row][col])
+    const roadId = this.level.road.getIdFromDirs(this.level.road.dirs(tile))
 
     const variants = this.getVariantsFromRoadId(roadId)
     if (variants.length === 0) return
@@ -49,14 +56,14 @@ export default class extends BaseManager {
     const house = variants[0]
     if (!house) return
 
-    this.occupied[row][col] = true
-    for (const tile of this.getCrossoverTilesFromVariant(row, col, house))
-      this.occupied[tile.row][tile.col] = true
+    this.occupied(tile, true)
+    for (const cTile of this.getCrossoverTilesFromVariant(tile, house))
+      this.occupied(cTile, true)
 
     this.level.addObject(
       "ObjectGroup.ENDPOINTS",
       // TODO: fix the +1 offset so the house is centered on the tile.
-      house({ col: col + 1, row: row + 1 }),
+      house({ col: tile.col + 1, row: tile.row + 1 }),
     )
   }
 
@@ -112,37 +119,25 @@ export default class extends BaseManager {
 
   /** Returns the tiles that a house variant crosses over into. */
   private getCrossoverTilesFromVariant(
-    row: number,
-    col: number,
+    tile: Tile,
     house: (typeof this.type)[
       | keyof layers.objectGroup.objects.StraightRotationVariants
       | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants],
   ): Tile[] {
-    const exitsMap = this.level.exitsMap(row, col)
-
-    // Create a mapping of the four cardinal directions.
-    const step = {
-      left: { col: col - 1 },
-      right: { col: col + 1 },
-      top: { row: row - 1 },
-      bottom: { row: row + 1 },
+    const step = (dirs: Direction[]) => {
+      const destination = this.level.moveFromTile(tile, dirs)
+      return destination ? [destination] : []
     }
 
-    // Precompute the adjacent tiles in each diagonal direction.
-    const left = exitsMap.left ? [] : [{ ...step.left, row }]
-    const right = exitsMap.right ? [] : [{ ...step.right, row }]
-    const top = exitsMap.top ? [] : [{ col, ...step.top }]
-    const bottom = exitsMap.bottom ? [] : [{ col, ...step.bottom }]
-    const topRight =
-      exitsMap.right || exitsMap.top ? [] : [{ ...step.right, ...step.top }]
-    const topLeft =
-      exitsMap.left || exitsMap.top ? [] : [{ ...step.left, ...step.top }]
-    const bottomRight =
-      exitsMap.right || exitsMap.bottom
-        ? []
-        : [{ ...step.right, ...step.bottom }]
-    const bottomLeft =
-      exitsMap.left || exitsMap.bottom ? [] : [{ ...step.left, ...step.bottom }]
+    // Precompute the neighbouring tiles in each direction.
+    const left = step(["left"])
+    const right = step(["right"])
+    const top = step(["top"])
+    const bottom = step(["bottom"])
+    const topRight = step(["top", "right"])
+    const topLeft = step(["top", "left"])
+    const bottomRight = step(["bottom", "right"])
+    const bottomLeft = step(["bottom", "left"])
 
     // Return the crossover tiles based on the house variant.
     if (house === this.type.top) return bottom
@@ -165,7 +160,7 @@ export default class extends BaseManager {
 
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (tile) {
-      this.add(tile.y, tile.x)
+      this.add(tile)
       this.level.graphics.clear() // Clear any previous hover highlight.
     }
   }
@@ -177,8 +172,6 @@ export default class extends BaseManager {
     // Update the hover highlight for point tools (no drag involved).
     this.level.graphics.clear()
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (!tile || !this.canAdd(tile.y, tile.x)) return
-    const worldXY = this.level.tilemap.tileToWorldXY(tile.x, tile.y)
-    if (worldXY) this.level.highlightTile(worldXY, 0x00ff00)
+    if (tile && this.canAdd(tile)) this.level.highlightTile(tile, 0x00ff00)
   }
 }
