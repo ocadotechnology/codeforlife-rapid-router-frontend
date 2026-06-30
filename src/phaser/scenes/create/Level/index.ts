@@ -196,6 +196,40 @@ export default class extends BaseLevel<LevelData> {
     return this.tileInMap(tile) ? tile : null
   }
 
+  /** Walk tiles from the start tile to the end tile. */
+  walkBetweenTiles(
+    from: Tile,
+    to: Tile,
+    processTile: (current: Tile, next: Tile) => void,
+  ) {
+    // Calculate the delta from the start tile to the end tile.
+    const dRow = to.row - from.row
+    const dCol = to.col - from.col
+
+    // Diagonal movement is not allowed.
+    if (dRow !== 0 && dCol !== 0) return
+
+    // Determine the step direction for each axis: -1, 0, or +1.
+    const step: Tile = {
+      row: dRow === 0 ? 0 : dRow > 0 ? 1 : -1,
+      col: dCol === 0 ? 0 : dCol > 0 ? 1 : -1,
+    }
+
+    // Walk one tile at a time, calling the callback for each tile.
+    let current = from
+    while (current.row !== to.row || current.col !== to.col) {
+      // Calculate the next tile along the path.
+      const next: Tile = {
+        row: current.row + step.row,
+        col: current.col + step.col,
+      }
+
+      processTile(current, next)
+
+      current = next
+    }
+  }
+
   /** Highlights a single tile with a transparent overlay. */
   highlightTile(
     tileOrWorld: Tile | Phaser.Math.Vector2,

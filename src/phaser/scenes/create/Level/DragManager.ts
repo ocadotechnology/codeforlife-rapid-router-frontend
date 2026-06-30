@@ -74,44 +74,10 @@ export default class extends BaseManager {
   }
 
   /**
-   * Records a single cardinal step `from` → `to` (always exactly 1 tile apart)
-   * into the drag state: adds `to` to the sequence and tile set, and records
-   * the exit arrow on `from` (unless a mutual-exit would result).
+   * Draws an arrow indicating the direction of travel from the center of a tile
+   * to its edge.
    */
-  private recordDir(from: Tile, to: Tile): Direction | null {
-    // Record the order of the tiles visited during the drag.
-    this._sequence.push(to)
-
-    // Convert the tile positions to unique keys for use in the drag state maps.
-    const fromKey = this.level.tileToKey(from)
-    const toKey = this.level.tileToKey(to)
-
-    // Record the unique tiles visited during the drag.
-    this._set.add(toKey)
-
-    // Determine the direction of travel from `from` → `to`.
-    const dir = this.level.dirBetweenTiles(from, to)
-
-    // If the destination tile already has an exit back to the source tile, skip
-    if (this._dirs.get(toKey)?.has(this.level.dirOpposites[dir])) return null
-
-    // Ensure the source tile has a direction set in the map.
-    if (!this._dirs.has(fromKey))
-      this._dirs.set(fromKey, new Set() as DirectionSet)
-
-    // Get the direction set for the source tile.
-    const fromDirs = this._dirs.get(fromKey)!
-
-    // If the source tile already has an exit in this direction, skip.
-    if (fromDirs.has(dir)) return null
-
-    // Otherwise, record the new exit direction for the source tile.
-    fromDirs.add(dir)
-
-    return dir
-  }
-
-  private drawDir(tile: Tile, dir: Direction, highlight: HighlightConfig) {
+  private drawDir(tile: Tile, dir: Direction) {
     if (!this.level.validTileDirs(tile)[dir]) return
 
     const worldXY = this.level.tileToWorld(tile)
@@ -120,10 +86,6 @@ export default class extends BaseManager {
     // Shorthands for readability.
     const tw = this.level.tilemap.tileWidth
     const th = this.level.tilemap.tileHeight
-
-    // Only draw the background rect when this is the first arrow for the tile.
-    if (this._dirs.get(this.level.tileToKey(tile))!.size === 1)
-      this.highlightTile(tile, highlight)
 
     // Calculate the center of the tile in world coordinates.
     const cx = worldXY.x + tw / 2
@@ -142,48 +104,40 @@ export default class extends BaseManager {
     this.level.graphics.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
   }
 
-  /** Walk tiles from the last tile to the current tile. */
-  private walkTiles(from: Tile, to: Tile, toolConfig: ToolConfig) {
-    // Calculate the delta from the last tile to the current tile.
-    const dRow = to.row - from.row
-    const dCol = to.col - from.col
+  private add(current: Tile, next: Tile, toolConfig: ToolConfig) {
+    // Record the order of the tiles visited during the drag.
+    this._sequence.push(next)
 
-    // Diagonal movement is not allowed: the user must drag along a single
-    // axis at a time.
-    if (dRow !== 0 && dCol !== 0) return
-
-    // Determine the step direction for each axis: -1, 0, or +1.
-    const step: Tile = {
-      row: dRow === 0 ? 0 : dRow > 0 ? 1 : -1,
-      col: dCol === 0 ? 0 : dCol > 0 ? 1 : -1,
+    // Records the unique tiles visited during the drag.
+    const nextKey = this.level.tileToKey(next)
+    if (!this._set.has(nextKey)) {
+      this._set.add(nextKey)
+      this.highlightTile(next, toolConfig.highlight)
     }
 
-    // Walk one step at a time so that leaps forward (fast drags) fill
-    // intermediate tiles.
-    let current = from
-    while (current.row !== to.row || current.col !== to.col) {
-      // Calculate the next tile along the drag path.
-      const next: Tile = {
-        row: current.row + step.row,
-        col: current.col + step.col,
-      }
+    if (!toolConfig.drawDirs) return
 
-      if (toolConfig.drawDirs) {
-        // Record the dir and draw it (if any).
-        const dir = this.recordDir(current, next)
-        if (dir !== null) this.drawDir(current, dir, toolConfig.highlight)
-      } else {
-        // Highlight each new tile entered during a delete-road drag.
-        const nextKey = this.level.tileToKey(next)
-        if (!this._set.has(nextKey)) {
-          this._set.add(nextKey)
-          this.highlightTile(next, toolConfig.highlight)
-        }
+    // Determine the direction of travel from `current` → `next`.
+    const dir = this.level.dirBetweenTiles(current, next)
 
-        this._sequence.push(next) // ?
-      }
-      current = next
-    }
+    // If the next tile already has an exit back to the current tile, skip
+    if (this._dirs.get(nextKey)?.has(this.level.dirOpposites[dir])) return null
+
+    // Ensure the current tile has a direction set in the map.
+    const currentKey = this.level.tileToKey(current)
+    if (!this._dirs.has(currentKey))
+      this._dirs.set(currentKey, new Set() as DirectionSet)
+
+    // Get the direction set for the current tile.
+    const currentDirs = this._dirs.get(currentKey)!
+
+    // If the current tile already has an exit in this direction, skip.
+    if (currentDirs.has(dir)) return null
+
+    // Otherwise, record the new exit direction for the current tile.
+    currentDirs.add(dir)
+
+    this.drawDir(current, dir)
   }
 
   /** Start a drag operation at the nearest tile to the pointer. */
@@ -201,7 +155,8 @@ export default class extends BaseManager {
     this._set.add(this.level.tileToKey(tile))
     this._dirs.clear()
 
-    if (!toolConfig.drawDirs) this.highlightTile(tile, toolConfig.highlight)
+    // Highlight the starting tile.
+    this.highlightTile(tile, toolConfig.highlight)
   }
 
   /** Walk tiles from the last tile to the current tile. */
@@ -217,7 +172,9 @@ export default class extends BaseManager {
     )
       return
 
-    this.walkTiles(this.lastTile, tile, this.toolConfig)
+    this.level.walkBetweenTiles(this.lastTile, tile, (current, next) => {
+      this.add(current, next, this.toolConfig!)
+    })
   }
 
   /** End a drag operation. */
