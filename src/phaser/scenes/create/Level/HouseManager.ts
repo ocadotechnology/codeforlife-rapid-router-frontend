@@ -8,25 +8,79 @@ import BaseManager from "./BaseManager"
 type VariantKey =
   | keyof layers.objectGroup.objects.StraightRotationVariants
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
+type Variant = { key: VariantKey; crossoverTiles: Tile[] }
 
 export default class extends BaseManager {
   /**
-   * Persistent 2D array [row][col] indicating whether each tile is occupied by
-   * a house.
+   * Persistent 2D array [row][col] indicating if a house is occupying a tile.
+   * - A value of `null` means the tile is unoccupied.
+   * - A value of `Tile` means the tile is occupied by a crossover tile of a
+   *   house. The value points to the main tile of the house.
+   * - A value of `Variant` means the tile is occupied by the main tile of a
+   *   house.
    */
-  private readonly _occupied = Array.from(
+  private readonly _houses: (Variant | Tile | null)[][] = Array.from(
     { length: this.level.tilemap.height },
-    () => Array.from({ length: this.level.tilemap.width }, () => false),
+    () => Array.from({ length: this.level.tilemap.width }, () => null),
   )
 
   /** CSS cursor string for the rotate-right icon, pre-computed once. */
   private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
 
-  occupied(tile: Tile): boolean
-  occupied(tile: Tile, value: boolean): void
-  occupied(tile: Tile, value?: boolean) {
-    if (value !== undefined) this._occupied[tile.row][tile.col] = value
-    else return this._occupied[tile.row][tile.col]
+  /**
+   * Get the house variant for a given tile.
+   * If the tile is a crossover tile, returns the main house variant.
+   */
+  private houses(tile: Tile): Variant | null
+  /**
+   * Set the house variant for a given tile.
+   * If the tile is already occupied by a house, it's main and crossover tiles
+   * will first be removed before the new house is placed.
+   */
+  private houses(tile: Tile, variant: Variant | null): void
+  private houses(tile: Tile, variant?: Variant | null) {
+    // Get the main house tile or null.
+    const get = ({ row, col }: Tile) => {
+      const current = this._houses[row][col]
+
+      return current === null || "crossoverTiles" in current
+        ? current
+        : (this._houses[current.row][current.col] as Variant)
+    }
+
+    const set = ({ row, col }: Tile, value: Variant | Tile | null) => {
+      const currentMain = get({ row, col })
+
+      // Clear the current house's main and crossover tiles.
+      if (currentMain !== null) {
+        // Check if the current tile is a crossover tile.
+        // If so, clear the main tile.
+        const current = this._houses[row][col]
+        if (current !== null && !("crossoverTiles" in current)) {
+          this._houses[current.row][current.col] = null
+        }
+
+        // Clear the current tile (may be a main or crossover tile).
+        this._houses[row][col] = null
+
+        // Clear the crossover tiles.
+        currentMain.crossoverTiles.forEach(cTile => {
+          this._houses[cTile.row][cTile.col] = null
+        })
+      }
+
+      // Set the new current (may be null, a main, or a crossover tile).
+      this._houses[row][col] = value
+
+      // Set the crossover tiles if the current tile is a main tile.
+      if (value !== null && "crossoverTiles" in value) {
+        value.crossoverTiles.forEach(cTile => set(cTile, { row, col }))
+      }
+    }
+
+    if (variant === undefined) return get(tile)
+
+    set(tile, variant)
   }
 
   get type() {
@@ -36,10 +90,10 @@ export default class extends BaseManager {
 
   /** Checks if a house can be added at the given tile. */
   private canAdd = (tile: Tile) =>
-    this.level.road.dirs(tile).size > 0 && !this.occupied(tile)
+    this.level.road.dirs(tile).size > 0 && !this.houses(tile)
 
   /** Checks if a house can be rotated at the given tile. */
-  private canRotate = (tile: Tile) => this.occupied(tile) //&& this.variants(tile).length >= 1
+  private canRotate = (tile: Tile) => this.houses(tile) //&& this.variants(tile).length >= 1
 
   /**
    * Places a house on the environment layer at the given tile.
@@ -55,8 +109,7 @@ export default class extends BaseManager {
     const variant = variants[0]
 
     // Occupy the tile and any crossover tiles for the house variant.
-    for (const oTile of [tile, ...variant.crossoverTiles])
-      this.occupied(oTile, true)
+    this.houses(tile, variant)
 
     this.level.addObject(
       "ObjectGroup.ENDPOINTS",
@@ -140,7 +193,7 @@ export default class extends BaseManager {
   }
 
   /** Returns the house variants that can be placed on a given tile. */
-  private variants(tile: Tile) {
+  private variants(tile: Tile): Variant[] {
     const roadId = this.level.road.dirsToId(this.level.road.dirs(tile))
 
     return this.roadIdToVariantKeys(roadId)
@@ -149,7 +202,7 @@ export default class extends BaseManager {
         crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
       }))
       .filter(({ crossoverTiles }) =>
-        crossoverTiles.every(cTile => !this.occupied(cTile)),
+        crossoverTiles.every(cTile => !this.houses(cTile)),
       )
   }
 
