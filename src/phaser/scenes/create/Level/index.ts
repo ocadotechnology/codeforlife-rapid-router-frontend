@@ -184,14 +184,15 @@ export default class extends BaseLevel<LevelData> {
    * Returns the tile after moving in the given directions.
    * Returns null if the resulting tile is outside the tilemap bounds.
    */
-  moveFromTile(tile: Tile, dirs: Direction[]): Tile | null {
+  moveFromTile({ col, row }: Tile, dirs: Direction[]): Tile | null {
     for (const dir of dirs) {
-      if (dir === "left") tile.col--
-      else if (dir === "right") tile.col++
-      else if (dir === "top") tile.row--
-      else tile.row++
+      if (dir === "left") col--
+      else if (dir === "right") col++
+      else if (dir === "top") row--
+      else row++ // bottom
     }
 
+    const tile = { col, row }
     return this.tileInMap(tile) ? tile : null
   }
 
