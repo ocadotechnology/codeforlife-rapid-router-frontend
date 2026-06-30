@@ -42,30 +42,30 @@ export default class extends BaseManager {
   private houses(tile: Tile, house?: House | null) {
     // Get the main house tile or null.
     const get = ({ row, col }: Tile) => {
-      const current = this._houses[row][col]
+      const house = this._houses[row][col]
 
-      return current === null || "variant" in current
-        ? current
-        : (this._houses[current.row][current.col] as House)
+      return house === null || "variant" in house
+        ? house
+        : (this._houses[house.row][house.col] as House)
     }
 
     const set = ({ row, col }: Tile, value: House | Tile | null) => {
-      const currentMain = get({ row, col })
+      const currentHouse = get({ row, col })
 
       // Clear the current house's main and crossover tiles.
-      if (currentMain !== null) {
+      if (currentHouse !== null) {
         // Check if the current tile is a crossover tile.
         // If so, clear the main tile.
-        const current = this._houses[row][col]
-        if (current !== null && !("variant" in current)) {
-          this._houses[current.row][current.col] = null
+        const house = this._houses[row][col]
+        if (house !== null && !("variant" in house)) {
+          this._houses[house.row][house.col] = null
         }
 
         // Clear the current tile (may be a main or crossover tile).
         this._houses[row][col] = null
 
         // Clear the crossover tiles.
-        currentMain.variant.crossoverTiles.forEach(cTile => {
+        currentHouse.variant.crossoverTiles.forEach(cTile => {
           this._houses[cTile.row][cTile.col] = null
         })
       }
