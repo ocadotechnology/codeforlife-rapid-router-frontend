@@ -9,6 +9,7 @@ type VariantKey =
   | keyof layers.objectGroup.objects.StraightRotationVariants
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
 type Variant = { key: VariantKey; crossoverTiles: Tile[] }
+type House = { obj: Phaser.GameObjects.Image; variant: Variant }
 
 export default class extends BaseManager {
   /**
@@ -19,7 +20,7 @@ export default class extends BaseManager {
    * - A value of `Variant` means the tile is occupied by the main tile of a
    *   house.
    */
-  private readonly _houses: (Variant | Tile | null)[][] = Array.from(
+  private readonly _houses: (House | Tile | null)[][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => null),
   )
@@ -31,24 +32,24 @@ export default class extends BaseManager {
    * Get the house variant for a given tile.
    * If the tile is a crossover tile, returns the main house variant.
    */
-  private houses(tile: Tile): Variant | null
+  private houses(tile: Tile): House | null
   /**
    * Set the house variant for a given tile.
    * If the tile is already occupied by a house, it's main and crossover tiles
    * will first be removed before the new house is placed.
    */
-  private houses(tile: Tile, variant: Variant | null): void
-  private houses(tile: Tile, variant?: Variant | null) {
+  private houses(tile: Tile, house: House | null): void
+  private houses(tile: Tile, house?: House | null) {
     // Get the main house tile or null.
     const get = ({ row, col }: Tile) => {
       const current = this._houses[row][col]
 
-      return current === null || "crossoverTiles" in current
+      return current === null || "variant" in current
         ? current
-        : (this._houses[current.row][current.col] as Variant)
+        : (this._houses[current.row][current.col] as House)
     }
 
-    const set = ({ row, col }: Tile, value: Variant | Tile | null) => {
+    const set = ({ row, col }: Tile, value: House | Tile | null) => {
       const currentMain = get({ row, col })
 
       // Clear the current house's main and crossover tiles.
@@ -56,7 +57,7 @@ export default class extends BaseManager {
         // Check if the current tile is a crossover tile.
         // If so, clear the main tile.
         const current = this._houses[row][col]
-        if (current !== null && !("crossoverTiles" in current)) {
+        if (current !== null && !("variant" in current)) {
           this._houses[current.row][current.col] = null
         }
 
@@ -64,7 +65,7 @@ export default class extends BaseManager {
         this._houses[row][col] = null
 
         // Clear the crossover tiles.
-        currentMain.crossoverTiles.forEach(cTile => {
+        currentMain.variant.crossoverTiles.forEach(cTile => {
           this._houses[cTile.row][cTile.col] = null
         })
       }
@@ -73,14 +74,14 @@ export default class extends BaseManager {
       this._houses[row][col] = value
 
       // Set the crossover tiles if the current tile is a main tile.
-      if (value !== null && "crossoverTiles" in value) {
-        value.crossoverTiles.forEach(cTile => set(cTile, { row, col }))
+      if (value !== null && "variant" in value) {
+        value.variant.crossoverTiles.forEach(cTile => set(cTile, { row, col }))
       }
     }
 
-    if (variant === undefined) return get(tile)
+    if (house === undefined) return get(tile)
 
-    set(tile, variant)
+    set(tile, house)
   }
 
   get type() {
@@ -93,32 +94,59 @@ export default class extends BaseManager {
     this.level.road.dirs(tile).size > 0 && !this.houses(tile)
 
   /** Checks if a house can be rotated at the given tile. */
-  private canRotate = (tile: Tile) => this.houses(tile) //&& this.variants(tile).length >= 1
+  private canRotate = (tile: Tile) =>
+    this.houses(tile) && this.variants(tile).length >= 1
 
-  /**
-   * Places a house on the environment layer at the given tile.
-   *
-   * The house orientation depends on the road directions on the tile.
-   */
-  private add(tile: Tile) {
-    // Require a road on this tile.
-    if (!this.canAdd(tile)) return
-
-    const variants = this.variants(tile)
-    if (variants.length === 0) return
-    const variant = variants[0]
-
-    // Occupy the tile and any crossover tiles for the house variant.
-    this.houses(tile, variant)
-
-    this.level.addObject(
+  /** Adds a house variant to the given tile. */
+  private addVariant(tile: Tile, variant: Variant) {
+    // Add the house object to the endpoints layer.
+    const obj = this.level.addObject(
       "ObjectGroup.ENDPOINTS",
       // TODO: fix the +1 offset so the house is centered on the tile.
       this.type[variant.key]({ col: tile.col + 1, row: tile.row + 1 }),
     )
+
+    // Occupy the tile and any crossover tiles for the house variant.
+    this.houses(tile, { obj, variant })
   }
 
-  /** Returns the house variants for a given road ID. */
+  /** Adds a house to the given tile, using the first available variant. */
+  private add(tile: Tile) {
+    // Get the first available house variant for the tile.
+    const variants = this.variants(tile)
+    if (variants.length > 0) this.addVariant(tile, variants[0])
+  }
+
+  /** Rotates the house at the given tile to the next available variant. */
+  private rotate(tile: Tile) {
+    const house = this.houses(tile)
+    if (!house) return
+
+    // Get the next available house variant for the tile.
+    const variants = this.variants(tile)
+    const variant = variants.find(v => v.key !== house.variant.key)
+    if (!variant) return
+
+    // Remove the current house object from the endpoints layer.
+    this.level.destroyObject("ObjectGroup.ENDPOINTS", house.obj)
+
+    // Add the new house variant to the tile.
+    this.addVariant(tile, variant)
+  }
+
+  /**
+   * Returns the house variants for a given road ID.
+   *
+   * Variants are ordered in a clockwise direction starting from left:
+   * 1. Left
+   * 2. Top Left
+   * 3. Top
+   * 4. Top Right
+   * 5. Right
+   * 6. Bottom Right
+   * 7. Bottom
+   * 8. Bottom Left
+   */
   private roadIdToVariantKeys(roadId: layers.tile.data.RoadID): VariantKey[] {
     // Straight
     if (roadId === this.level.road.ids.Straight.HORIZONTAL)
@@ -129,9 +157,9 @@ export default class extends BaseManager {
     if (roadId === this.level.road.ids.DeadEnd.TOP)
       return ["left", "top", "right"]
     if (roadId === this.level.road.ids.DeadEnd.BOTTOM)
-      return ["left", "bottom", "right"]
+      return ["left", "right", "bottom"]
     if (roadId === this.level.road.ids.DeadEnd.LEFT)
-      return ["top", "left", "bottom"]
+      return ["left", "top", "bottom"]
     if (roadId === this.level.road.ids.DeadEnd.RIGHT)
       return ["top", "right", "bottom"]
     // Turn
@@ -140,21 +168,21 @@ export default class extends BaseManager {
     if (roadId === this.level.road.ids.Turn.TOP_RIGHT)
       return ["outTopRight", "inBottomLeft"]
     if (roadId === this.level.road.ids.Turn.BOTTOM_LEFT)
-      return ["outBottomLeft", "inTopRight"]
+      return ["inTopRight", "outBottomLeft"]
     if (roadId === this.level.road.ids.Turn.BOTTOM_RIGHT)
-      return ["outBottomRight", "inTopLeft"]
+      return ["inTopLeft", "outBottomRight"]
     // T-junction
     if (roadId === this.level.road.ids.TJunction.TOP_LEFT_RIGHT)
-      return ["top", "inBottomLeft", "inBottomRight"]
+      return ["top", "inBottomRight", "inBottomLeft"]
     if (roadId === this.level.road.ids.TJunction.LEFT_RIGHT_BOTTOM)
-      return ["bottom", "inTopLeft", "inTopRight"]
+      return ["inTopLeft", "inTopRight", "bottom"]
     if (roadId === this.level.road.ids.TJunction.TOP_RIGHT_BOTTOM)
-      return ["right", "inBottomLeft", "inTopLeft"]
+      return ["inTopLeft", "right", "inBottomLeft"]
     if (roadId === this.level.road.ids.TJunction.TOP_LEFT_BOTTOM)
-      return ["left", "inBottomRight", "inTopRight"]
+      return ["left", "inTopRight", "inBottomRight"]
     // Crossroads
     if (roadId === this.level.road.ids.CROSSROADS)
-      return ["inTopLeft", "inTopRight", "inBottomLeft", "inBottomRight"]
+      return ["inTopLeft", "inTopRight", "inBottomRight", "inBottomLeft"]
     // No road tile means no house can be placed, so skip.
     return []
   }
@@ -210,11 +238,13 @@ export default class extends BaseManager {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house") return
 
+    this.level.graphics.clear() // Clear any previous hover highlight.
+
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (tile) {
-      this.add(tile)
-      this.level.graphics.clear() // Clear any previous hover highlight.
-    }
+    if (!tile) return
+
+    if (this.canAdd(tile)) this.add(tile)
+    else if (this.canRotate(tile)) this.rotate(tile)
   }
 
   onPointerMove(pointer: Phaser.Input.Pointer) {

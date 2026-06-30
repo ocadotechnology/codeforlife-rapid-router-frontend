@@ -162,4 +162,15 @@ export default class BaseLevel<
     this.layers[layerName].push(image)
     return image
   }
+
+  destroyObject(
+    layerName: layers.objectGroup.Name,
+    obj: Phaser.GameObjects.Image,
+  ) {
+    const layer = this.layers[layerName]
+    const index = layer.indexOf(obj)
+    if (index === -1) throw new Error("Object not found in layer")
+    layer.splice(index, 1)
+    obj.destroy()
+  }
 }
