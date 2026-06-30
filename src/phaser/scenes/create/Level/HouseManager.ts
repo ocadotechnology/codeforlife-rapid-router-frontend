@@ -1,7 +1,8 @@
 import type Phaser from "phaser"
+import RotateRightIcon from "@mui/icons-material/RotateRight"
 
 import * as layers from "../../../layers"
-import type { Direction, default as Level, Tile } from "."
+import type { Direction, Tile } from "."
 import BaseManager from "./BaseManager"
 
 type VariantKey =
@@ -13,15 +14,13 @@ export default class extends BaseManager {
    * Persistent 2D array [row][col] indicating whether each tile is occupied by
    * a house.
    */
-  private readonly _occupied: boolean[][]
+  private readonly _occupied = Array.from(
+    { length: this.level.tilemap.height },
+    () => Array.from({ length: this.level.tilemap.width }, () => false),
+  )
 
-  constructor(level: Level) {
-    super(level)
-
-    this._occupied = Array.from({ length: this.level.tilemap.height }, () =>
-      Array.from({ length: this.level.tilemap.width }, () => false),
-    )
-  }
+  /** CSS cursor string for the rotate-right icon, pre-computed once. */
+  private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
 
   occupied(tile: Tile): boolean
   occupied(tile: Tile, value: boolean): void
@@ -39,6 +38,9 @@ export default class extends BaseManager {
   private canAdd = (tile: Tile) =>
     this.level.road.dirs(tile).size > 0 && !this.occupied(tile)
 
+  /** Checks if a house can be rotated at the given tile. */
+  private canRotate = (tile: Tile) => this.occupied(tile) //&& this.variants(tile).length >= 1
+
   /**
    * Places a house on the environment layer at the given tile.
    *
@@ -48,31 +50,23 @@ export default class extends BaseManager {
     // Require a road on this tile.
     if (!this.canAdd(tile)) return
 
-    const roadId = this.level.road.getIdFromDirs(this.level.road.dirs(tile))
+    const variants = this.variants(tile)
+    if (variants.length === 0) return
+    const variant = variants[0]
 
-    const variantKeys = this.getVariantKeysFromRoadId(roadId)
-    if (variantKeys.length === 0) return
-
-    // TODO: choose the correct house variant based on whether other houses are
-    // currently present on the tile.
-    const variantKey = variantKeys[0]
-    if (!variantKey) return
-
-    this.occupied(tile, true)
-    for (const cTile of this.getCrossoverTilesFromVariantKey(tile, variantKey))
-      this.occupied(cTile, true)
+    // Occupy the tile and any crossover tiles for the house variant.
+    for (const oTile of [tile, ...variant.crossoverTiles])
+      this.occupied(oTile, true)
 
     this.level.addObject(
       "ObjectGroup.ENDPOINTS",
       // TODO: fix the +1 offset so the house is centered on the tile.
-      this.type[variantKey]({ col: tile.col + 1, row: tile.row + 1 }),
+      this.type[variant.key]({ col: tile.col + 1, row: tile.row + 1 }),
     )
   }
 
   /** Returns the house variants for a given road ID. */
-  private getVariantKeysFromRoadId(
-    roadId: layers.tile.data.RoadID,
-  ): VariantKey[] {
+  private roadIdToVariantKeys(roadId: layers.tile.data.RoadID): VariantKey[] {
     // Straight
     if (roadId === this.level.road.ids.Straight.HORIZONTAL)
       return ["top", "bottom"]
@@ -113,7 +107,7 @@ export default class extends BaseManager {
   }
 
   /** Returns the tiles that a house variant crosses over into. */
-  private getCrossoverTilesFromVariantKey(
+  private variantKeyToCrossoverTiles(
     tile: Tile,
     variantKey: VariantKey,
   ): Tile[] {
@@ -145,6 +139,20 @@ export default class extends BaseManager {
     return [] // No crossover tiles for variant.
   }
 
+  /** Returns the house variants that can be placed on a given tile. */
+  private variants(tile: Tile) {
+    const roadId = this.level.road.dirsToId(this.level.road.dirs(tile))
+
+    return this.roadIdToVariantKeys(roadId)
+      .map(variantKey => ({
+        key: variantKey,
+        crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
+      }))
+      .filter(({ crossoverTiles }) =>
+        crossoverTiles.every(cTile => !this.occupied(cTile)),
+      )
+  }
+
   onPointerDown(pointer: Phaser.Input.Pointer) {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house") return
@@ -160,9 +168,19 @@ export default class extends BaseManager {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house") return
 
-    // Update the hover highlight for point tools (no drag involved).
+    // Clear any highlighted squares.
     this.level.graphics.clear()
+
+    // Get the tile under the cursor (if in map).
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (tile && this.canAdd(tile)) this.level.highlightTile(tile, 0x00ff00)
+    if (!tile) return
+
+    if (this.canRotate(tile)) {
+      this.level.highlightTile(tile, 0xffff00)
+      this.level.input.setDefaultCursor(this.rotateCursor)
+    } else {
+      this.level.input.setDefaultCursor("pointer")
+      if (this.canAdd(tile)) this.level.highlightTile(tile, 0x00ff00)
+    }
   }
 }

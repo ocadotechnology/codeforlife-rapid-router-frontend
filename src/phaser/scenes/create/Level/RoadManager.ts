@@ -1,5 +1,5 @@
 import * as layers from "../../../layers"
-import type { DirectionSet, default as Level, Tile } from "."
+import type { DirectionSet, Tile } from "."
 import BaseManager from "./BaseManager"
 
 export default class extends BaseManager {
@@ -7,22 +7,17 @@ export default class extends BaseManager {
    * Persistent 2D array [row][col] of all placed road tiles.
    * An empty set means no road tile has been placed at that position.
    */
-  private readonly _dirs: DirectionSet[][]
-
-  /** The type of road currently being placed. */
-  private _type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
-
-  constructor(level: Level) {
-    super(level)
-
-    // Initialize the persistent road tile grid to match the tilemap dimensions.
-    this._dirs = Array.from({ length: this.level.tilemap.height }, () =>
+  private readonly _dirs = Array.from(
+    { length: this.level.tilemap.height },
+    () =>
       Array.from(
         { length: this.level.tilemap.width },
         () => new Set() as DirectionSet,
       ),
-    )
-  }
+  )
+
+  /** The type of road currently being placed. */
+  private _type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
 
   dirs = (tile: Tile) => this._dirs[tile.row][tile.col]
 
@@ -49,7 +44,7 @@ export default class extends BaseManager {
    * by a subsequent drag.
    */
   private add(tile: Tile, dirs: DirectionSet) {
-    const id = this.getIdFromDirs(dirs)
+    const id = this.dirsToId(dirs)
     this.level.putTileAt("Tile.ROAD", id, tile.col, tile.row)
   }
 
@@ -145,7 +140,7 @@ export default class extends BaseManager {
     else if (this.level.drag.tool === "delete-road") this.finalizeDeleteDrag()
   }
 
-  getIdFromDirs(dirs: DirectionSet): layers.tile.data.RoadID {
+  dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {
     // No connections, no road tile.
     if (dirs.size === 0) return layers.tile.data.IDs.EMPTY
     // Dead end
