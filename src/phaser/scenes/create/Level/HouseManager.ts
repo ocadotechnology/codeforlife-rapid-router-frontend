@@ -12,7 +12,7 @@ type VariantKey =
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
 type Variant = { key: VariantKey; crossoverTiles: Tile[] }
 type House = Tile & { obj: Phaser.GameObjects.Image; variant: Variant }
-type Style = (Tile & { type: "add" | "rotate" }) | null
+type Style = Tile & { type: "add" | "rotate" | "delete" }
 
 export default class extends BaseManager {
   /**
@@ -32,7 +32,7 @@ export default class extends BaseManager {
   private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
 
   /** The current style applied to the level. */
-  private _style: Style = null
+  private _style: Style | null = null
 
   constructor(level: Level) {
     super(level)
@@ -111,7 +111,7 @@ export default class extends BaseManager {
     set(tile, house === null ? null : { ...tile, ...house })
   }
 
-  private set style(value: Style) {
+  private set style(value: Style | null) {
     // If the style is unchanged, do nothing.
     if (
       (this._style === null && value === null) ||
@@ -136,7 +136,7 @@ export default class extends BaseManager {
       this.level.highlightTile(tile, 0xffff00)
       this.level.input.setDefaultCursor(this.rotateCursor)
     } else {
-      this.level.highlightTile(tile, 0x00ff00)
+      this.level.highlightTile(tile, type === "add" ? 0x00ff00 : 0xff0000)
       this.level.input.setDefaultCursor("pointer")
     }
   }
@@ -146,13 +146,22 @@ export default class extends BaseManager {
     return layers.objectGroup.objects.endpoints.house.common.orange
   }
 
+  /** Checks if the given tile is the main tile of a house. */
+  private isMainTile(tile: Tile) {
+    const house = this.houses(tile)
+    return house !== null && house.col === tile.col && house.row === tile.row
+  }
+
   /** Checks if a house can be added at the given tile. */
   private canAdd = (tile: Tile) =>
     this.level.road.dirs(tile).size > 0 && !this.houses(tile)
 
   /** Checks if a house can be rotated at the given tile. */
   private canRotate = (tile: Tile) =>
-    this.houses(tile) && this.variants(tile).length >= 2
+    this.isMainTile(tile) && this.variants(tile).length >= 2
+
+  /** Checks if a house can be deleted at the given tile. */
+  private canDelete = (tile: Tile) => this.isMainTile(tile)
 
   /** Adds a house variant to the given tile. */
   private addVariant({
@@ -178,14 +187,14 @@ export default class extends BaseManager {
   }
 
   /** Destroys the given house object. */
-  private destroy({ obj, ...tile }: Pick<House, keyof Tile | "obj">) {
+  private delete({ obj, ...tile }: Pick<House, keyof Tile | "obj">) {
     this.houses(tile, null)
     this.level.destroyObject("ObjectGroup.ENDPOINTS", obj)
   }
 
   /** Destroys the current house object and adds a new variant to the tile. */
-  private destroyAndAddVariant(house: House) {
-    this.destroy(house)
+  private deleteAndAddVariant(house: House) {
+    this.delete(house)
     this.addVariant(house)
   }
 
@@ -202,7 +211,7 @@ export default class extends BaseManager {
     if (variantIndex === -1 || ++variantIndex >= variants.length)
       variantIndex = 0
 
-    this.destroyAndAddVariant({ ...house, variant: variants[variantIndex] })
+    this.deleteAndAddVariant({ ...house, variant: variants[variantIndex] })
   }
 
   /**
@@ -328,41 +337,55 @@ export default class extends BaseManager {
 
     const variants = this.variants(tile, roadId)
     if (variants.length === 0) {
-      this.destroy(house)
+      this.delete(house)
     } else if (variants.every(v => v.key !== house.variant.key)) {
-      this.destroyAndAddVariant({ ...house, variant: variants[0] })
+      this.deleteAndAddVariant({ ...house, variant: variants[0] })
     }
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-house") return
+    if (tool !== "add-house" && tool !== "delete-house") return
 
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
-    let add = false
-    if (this.canAdd(tile)) {
-      this.add(tile)
-      add = true
+    if (tool === "add-house") {
+      // Add a house if possible.
+      let add = false
+      if (this.canAdd(tile)) {
+        this.add(tile)
+        add = true
+      }
+
+      if (this.canRotate(tile)) {
+        // Rotate the house if no house was added.
+        if (!add) this.rotate(tile)
+        // Set the style to indicate that the house can be rotated.
+        this.style = { ...tile, type: "rotate" }
+      } else this.style = null // Clear the style.
+    } else if (this.canDelete(tile)) {
+      this.delete(this.houses(tile)!)
+      this.style = null // Clear the style.
     }
-    if (this.canRotate(tile)) {
-      if (!add) this.rotate(tile)
-      this.style = { ...tile, type: "rotate" }
-    } else this.style = null
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
     const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-house") return
+    if (tool !== "add-house" && tool !== "delete-house") return
 
     // Get the tile under the cursor (if in map).
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
     // Set the style based on if the tile can be added, rotated, or neither.
-    if (this.canRotate(tile)) this.style = { ...tile, type: "rotate" }
-    else if (this.canAdd(tile)) this.style = { ...tile, type: "add" }
-    else this.style = null
+    let style: Style | null = null
+    if (tool === "add-house") {
+      if (this.canAdd(tile)) style = { ...tile, type: "add" }
+      else if (this.canRotate(tile)) style = { ...tile, type: "rotate" }
+    } else {
+      if (this.canDelete(tile)) style = { ...tile, type: "delete" }
+    }
+    this.style = style
   }
 }
