@@ -1,6 +1,9 @@
 import * as layers from "../../../layers"
 import type { DirectionSet, Tile } from "."
 import BaseManager from "./BaseManager"
+import { Events } from "../../../globals"
+
+export type AddRoadEventData = { tile: Tile; id: layers.tile.data.RoadID }
 
 export default class extends BaseManager {
   /**
@@ -46,6 +49,10 @@ export default class extends BaseManager {
   private add(tile: Tile, dirs: DirectionSet) {
     const id = this.dirsToId(dirs)
     this.level.putTileAt("Tile.ROAD", id, tile.col, tile.row)
+    this.level.game.events.emit(Events.ADD_ROAD, {
+      tile,
+      id,
+    } as AddRoadEventData)
   }
 
   /**

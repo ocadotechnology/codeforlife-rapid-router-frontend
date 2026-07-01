@@ -1,15 +1,17 @@
-import type Phaser from "phaser"
+import Phaser from "phaser"
 import RotateRightIcon from "@mui/icons-material/RotateRight"
 
 import * as layers from "../../../layers"
-import type { Direction, Tile } from "."
+import type { Direction, default as Level, Tile } from "."
+import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
+import { Events } from "../../../globals"
 
 type VariantKey =
   | keyof layers.objectGroup.objects.StraightRotationVariants
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
 type Variant = { key: VariantKey; crossoverTiles: Tile[] }
-type House = { obj: Phaser.GameObjects.Image; variant: Variant }
+type House = Tile & { obj: Phaser.GameObjects.Image; variant: Variant }
 
 export default class extends BaseManager {
   /**
@@ -28,6 +30,17 @@ export default class extends BaseManager {
   /** CSS cursor string for the rotate-right icon, pre-computed once. */
   private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
 
+  constructor(level: Level) {
+    super(level)
+
+    const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
+    level.game.events.on(Events.ADD_ROAD, onAddRoad)
+
+    level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      level.game.events.off(Events.ADD_ROAD, onAddRoad)
+    })
+  }
+
   /**
    * Get the house variant for a given tile.
    * If the tile is a crossover tile, returns the main house variant.
@@ -38,8 +51,8 @@ export default class extends BaseManager {
    * If the tile is already occupied by a house, it's main and crossover tiles
    * will first be removed before the new house is placed.
    */
-  private houses(tile: Tile, house: House | null): void
-  private houses(tile: Tile, house?: House | null) {
+  private houses(tile: Tile, house: Omit<House, keyof Tile> | null): void
+  private houses(tile: Tile, house?: Omit<House, keyof Tile> | null) {
     // Get the main house tile or null.
     const get = ({ row, col }: Tile) => {
       const house = this._houses[row][col]
@@ -81,7 +94,7 @@ export default class extends BaseManager {
 
     if (house === undefined) return get(tile)
 
-    set(tile, house)
+    set(tile, house === null ? null : { ...tile, ...house })
   }
 
   get type() {
@@ -98,7 +111,10 @@ export default class extends BaseManager {
     this.houses(tile) && this.variants(tile).length >= 2
 
   /** Adds a house variant to the given tile. */
-  private addVariant(tile: Tile, variant: Variant) {
+  private addVariant({
+    variant,
+    ...tile
+  }: Pick<House, keyof Tile | "variant">) {
     // Add the house object to the endpoints layer.
     const obj = this.level.addObject(
       "ObjectGroup.ENDPOINTS",
@@ -114,7 +130,19 @@ export default class extends BaseManager {
   private add(tile: Tile) {
     // Get the first available house variant for the tile.
     const variants = this.variants(tile)
-    if (variants.length > 0) this.addVariant(tile, variants[0])
+    if (variants.length > 0) this.addVariant({ ...tile, variant: variants[0] })
+  }
+
+  /** Destroys the given house object. */
+  private destroy({ obj, ...tile }: Pick<House, keyof Tile | "obj">) {
+    this.houses(tile, null)
+    this.level.destroyObject("ObjectGroup.ENDPOINTS", obj)
+  }
+
+  /** Destroys the current house object and adds a new variant to the tile. */
+  private destroyAndAddVariant(house: House) {
+    this.destroy(house)
+    this.addVariant(house)
   }
 
   /** Rotates the house at the given tile to the next available variant. */
@@ -130,11 +158,11 @@ export default class extends BaseManager {
     if (variantIndex === -1 || ++variantIndex >= variants.length)
       variantIndex = 0
 
-    // Remove the current house object from the endpoints layer.
-    this.level.destroyObject("ObjectGroup.ENDPOINTS", house.obj)
-
-    // Add the new house variant to the tile.
-    this.addVariant(tile, variants[variantIndex])
+    this.destroyAndAddVariant({
+      ...house,
+      ...tile,
+      variant: variants[variantIndex],
+    })
   }
 
   /**
@@ -224,8 +252,8 @@ export default class extends BaseManager {
   }
 
   /** Returns the house variants that can be placed on a given tile. */
-  private variants(tile: Tile): Variant[] {
-    const roadId = this.level.road.dirsToId(this.level.road.dirs(tile))
+  private variants(tile: Tile, roadId?: layers.tile.data.RoadID): Variant[] {
+    roadId ??= this.level.road.dirsToId(this.level.road.dirs(tile))
 
     return (
       this.roadIdToVariantKeys(roadId)
@@ -239,16 +267,31 @@ export default class extends BaseManager {
         // a main tile of another house or a crossover tile of another house.
         .filter(({ crossoverTiles }) =>
           crossoverTiles.every(cTile => {
-            const house = this._houses[cTile.row][cTile.col]
+            const house = this.houses(cTile)
             return (
               house === null ||
-              (!("variant" in house) &&
-                house.row === tile.row &&
-                house.col === tile.col)
+              (house.row === tile.row && house.col === tile.col)
             )
           }),
         )
     )
+  }
+
+  /** Handles the addition of a road on the map. */
+  private onAddRoad({ id: roadId, tile }: AddRoadEventData) {
+    const house = this.houses(tile)
+    if (!house) return
+
+    // If the road change is on a crossover tile, ignore it — variants are
+    // determined by the road at the main tile, not at crossover tiles.
+    if (house.row !== tile.row || house.col !== tile.col) return
+
+    const variants = this.variants(tile, roadId)
+    if (variants.length === 0) {
+      this.destroy(house)
+    } else if (variants.every(v => v.key !== house.variant.key)) {
+      this.destroyAndAddVariant({ ...house, variant: variants[0] })
+    }
   }
 
   onPointerDown(pointer: Phaser.Input.Pointer) {
