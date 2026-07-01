@@ -95,7 +95,7 @@ export default class extends BaseManager {
 
   /** Checks if a house can be rotated at the given tile. */
   private canRotate = (tile: Tile) =>
-    this.houses(tile) && this.variants(tile).length >= 1
+    this.houses(tile) && this.variants(tile).length >= 2
 
   /** Adds a house variant to the given tile. */
   private addVariant(tile: Tile, variant: Variant) {
@@ -122,16 +122,19 @@ export default class extends BaseManager {
     const house = this.houses(tile)
     if (!house) return
 
-    // Get the next available house variant for the tile.
     const variants = this.variants(tile)
-    const variant = variants.find(v => v.key !== house.variant.key)
-    if (!variant) return
+    if (variants.length < 2) return // No other variants to rotate to.
+
+    let variantIndex = variants.findIndex(v => v.key === house.variant.key)
+    // Current variant is no longer valid, so reset to first.
+    if (variantIndex === -1 || ++variantIndex >= variants.length)
+      variantIndex = 0
 
     // Remove the current house object from the endpoints layer.
     this.level.destroyObject("ObjectGroup.ENDPOINTS", house.obj)
 
     // Add the new house variant to the tile.
-    this.addVariant(tile, variant)
+    this.addVariant(tile, variants[variantIndex])
   }
 
   /**
@@ -224,14 +227,28 @@ export default class extends BaseManager {
   private variants(tile: Tile): Variant[] {
     const roadId = this.level.road.dirsToId(this.level.road.dirs(tile))
 
-    return this.roadIdToVariantKeys(roadId)
-      .map(variantKey => ({
-        key: variantKey,
-        crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
-      }))
-      .filter(({ crossoverTiles }) =>
-        crossoverTiles.every(cTile => !this.houses(cTile)),
-      )
+    return (
+      this.roadIdToVariantKeys(roadId)
+        // Map each variant key to its crossover tiles.
+        .map(variantKey => ({
+          key: variantKey,
+          crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
+        }))
+        // Filter out variants that have crossover tiles already occupied by
+        // other houses. A crossover tile is considered occupied if it is either
+        // a main tile of another house or a crossover tile of another house.
+        .filter(({ crossoverTiles }) =>
+          crossoverTiles.every(cTile => {
+            const house = this._houses[cTile.row][cTile.col]
+            return (
+              house === null ||
+              (!("variant" in house) &&
+                house.row === tile.row &&
+                house.col === tile.col)
+            )
+          }),
+        )
+    )
   }
 
   onPointerDown(pointer: Phaser.Input.Pointer) {
