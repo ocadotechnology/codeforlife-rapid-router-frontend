@@ -36,8 +36,18 @@ export default class extends BaseManager {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
+    const onPointerDown = (pointer: Phaser.Input.Pointer) =>
+      this.onPointerDown(pointer)
+    level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+
+    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
+      this.onPointerMove(pointer)
+    level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
+      level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
     })
   }
 
@@ -97,7 +107,7 @@ export default class extends BaseManager {
     set(tile, house === null ? null : { ...tile, ...house })
   }
 
-  get type() {
+  private get type() {
     // TODO: select the house type from the toolbox.
     return layers.objectGroup.objects.endpoints.house.common.orange
   }
@@ -292,7 +302,7 @@ export default class extends BaseManager {
     }
   }
 
-  onPointerDown(pointer: Phaser.Input.Pointer) {
+  private onPointerDown(pointer: Phaser.Input.Pointer) {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house") return
 
@@ -305,7 +315,7 @@ export default class extends BaseManager {
     else if (this.canRotate(tile)) this.rotate(tile)
   }
 
-  onPointerMove(pointer: Phaser.Input.Pointer) {
+  private onPointerMove(pointer: Phaser.Input.Pointer) {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house") return
 

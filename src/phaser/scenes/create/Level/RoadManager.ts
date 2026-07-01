@@ -1,6 +1,9 @@
+import Phaser from "phaser"
+
 import * as layers from "../../../layers"
-import type { DirectionSet, Tile } from "."
+import type { DirectionSet, default as Level, Tile } from "."
 import BaseManager from "./BaseManager"
+import type { DragEndEventData } from "./DragManager"
 import { Events } from "../../../globals"
 
 export type AddRoadEventData = { tile: Tile; id: layers.tile.data.RoadID }
@@ -20,24 +23,23 @@ export default class extends BaseManager {
   )
 
   /** The type of road currently being placed. */
-  private _type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
+  private type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
+
+  constructor(level: Level) {
+    super(level)
+
+    const onDragEnd = (event: DragEndEventData) => this.onDragEnd(event)
+    level.game.events.on(Events.DRAG_END, onDragEnd)
+
+    level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      level.game.events.off(Events.DRAG_END, onDragEnd)
+    })
+  }
 
   dirs = (tile: Tile) => this._dirs[tile.row][tile.col]
 
   get ids() {
     return layers.tile.data.IDs.Road[this.type]
-  }
-
-  get type() {
-    return this._type
-  }
-
-  set type(type: keyof typeof layers.tile.data.IDs.Road) {
-    // TODO: select the road type from the toolbox.
-    if (type !== this._type) {
-      // TODO: redraw all existing road tiles to the new type.
-    }
-    this._type = type
   }
 
   /**
@@ -62,12 +64,12 @@ export default class extends BaseManager {
    * crossroads turns the four previously-connected straights into dead ends
    * pointing away from where the crossroads was.
    */
-  private finalizeDeleteDrag() {
+  private finalizeDeleteDrag(drag: Pick<DragEndEventData, "set">) {
     // Collect every tile that needs to be redrawn (deleted tiles + affected
     // neighbours) so we only touch the minimum set.
-    const toRedraw = this.level.drag.set
+    const toRedraw = drag.set
 
-    for (const key of this.level.drag.set) {
+    for (const key of drag.set) {
       const tile = this.level.keyToTile(key)
       const deletedDirs = this.dirs(tile)
 
@@ -105,17 +107,17 @@ export default class extends BaseManager {
    * it. This means two adjacent tiles never force a shared connection on each
    * other.
    */
-  private finalizeAddDrag() {
+  private finalizeAddDrag(drag: Pick<DragEndEventData, "sequence">) {
     const pending = new Map<string, Tile & { dirs: DirectionSet }>()
 
-    for (let i = 0; i < this.level.drag.sequence.length; i++) {
-      const current = this.level.drag.sequence[i]
+    for (let i = 0; i < drag.sequence.length; i++) {
+      const current = drag.sequence[i]
       const currentKey = this.level.tileToKey(current)
       if (!pending.has(currentKey)) {
         pending.set(currentKey, { ...current, dirs: new Set() as DirectionSet })
       }
 
-      const next = this.level.drag.sequence[i + 1]
+      const next = drag.sequence[i + 1]
       if (!next) continue
       const nextKey = this.level.tileToKey(next)
       if (!pending.has(nextKey)) {
@@ -142,9 +144,9 @@ export default class extends BaseManager {
     }
   }
 
-  onPointerUp() {
-    if (this.level.drag.tool === "add-road") this.finalizeAddDrag()
-    else if (this.level.drag.tool === "delete-road") this.finalizeDeleteDrag()
+  private onDragEnd({ tool, ...drag }: DragEndEventData) {
+    if (tool === "add-road") this.finalizeAddDrag(drag)
+    else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
   }
 
   dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {

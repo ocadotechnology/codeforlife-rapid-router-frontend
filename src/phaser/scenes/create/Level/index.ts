@@ -60,20 +60,6 @@ export default class extends BaseLevel<LevelData> {
     // Set the depth to 1 so it renders above the grid and tilemap layers.
     this.graphics = this.add.customGraphics().setDepth(1)
 
-    // Register pointer events.
-    this.input.on(
-      Phaser.Input.Events.POINTER_DOWN,
-      (pointer: Phaser.Input.Pointer) => this.onPointerDown(pointer),
-    )
-    this.input.on(
-      Phaser.Input.Events.POINTER_MOVE,
-      (pointer: Phaser.Input.Pointer) => this.onPointerMove(pointer),
-    )
-    this.input.on(Phaser.Input.Events.POINTER_UP, () => this.onPointerUp())
-    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, () =>
-      this.onPointerUpOutside(),
-    )
-
     // Launch the Toolbox scene, providing the active tool.
     this.scene.launch(Toolbox.KEY)
 
@@ -90,24 +76,6 @@ export default class extends BaseLevel<LevelData> {
   get toolbox() {
     return this.scene.get<Toolbox>(Toolbox.KEY)
   }
-
-  private onPointerDown(pointer: Phaser.Input.Pointer) {
-    this.drag.onPointerDown(pointer)
-    this.house.onPointerDown(pointer)
-  }
-
-  private onPointerMove(pointer: Phaser.Input.Pointer) {
-    this.drag.onPointerMove(pointer)
-    this.house.onPointerMove(pointer)
-  }
-
-  private onPointerUp() {
-    this.road.onPointerUp()
-    this.drag.onPointerUp()
-    this.graphics.clear()
-  }
-
-  private onPointerUpOutside = () => this.onPointerUp()
 
   /**
    * Converts world coordinates to a tile position, clamping to the nearest edge

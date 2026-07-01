@@ -15,6 +15,7 @@ export const Events = createIdRegistry({
   "set-level-id": "SET_LEVEL_ID",
   "gameplay-scene-ready": "GAMEPLAY_SCENE_READY",
   "add-road": "ADD_ROAD",
+  "drag-end": "DRAG_END",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 
