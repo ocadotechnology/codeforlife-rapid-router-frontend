@@ -158,7 +158,9 @@ export default class extends BaseManager {
 
   /** Checks if a house can be added at the given tile. */
   private canAdd = (tile: Tile) =>
-    this.level.road.dirs(tile).size > 0 && !this.houses(tile)
+    this.level.road.dirs(tile).size > 0 &&
+    !this.houses(tile) &&
+    this.variants(tile).length > 0
 
   /** Checks if a house can be rotated at the given tile. */
   private canRotate = (tile: Tile) =>
