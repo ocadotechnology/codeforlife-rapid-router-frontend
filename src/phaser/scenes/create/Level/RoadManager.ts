@@ -67,7 +67,7 @@ export default class extends BaseManager {
   private finalizeDeleteDrag(drag: Pick<DragEndEventData, "set">) {
     // Collect every tile that needs to be redrawn (deleted tiles + affected
     // neighbours) so we only touch the minimum set.
-    const toRedraw = drag.set
+    const toRedraw = new Set(drag.set)
 
     for (const key of drag.set) {
       const tile = this.level.keyToTile(key)

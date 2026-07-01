@@ -161,7 +161,7 @@ export default class extends BaseManager {
     if (!tool || !(tool in this.toolConfigs)) return
     const toolConfig = this.toolConfigs[tool]!
 
-    const tile = this.level.worldToNearestTile(pointer.worldX, pointer.worldY)
+    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
     this._tool = tool
