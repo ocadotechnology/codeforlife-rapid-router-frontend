@@ -2,8 +2,8 @@ import Phaser from "phaser"
 import RotateRightIcon from "@mui/icons-material/RotateRight"
 
 import * as layers from "../../../layers"
+import type { AddRoadEventData, DeleteRoadEventData } from "./RoadManager"
 import type { Direction, default as Level, Tile } from "."
-import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 
@@ -40,6 +40,9 @@ export default class extends BaseManager {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
+    const onDeleteRoad = (data: DeleteRoadEventData) => this.onDeleteRoad(data)
+    level.game.events.on(Events.DELETE_ROAD, onDeleteRoad)
+
     const onPointerDown = (pointer: Phaser.Input.Pointer) =>
       this.onPointerDown(pointer)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
@@ -50,6 +53,7 @@ export default class extends BaseManager {
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
+      level.game.events.off(Events.DELETE_ROAD, onDeleteRoad)
       level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
       level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
     })
@@ -147,8 +151,8 @@ export default class extends BaseManager {
   }
 
   /** Checks if the given tile is the main tile of a house. */
-  private isMainTile(tile: Tile) {
-    const house = this.houses(tile)
+  private isMainTile(tile: Tile, house?: House | null) {
+    house = house === undefined ? this.houses(tile) : house
     return house !== null && house.col === tile.col && house.row === tile.row
   }
 
@@ -327,20 +331,20 @@ export default class extends BaseManager {
   }
 
   /** Handles the addition of a road on the map. */
-  private onAddRoad({ id: roadId, tile }: AddRoadEventData) {
+  private onAddRoad({ id: roadId, ...tile }: AddRoadEventData) {
     const house = this.houses(tile)
-    if (!house) return
-
-    // If the road change is on a crossover tile, ignore it — variants are
-    // determined by the road at the main tile, not at crossover tiles.
-    if (house.row !== tile.row || house.col !== tile.col) return
+    if (!this.isMainTile(tile, house)) return
 
     const variants = this.variants(tile, roadId)
-    if (variants.length === 0) {
-      this.delete(house)
-    } else if (variants.every(v => v.key !== house.variant.key)) {
-      this.deleteAndAddVariant({ ...house, variant: variants[0] })
+    if (variants.length === 0) this.delete(house!)
+    else if (variants.every(v => v.key !== house!.variant.key)) {
+      this.deleteAndAddVariant({ ...house!, variant: variants[0] })
     }
+  }
+
+  /** Handles the deletion of a road on the map. */
+  private onDeleteRoad(tile: DeleteRoadEventData) {
+    if (this.canDelete(tile)) this.delete(this.houses(tile)!)
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
@@ -376,15 +380,16 @@ export default class extends BaseManager {
 
     // Get the tile under the cursor (if in map).
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (!tile) return
 
     // Set the style based on if the tile can be added, rotated, or neither.
     let style: Style | null = null
-    if (tool === "add-house") {
-      if (this.canAdd(tile)) style = { ...tile, type: "add" }
-      else if (this.canRotate(tile)) style = { ...tile, type: "rotate" }
-    } else {
-      if (this.canDelete(tile)) style = { ...tile, type: "delete" }
+    if (tile) {
+      if (tool === "add-house") {
+        if (this.canAdd(tile)) style = { ...tile, type: "add" }
+        else if (this.canRotate(tile)) style = { ...tile, type: "rotate" }
+      } else {
+        if (this.canDelete(tile)) style = { ...tile, type: "delete" }
+      }
     }
     this.style = style
   }

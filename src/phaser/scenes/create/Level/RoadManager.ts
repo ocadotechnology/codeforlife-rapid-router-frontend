@@ -6,7 +6,8 @@ import BaseManager from "./BaseManager"
 import type { DragEndEventData } from "./DragManager"
 import { Events } from "../../../globals"
 
-export type AddRoadEventData = { tile: Tile; id: layers.tile.data.RoadID }
+export type AddRoadEventData = Tile & { id: layers.tile.data.RoadID }
+export type DeleteRoadEventData = Tile
 
 export default class extends BaseManager {
   /**
@@ -52,9 +53,15 @@ export default class extends BaseManager {
     const id = this.dirsToId(dirs)
     this.level.putTileAt("Tile.ROAD", id, tile.col, tile.row)
     this.level.game.events.emit(Events.ADD_ROAD, {
-      tile,
+      ...tile,
       id,
     } as AddRoadEventData)
+  }
+
+  /** Deletes a road tile at the given tile position. */
+  private delete(tile: Tile) {
+    this.level.layers["Tile.ROAD"].putTileAt(-1, tile.col, tile.row)
+    this.level.game.events.emit(Events.DELETE_ROAD, tile)
   }
 
   /**
@@ -94,7 +101,7 @@ export default class extends BaseManager {
       // If the tile has connections, redraw the road tile.
       if (dirs.size !== 0) this.add(tile, dirs)
       // Otherwise, remove the road tile entirely.
-      else this.level.layers["Tile.ROAD"].putTileAt(-1, tile.col, tile.row)
+      else this.delete(tile)
     }
   }
 
