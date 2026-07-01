@@ -107,8 +107,10 @@ export default class extends BaseManager {
     this.level.road.dirs(tile).size > 0 && !this.houses(tile)
 
   /** Checks if a house can be rotated at the given tile. */
-  private canRotate = (tile: Tile) =>
-    this.houses(tile) && this.variants(tile).length >= 2
+  private canRotate(tile: Tile) {
+    const house = this.houses(tile)
+    return house !== null && this.variants(house).length >= 2
+  }
 
   /** Adds a house variant to the given tile. */
   private addVariant({
@@ -150,7 +152,7 @@ export default class extends BaseManager {
     const house = this.houses(tile)
     if (!house) return
 
-    const variants = this.variants(tile)
+    const variants = this.variants(house)
     if (variants.length < 2) return // No other variants to rotate to.
 
     let variantIndex = variants.findIndex(v => v.key === house.variant.key)
@@ -158,11 +160,7 @@ export default class extends BaseManager {
     if (variantIndex === -1 || ++variantIndex >= variants.length)
       variantIndex = 0
 
-    this.destroyAndAddVariant({
-      ...house,
-      ...tile,
-      variant: variants[variantIndex],
-    })
+    this.destroyAndAddVariant({ ...house, variant: variants[variantIndex] })
   }
 
   /**
